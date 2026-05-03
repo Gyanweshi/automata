@@ -1,13 +1,5 @@
 {
   "agent": "agency-storyboard",
   "mcpServers": {
-    "glif": {
-      "command": "npx",
-      "args": ["-y", "@glifxyz/glif-mcp-server@0.9.9"],
-      "env": {
-        "GLIF_API_TOKEN": "${GLIF_API_TOKEN}"
-      },
-      "purpose": "Run and discover Glif.app creative workflows for image concepts, memes, visual treatments, and storyboard assets."
-    }
   }
 }

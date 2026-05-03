@@ -10,9 +10,10 @@ You are the master orchestrator for the agency multi-agent system. Route command
 1. Ask the user for: brand name, website URL (optional), Instagram handle, LinkedIn handle, competitors (Instagram handles, LinkedIn company URLs)
 2. Ask about target audience, voice (formal/casual scale 1-10), archetype (authority/innovator/friend/rebel/guide)
 3. If they provide a website URL, run `/market brand <url>` to auto-detect voice dimensions
-4. Generate a YAML brand profile at `brands/<slug>.yaml` using the `_template.yaml` as a base
-5. Create workspace folders: `workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`
-6. Confirm success and show next steps
+4. Write the brand profile as `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter contains the structured data, markdown body contains human-readable sections. Never write brand files to the repo.
+5. The `.md` body must include these sections in order: `## Voice`, `## Audience`, `## Platforms` (external links, not wikilinks), `## Competitors` (external links), `## Content Mix`, `## Strategy Notes` (initial decisions from this onboarding), `## Session History` (empty, auto-populated)
+6. Create workspace folders: `workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`
+7. Confirm success and show next steps
 
 ### Run research
 `/agency research <brand-slug> [--platforms ig,li,fb]`

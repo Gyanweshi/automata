@@ -25,7 +25,7 @@ First install these on your computer:
 
 - Git
 - Python 3.11 or newer
-- Node.js 18 or newer, which includes `npm` and `npx`
+- Node.js 20.19+, 22.12+, or 23+, which includes `npm` and `npx`
 - `uv`
 
 Then open only the section for your operating system.
@@ -72,7 +72,8 @@ Add keys to `~/.bashrc`, `~/.zshrc`, or your shell profile:
 export FREEPIK_API_KEY=your_freepik_key_here
 export PERPLEXITY_API_KEY=your_perplexity_key_here
 export FIRECRAWL_API_KEY=your_firecrawl_key_here
-export GLIF_API_TOKEN=your_glif_token_here
+export CAPSULEHUB_API_KEY=your_capsulehub_key_here
+export APIFY_API_TOKEN=your_apify_token_here
 ```
 
 Reload your shell:
@@ -137,7 +138,8 @@ Set API keys:
 [Environment]::SetEnvironmentVariable("FREEPIK_API_KEY", "your_freepik_key_here", "User")
 [Environment]::SetEnvironmentVariable("PERPLEXITY_API_KEY", "your_perplexity_key_here", "User")
 [Environment]::SetEnvironmentVariable("FIRECRAWL_API_KEY", "your_firecrawl_key_here", "User")
-[Environment]::SetEnvironmentVariable("GLIF_API_TOKEN", "your_glif_token_here", "User")
+[Environment]::SetEnvironmentVariable("CAPSULEHUB_API_KEY", "your_capsulehub_key_here", "User")
+[Environment]::SetEnvironmentVariable("APIFY_API_TOKEN", "your_apify_token_here", "User")
 ```
 
 Close and reopen PowerShell.
@@ -179,6 +181,16 @@ For daily agent commands on Windows, use PowerShell:
 
 The bootstrap script checks Python, Node, npm, npx, and `uv`; creates `.venv`; installs the agency packages; prepares the vendored Freepik MCP server; validates MCP configs; verifies pinned npm MCP packages; installs Playwright Chromium; and reports missing API keys.
 
+## Session Logging
+
+Claude Code and Codex sessions can be logged into the Obsidian vault configured by `OBSIDIAN_VAULT_PATH`.
+
+```bash
+python3 scripts/log_session_to_vault.py --codex-current
+```
+
+Codex transcripts are read from `~/.codex/sessions/` and written to `Codex_Sessions/` in the vault. Claude Code Stop hook payloads still write to `Claude_Sessions/`.
+
 ## MCP Servers
 
 The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests live under `mcp/agents/`.
@@ -191,7 +203,10 @@ The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests
 | `playwright` | `@playwright/mcp@0.0.73` | Research | No | Browser automation and page extraction |
 | `firecrawl` | `firecrawl-mcp@3.14.1` | Research | `FIRECRAWL_API_KEY` | Search, scrape, crawl, and structured extraction |
 | `chrome-devtools` | `chrome-devtools-mcp@0.23.0` | Research | No | Console, network, screenshot, and performance inspection |
-| `glif` | `@glifxyz/glif-mcp-server@0.9.9` | Storyboard | `GLIF_API_TOKEN` | Glif.app creative workflows and visual assets |
+| `notebooklm` | `@roomi-fields/notebooklm-mcp@1.5.9` | Research | Google login/session | NotebookLM source-grounded Q&A and notebook workflows |
+| `instaloader` | vendored | Research | Optional Instagram session | Instagram profile and post metadata via Instaloader |
+| `capsulehub` | `mcp-remote@0.1.38` bridge to `https://backend.tilantra.com/mcp/` | Shared context | `CAPSULEHUB_API_KEY` | CapsuleHub context capsules via Tilantra's remote MCP endpoint |
+| `apify` | `@apify/actors-mcp-server@0.9.20` | Research | `APIFY_API_TOKEN` | Apify Actor-backed scraping for social and web workflows |
 
 ### Different MCP Harnesses
 
@@ -203,7 +218,13 @@ For Codex on this machine, you can register a server manually with:
 <summary><strong>Linux, macOS, or WSL</strong></summary>
 
 ```bash
-codex mcp add perplexity --env 'PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}' -- npx -y @perplexity-ai/mcp-server@0.9.0
+codex mcp add perplexity --env 'PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}' -- bash scripts/mcp-npx.sh -y @perplexity-ai/mcp-server@0.9.0
+```
+
+CapsuleHub requires an API key header, so register it through the `mcp-remote` stdio bridge:
+
+```bash
+codex mcp add capsulehub --env 'CAPSULEHUB_API_KEY=${CAPSULEHUB_API_KEY}' -- bash scripts/mcp-npx.sh -y mcp-remote@0.1.38 https://backend.tilantra.com/mcp/ --header 'X-API-Key:${CAPSULEHUB_API_KEY}' --transport sse-only
 ```
 
 </details>
@@ -389,7 +410,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 ### `npx: command not found`
 
-Install Node.js 18 or newer from `https://nodejs.org/`, then reopen your terminal.
+Install Node.js 20.19+, 22.12+, or 23+ from `https://nodejs.org/`, then reopen your terminal.
 
 ### MCP Server Starts But Tool Fails With Auth Error
 
@@ -401,7 +422,8 @@ The API key is missing or not loaded into the environment. Check with:
 ```bash
 echo "$PERPLEXITY_API_KEY"
 echo "$FIRECRAWL_API_KEY"
-echo "$GLIF_API_TOKEN"
+echo "$CAPSULEHUB_API_KEY"
+echo "$APIFY_API_TOKEN"
 echo "$FREEPIK_API_KEY"
 ```
 
@@ -413,7 +435,8 @@ echo "$FREEPIK_API_KEY"
 ```powershell
 echo $env:PERPLEXITY_API_KEY
 echo $env:FIRECRAWL_API_KEY
-echo $env:GLIF_API_TOKEN
+echo $env:CAPSULEHUB_API_KEY
+echo $env:APIFY_API_TOKEN
 echo $env:FREEPIK_API_KEY
 ```
 
@@ -451,7 +474,8 @@ npm view @perplexity-ai/mcp-server version
 npm view @playwright/mcp version
 npm view firecrawl-mcp version
 npm view chrome-devtools-mcp version
-npm view @glifxyz/glif-mcp-server version
+npm view mcp-remote version
+npm view @apify/actors-mcp-server version
 ```
 
 Then update `.mcp.json`, `mcp/agents/*.json`, and this README together.

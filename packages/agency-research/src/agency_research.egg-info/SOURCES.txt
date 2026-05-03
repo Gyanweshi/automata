@@ -17,4 +17,5 @@ src/agency_research/scrapers/__init__.py
 src/agency_research/scrapers/facebook.py
 src/agency_research/scrapers/instagram.py
 src/agency_research/scrapers/linkedin.py
+src/agency_research/scrapers/playwright_instagram.py
 tests/test_scrapers.py

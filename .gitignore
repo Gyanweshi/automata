@@ -17,6 +17,12 @@ env/
 .env.*
 *.env
 
+# Brand profiles — stored in Obsidian vault, not committed
+brands/*.yaml
+brands/*.md
+!brands/_template.yaml
+!brands/example-brand.yaml
+
 # Workspace outputs (generated content — don't commit by default)
 workspace/research/*/
 workspace/storyboards/*/

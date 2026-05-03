@@ -2,30 +2,59 @@
   "agent": "agency-research",
   "mcpServers": {
     "perplexity": {
-      "command": "npx",
-      "args": ["-y", "@perplexity-ai/mcp-server@0.9.0"],
+      "command": "bash",
+      "args": ["scripts/mcp-npx.sh", "-y", "@perplexity-ai/mcp-server@0.9.0"],
       "env": {
         "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
       },
       "purpose": "Current web search, citation-backed answers, deep research, and reasoning."
     },
     "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@0.0.73"],
+      "command": "bash",
+      "args": ["scripts/mcp-npx.sh", "-y", "@playwright/mcp@0.0.73"],
       "purpose": "Browser automation for public pages, accessibility snapshots, forms, screenshots, and data extraction."
     },
     "firecrawl": {
-      "command": "npx",
-      "args": ["-y", "firecrawl-mcp@3.14.1"],
+      "command": "bash",
+      "args": ["scripts/mcp-npx.sh", "-y", "firecrawl-mcp@3.14.1"],
       "env": {
         "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
       },
       "purpose": "Search, scrape, crawl, and extract structured web content."
     },
     "chrome-devtools": {
-      "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@0.23.0"],
+      "command": "bash",
+      "args": ["scripts/mcp-npx.sh", "-y", "chrome-devtools-mcp@0.23.0"],
       "purpose": "Inspect live pages, console output, network requests, screenshots, and performance traces."
+    },
+    "notebooklm": {
+      "command": "bash",
+      "args": ["scripts/mcp-npx.sh", "-y", "@roomi-fields/notebooklm-mcp@1.5.9"],
+      "purpose": "Interact with Google NotebookLM notebooks for source-grounded Q&A and notebook workflows."
+    },
+    "instaloader": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "packages/instaloader-mcp",
+        "main.py"
+      ],
+      "env": {
+        "INSTALOADER_USERNAME": "${INSTALOADER_USERNAME}",
+        "INSTALOADER_PASSWORD": "${INSTALOADER_PASSWORD}",
+        "INSTALOADER_SESSION_USERNAME": "${INSTALOADER_SESSION_USERNAME}",
+        "INSTALOADER_SESSION_FILE": "${INSTALOADER_SESSION_FILE}"
+      },
+      "purpose": "Use Instaloader for Instagram profile and post metadata, with optional downloads into workspace/instagram."
+    },
+    "apify": {
+      "command": "bash",
+      "args": ["scripts/mcp-npx.sh", "-y", "@apify/actors-mcp-server@0.9.20"],
+      "env": {
+        "APIFY_TOKEN": "${APIFY_API_TOKEN}"
+      },
+      "purpose": "Run Apify Actors for Instagram, LinkedIn, TikTok, and web scraping at scale."
     }
   }
 }

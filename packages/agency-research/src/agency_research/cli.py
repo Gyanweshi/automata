@@ -41,6 +41,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--list", action="store_true", dest="list_runs", help="List past runs and exit")
     p.add_argument("--format", choices=["json", "summary"], default="summary", help="Output format")
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
+    p.add_argument(
+        "--scraper",
+        choices=["playwright", "instaloader"],
+        default="playwright",
+        help="Instagram scraper backend (default: playwright)",
+    )
+    p.add_argument(
+        "--notebooklm",
+        action="store_true",
+        help="Feed research output into NotebookLM for AI synthesis",
+    )
     return p
 
 
@@ -98,8 +109,8 @@ def main():
     from .agent import ResearchAgent
     from .outputs import write_research_output
 
-    agent = ResearchAgent(config=config)
-    print(f"Running research for '{brand.name}'...")
+    agent = ResearchAgent(config=config, scraper=args.scraper)
+    print(f"Running research for '{brand.name}' (scraper: {args.scraper})...")
     output = agent.run(brand, platforms=platforms, post_count=args.post_count)
 
     # Write to workspace
@@ -123,6 +134,70 @@ def main():
             if research.sentiment:
                 s = research.sentiment
                 print(f"  Sentiment: {s.positive_pct}% positive, {s.negative_pct}% negative")
+
+    if args.notebooklm and md_path:
+        _run_notebooklm(brand.name, args.brand, md_path)
+
+
+def _run_notebooklm(brand_name: str, brand_slug: str, md_path: Path):
+    """Feed the markdown research report into a NotebookLM notebook."""
+    import subprocess
+    import shutil
+
+    nlm = shutil.which("notebooklm")
+    if not nlm:
+        print("\n[notebooklm] notebooklm CLI not found — skipping. Install with: pip install notebooklm-py")
+        return
+
+    # Check auth
+    auth_result = subprocess.run([nlm, "auth", "check", "--json"], capture_output=True, text=True)
+    try:
+        auth_data = json.loads(auth_result.stdout)
+        checks = auth_data.get("checks", {})
+        # token_fetch can be null (not tested) — only the cookie checks matter
+        required = ["storage_exists", "json_valid", "cookies_present", "sid_cookie"]
+        authenticated = all(checks.get(k) for k in required)
+    except Exception:
+        authenticated = False
+
+    if not authenticated:
+        print("\n[notebooklm] Not authenticated — run 'notebooklm login' then retry with --notebooklm")
+        return
+
+    # Create (or reuse) a notebook for this brand
+    title = f"Research: {brand_name}"
+    print(f"\n[notebooklm] Creating notebook '{title}'...")
+    create_result = subprocess.run(
+        [nlm, "create", title, "--json"],
+        capture_output=True, text=True
+    )
+    try:
+        nb_data = json.loads(create_result.stdout)
+        # CLI wraps result under {"notebook": {...}}
+        nb_id = (nb_data.get("notebook") or nb_data).get("id", "")
+    except Exception:
+        print(f"[notebooklm] Failed to create notebook: {create_result.stdout} {create_result.stderr}")
+        return
+
+    if not nb_id:
+        print("[notebooklm] No notebook ID returned.")
+        return
+
+    # Add the markdown report as a source
+    print(f"[notebooklm] Adding research report as source ({md_path.name})...")
+    add_result = subprocess.run(
+        [nlm, "--notebook", nb_id, "source", "add", str(md_path), "--json"],
+        capture_output=True, text=True
+    )
+    try:
+        src_data = json.loads(add_result.stdout)
+        src_id = src_data.get("source_id", "")
+        print(f"[notebooklm] Source added: {src_id} (status: {src_data.get('status', '?')})")
+    except Exception:
+        print(f"[notebooklm] Source add output: {add_result.stdout}")
+
+    print(f"[notebooklm] Notebook ready. Generate a brief with:")
+    print(f"  notebooklm --notebook {nb_id} generate report --format briefing-doc")
 
 
 if __name__ == "__main__":

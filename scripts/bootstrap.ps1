@@ -40,9 +40,9 @@ function Test-PythonVersion {
 }
 
 function Test-NodeVersion {
-    $Major = [int](node -p "process.versions.node.split('.')[0]")
-    if ($Major -lt 18) {
-        Fail "Node.js 18+ is required. Found: $(node --version)"
+    $NodeOk = node -e "const [major, minor] = process.versions.node.split('.').map(Number); process.exit(((major === 20 && minor >= 19) || (major === 22 && minor >= 12) || major >= 23) ? 0 : 1)"
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Node.js 20.19+, 22.12+, or 23+ is required for chrome-devtools-mcp. Found: $(node --version)"
     }
     Ok "Node $(node --version)"
 }
@@ -50,7 +50,7 @@ function Test-NodeVersion {
 Write-Host "==> Checking required tools"
 Require-Command python "Install Python 3.11+ from https://www.python.org/downloads/ and select 'Add python.exe to PATH'."
 Require-Command uv "Install uv with: powershell -ExecutionPolicy ByPass -c `"irm https://astral.sh/uv/install.ps1 | iex`""
-Require-Command node "Install Node.js 18+ from https://nodejs.org/"
+Require-Command node "Install Node.js 20.19+, 22.12+, or 23+ from https://nodejs.org/"
 Require-Command npm "Install npm with Node.js."
 Require-Command npx "Install npx with Node.js/npm."
 Test-PythonVersion
@@ -78,9 +78,10 @@ Write-Host "==> Installing agency packages into .venv"
 Ok "agency CLIs installed"
 
 Write-Host ""
-Write-Host "==> Preparing vendored Freepik FastMCP"
+Write-Host "==> Preparing vendored MCP dependencies"
 uv sync --directory packages/freepik-fastmcp
-Ok "Freepik FastMCP dependencies ready"
+uv sync --directory packages/instaloader-mcp
+Ok "vendored MCP dependencies ready"
 
 Write-Host ""
 Write-Host "==> Validating MCP JSON files"
@@ -95,7 +96,9 @@ npm view @perplexity-ai/mcp-server@0.9.0 version | Out-Null
 npm view @playwright/mcp@0.0.73 version | Out-Null
 npm view firecrawl-mcp@3.14.1 version | Out-Null
 npm view chrome-devtools-mcp@0.23.0 version | Out-Null
-npm view @glifxyz/glif-mcp-server@0.9.9 version | Out-Null
+npm view @roomi-fields/notebooklm-mcp@1.5.9 version | Out-Null
+npm view mcp-remote@0.1.38 version | Out-Null
+npm view @apify/actors-mcp-server@0.9.20 version | Out-Null
 Ok "pinned npm MCP packages are available"
 
 if (-not $SkipPlaywrightBrowser) {
@@ -109,7 +112,7 @@ if (-not $SkipPlaywrightBrowser) {
 
 Write-Host ""
 Write-Host "==> Checking API key environment variables"
-foreach ($Var in @("FREEPIK_API_KEY", "PERPLEXITY_API_KEY", "FIRECRAWL_API_KEY", "GLIF_API_TOKEN")) {
+foreach ($Var in @("FREEPIK_API_KEY", "PERPLEXITY_API_KEY", "FIRECRAWL_API_KEY", "CAPSULEHUB_API_KEY", "APIFY_API_TOKEN")) {
     if ([Environment]::GetEnvironmentVariable($Var)) {
         Ok "$Var is set"
     } else {

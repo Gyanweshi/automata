@@ -9,6 +9,7 @@ Requires-Dist: pydantic<3.0,>=2.0
 Requires-Dist: pyyaml>=6.0
 Requires-Dist: httpx>=0.28
 Requires-Dist: tenacity>=8.2.0
+Requires-Dist: openai<2.0,>=1.0
 Provides-Extra: test
 Requires-Dist: pytest>=7.0.0; extra == "test"
 Requires-Dist: pytest-mock>=3.10.0; extra == "test"

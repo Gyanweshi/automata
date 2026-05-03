@@ -16,7 +16,12 @@ Examples:
 
 1. **Verify install**: `python3 -c "import agency_content; print('OK')"`
 
-2. **Load the brand voice brief**:
+2. **Load context** — do all three before writing a single word:
+   - Read `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>.md` — get the current brand state
+   - Call `search_second_brain` with `"<brand> content style tone campaigns"` — surface past work and decisions
+   - Call `search_second_brain` with the topic — surface any prior notes on this subject
+
+3. **Load the brand voice brief**:
    ```
    agency-content --brand <brand-slug> --voice-brief
    ```

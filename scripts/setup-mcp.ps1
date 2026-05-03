@@ -13,22 +13,31 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 }
 
 if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-    Fail "npx is required. Install Node.js 18+ from https://nodejs.org/ and reopen PowerShell."
+    Fail "npx is required. Install Node.js 20.19+, 22.12+, or 23+ from https://nodejs.org/ and reopen PowerShell."
 }
 
-Write-Host "==> Preparing Freepik FastMCP dependencies..."
+node -e "const [major, minor] = process.versions.node.split('.').map(Number); process.exit(((major === 20 && minor >= 19) || (major === 22 && minor >= 12) || major >= 23) ? 0 : 1)"
+if ($LASTEXITCODE -ne 0) {
+    Fail "Node.js 20.19+, 22.12+, or 23+ is required for chrome-devtools-mcp. Found: $(node --version)"
+}
+
+Write-Host "==> Preparing vendored MCP dependencies..."
 uv sync --directory packages/freepik-fastmcp
+uv sync --directory packages/instaloader-mcp
 
 Write-Host "==> Checking pinned npm MCP packages..."
 npm view @perplexity-ai/mcp-server@0.9.0 version | Out-Null
 npm view @playwright/mcp@0.0.73 version | Out-Null
 npm view firecrawl-mcp@3.14.1 version | Out-Null
 npm view chrome-devtools-mcp@0.23.0 version | Out-Null
-npm view @glifxyz/glif-mcp-server@0.9.9 version | Out-Null
+npm view @roomi-fields/notebooklm-mcp@1.5.9 version | Out-Null
+npm view mcp-remote@0.1.38 version | Out-Null
+npm view @apify/actors-mcp-server@0.9.20 version | Out-Null
 
 Write-Host "==> Done. Set any API keys you use with commands like:"
 Write-Host '    [Environment]::SetEnvironmentVariable("FREEPIK_API_KEY", "your_key_here", "User")'
 Write-Host '    [Environment]::SetEnvironmentVariable("PERPLEXITY_API_KEY", "your_key_here", "User")'
 Write-Host '    [Environment]::SetEnvironmentVariable("FIRECRAWL_API_KEY", "your_key_here", "User")'
-Write-Host '    [Environment]::SetEnvironmentVariable("GLIF_API_TOKEN", "your_token_here", "User")'
+Write-Host '    [Environment]::SetEnvironmentVariable("CAPSULEHUB_API_KEY", "your_key_here", "User")'
+Write-Host '    [Environment]::SetEnvironmentVariable("APIFY_API_TOKEN", "your_token_here", "User")'
 Write-Host "Then close and reopen PowerShell."
