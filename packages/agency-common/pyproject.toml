@@ -8,6 +8,8 @@ version = "0.1.0"
 description = "Shared models, config, and utilities for agency agents"
 requires-python = ">=3.11"
 dependencies = [
+    "python-frontmatter>=1.1.0,<2.0",
+    "python-dotenv>=1.0.0,<2.0",
     "pydantic>=2.0,<3.0",
     "pyyaml>=6.0",
     "httpx>=0.28",
@@ -19,6 +21,13 @@ test = [
     "pytest>=7.0.0",
     "pytest-mock>=3.10.0"
 ]
+vector = [
+    "chromadb>=0.5.0,<2.0",
+]
+
+[project.scripts]
+agency-session-watchdog = "agency_common.obsidian_vector_index:run_session_watchdog"
+agency-autonomous = "agency_common.autonomous_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

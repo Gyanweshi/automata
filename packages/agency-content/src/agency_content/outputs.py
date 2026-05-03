@@ -1,4 +1,4 @@
-"""Write content output to workspace as JSON and Obsidian markdown."""
+"""Write content output to workspace as JSON and markdown."""
 from __future__ import annotations
 
 from pathlib import Path

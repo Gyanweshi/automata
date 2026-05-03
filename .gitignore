@@ -25,6 +25,9 @@ workspace/content/*/
 !workspace/storyboards/.gitkeep
 !workspace/content/.gitkeep
 
+# Local vector databases
+chroma_db/
+
 # API keys and secrets
 *.key
 secrets.yaml
@@ -32,11 +35,6 @@ secrets.yaml
 # OS
 .DS_Store
 Thumbs.db
-
-# Obsidian
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.trash/
 
 # Editor
 .vscode/

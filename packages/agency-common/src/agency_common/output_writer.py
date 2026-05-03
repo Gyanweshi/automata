@@ -1,4 +1,4 @@
-"""Utilities for writing structured outputs as JSON and Obsidian-compatible markdown."""
+"""Utilities for writing structured outputs as JSON and markdown."""
 from __future__ import annotations
 
 import json
@@ -53,7 +53,7 @@ class OutputWriter:
         run_id: str,
         tags: list[str] | None = None,
     ) -> dict[str, Any]:
-        """Return standard Obsidian frontmatter for agent output notes."""
+        """Return standard frontmatter for agent output notes."""
         return {
             "type": agent,
             "brand": brand,
