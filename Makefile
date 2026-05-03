@@ -5,6 +5,12 @@ TOPIC ?= "5 tips for entrepreneurs"
 TYPE  ?= carousel
 WORKSPACE ?= ./workspace
 BRANDS_DIR ?= ./brands
+VENV ?= .venv
+PYTHON ?= .venv/bin/python
+PIP ?= .venv/bin/pip
+AGENCY_RESEARCH ?= .venv/bin/agency-research
+AGENCY_STORYBOARD ?= .venv/bin/agency-storyboard
+AGENCY_CONTENT ?= .venv/bin/agency-content
 
 help:
 	@echo "Agency Multi-Agent System"
@@ -27,10 +33,12 @@ help:
 	@echo "  make status         Show installed packages"
 
 install:
-	pip3 install --break-system-packages -e ./packages/agency-common
-	pip3 install --break-system-packages -e ./packages/agency-research
-	pip3 install --break-system-packages -e ./packages/agency-storyboard
-	pip3 install --break-system-packages -e ./packages/agency-content
+	python3 -m venv $(VENV)
+	$(PYTHON) -m pip install --upgrade pip
+	$(PIP) install -e ./packages/agency-common
+	$(PIP) install -e ./packages/agency-research
+	$(PIP) install -e ./packages/agency-storyboard
+	$(PIP) install -e ./packages/agency-content
 	@echo ""
 	@echo "All packages installed. Run 'make install-skills' to set up Claude Code skills."
 
@@ -38,41 +46,41 @@ install-skills:
 	bash scripts/install-skills.sh
 
 uninstall:
-	pip3 uninstall --break-system-packages -y agency-common agency-research agency-storyboard agency-content
+	$(PIP) uninstall -y agency-common agency-research agency-storyboard agency-content
 
 research:
-	agency-research --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
 
 storyboard:
-	agency-storyboard --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
+	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
 		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
 
 content:
-	agency-content --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
+	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
 		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
 
 pipeline:
 	@echo "==> Research"
-	agency-research --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
 	@echo ""
 	@echo "==> Storyboard"
-	agency-storyboard --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
+	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
 		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
 	@echo ""
 	@echo "==> Content"
-	agency-content --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
+	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
 		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
 
 week:
-	agency-content --brand $(BRAND) --week --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format markdown
+	$(AGENCY_CONTENT) --brand $(BRAND) --week --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format markdown
 
 dry-run:
-	agency-research --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --dry-run
-	agency-content --brand $(BRAND) --platform instagram --type caption --topic "test" \
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --dry-run
+	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type caption --topic "test" \
 		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format summary
 
 status:
-	pip3 show agency-common agency-research agency-storyboard agency-content 2>/dev/null | grep -E "^(Name|Version|Location)"
+	$(PIP) show agency-common agency-research agency-storyboard agency-content 2>/dev/null | grep -E "^(Name|Version|Location)"
 
 clean:
 	rm -rf $(WORKSPACE)/research/ $(WORKSPACE)/storyboards/ $(WORKSPACE)/content/
