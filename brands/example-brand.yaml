@@ -1,0 +1,119 @@
+slug: "example-brand"
+name: "Example Brand Co."
+onboarded: "2026-05-03"
+
+voice:
+  formal_casual: 7
+  serious_playful: 6
+  technical_simple: 8
+  reserved_bold: 6
+  archetype_primary: "friend"
+  archetype_secondary: "guide"
+
+vocabulary:
+  use_words:
+    - "empower"
+    - "simple"
+    - "real"
+    - "grow"
+    - "journey"
+  avoid_words:
+    - "synergy"
+    - "leverage"
+    - "disrupt"
+    - "guru"
+  signature_phrases:
+    - "Keep it real."
+    - "Your growth matters."
+
+writing:
+  dos:
+    - "Use contractions freely"
+    - "Address the reader as 'you'"
+    - "Lead with the benefit, not the feature"
+    - "Use short sentences — one idea per line"
+  donts:
+    - "Never use corporate jargon"
+    - "Avoid passive voice in CTAs"
+    - "No more than 3 hashtags inline (rest in first comment)"
+
+audience:
+  primary: "Millennial women entrepreneurs, 28-40"
+  secondary: "Gen Z aspiring business owners"
+  pain_points:
+    - "Overwhelmed by social media demands"
+    - "Inconsistent posting leads to inconsistent growth"
+    - "Unsure what content actually converts"
+  desires:
+    - "Authentic connection with their audience"
+    - "Consistent growth without burnout"
+    - "A clear, repeatable content strategy"
+
+visual:
+  colors:
+    primary: "#E8A87C"
+    secondary: "#41B3A3"
+    accent: "#C38D9E"
+    background: "#FEFEFE"
+  fonts:
+    heading: "Playfair Display"
+    body: "Open Sans"
+  photography_style: "warm, natural light, candid moments, minimal clutter"
+  mood: "warm, inviting, authentic, aspirational but attainable"
+  avoid_visuals:
+    - "Stock photos with fake smiles"
+    - "Overly polished or heavily filtered images"
+    - "Dark or cold-toned photography"
+
+platforms:
+  instagram:
+    handle: "@examplebrand"
+    content_types:
+      - "carousel"
+      - "reel"
+      - "story"
+      - "static_post"
+    posting_frequency: "5x/week"
+    hashtag_groups:
+      niche:
+        - "#womenentrepreneurs"
+        - "#femalefounder"
+        - "#businesswomen"
+      broad:
+        - "#businesstips"
+        - "#entrepreneurlife"
+        - "#contentcreator"
+      branded:
+        - "#examplebrand"
+  linkedin:
+    handle: "company/example-brand"
+    content_types:
+      - "post"
+      - "article"
+      - "document_carousel"
+    posting_frequency: "3x/week"
+    hashtag_groups:
+      niche:
+        - "#womenleadership"
+        - "#entrepreneurship"
+      broad:
+        - "#marketing"
+        - "#smallbusiness"
+      branded:
+        - "#examplebrand"
+
+competitors:
+  instagram:
+    - "@natashaoakley"
+    - "@girlboss"
+  linkedin:
+    - "company/hubspot"
+    - "company/buffer"
+  facebook: []
+
+content_pillars:
+  educational: 35
+  behind_the_scenes: 20
+  social_proof: 15
+  engagement: 20
+  promotional: 10
