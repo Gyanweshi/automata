@@ -8,18 +8,38 @@ from agency_common.models import BrandProfile, PlatformResearch, ResearchOutput
 from agency_common.workspace import WorkspaceManager
 
 from .analyzers import CompetitorAnalyzer, SentimentAnalyzer, TrendAnalyzer
-from .scrapers import FacebookScraper, InstagramScraper, LinkedInScraper
+from .scrapers import ApifyInstagramScraper, FacebookScraper, InstagramScraper, LinkedInScraper, PlaywrightInstagramScraper
+
+# Scraper backends available for Instagram
+INSTAGRAM_SCRAPERS = {
+    "apify": ApifyInstagramScraper,
+    "playwright": PlaywrightInstagramScraper,
+    "instaloader": InstagramScraper,
+}
 
 
 class ResearchAgent:
-    """Run a full research sweep for a brand across all configured platforms."""
+    """Run a full research sweep for a brand across all configured platforms.
 
-    def __init__(self, config: AgencyConfig | None = None, dry_run: bool = False):
+    Args:
+        scraper: Instagram scraper backend — "playwright" (default) or "instaloader".
+                 Playwright uses a real browser session; instaloader uses the API.
+    """
+
+    def __init__(
+        self,
+        config: AgencyConfig | None = None,
+        dry_run: bool = False,
+        scraper: str = "playwright",
+    ):
         self.config = config or AgencyConfig.from_env()
         self.dry_run = dry_run
-        self.ig = InstagramScraper(
+
+        ig_cls = INSTAGRAM_SCRAPERS.get(scraper, ApifyInstagramScraper)
+        self.ig = ig_cls(
             username=self.config.instaloader_username,
             password=self.config.instaloader_password,
+            api_token=self.config.apify_token,
             dry_run=dry_run,
         )
         self.li = LinkedInScraper(api_token=self.config.apify_token, dry_run=dry_run)
@@ -77,15 +97,27 @@ class ResearchAgent:
     def _research_instagram(self, brand: BrandProfile, post_count: int) -> PlatformResearch:
         competitors = []
         all_posts = []
-        for handle in brand.competitors.instagram:
-            analysis = self.ig.build_competitor_analysis(handle, post_count=post_count)
-            competitors.append(analysis)
-            all_posts += analysis.top_posts
 
-        # Scrape hashtag trends from niche hashtags
         ig_config = brand.platforms.instagram
-        if ig_config:
-            for tag in ig_config.hashtag_groups.niche[:3]:
+        hashtags = ig_config.hashtag_groups.niche[:3] if ig_config else []
+
+        # Playwright and Apify: batch scrape in one call
+        if isinstance(self.ig, (PlaywrightInstagramScraper, ApifyInstagramScraper)):
+            competitors, hashtag_posts = self.ig.research_brand(
+                competitor_handles=brand.competitors.instagram,
+                hashtags=hashtags,
+                post_count=post_count,
+            )
+            for a in competitors:
+                all_posts += a.top_posts
+            all_posts += hashtag_posts
+        else:
+            # instaloader: legacy per-handle calls
+            for handle in brand.competitors.instagram:
+                analysis = self.ig.build_competitor_analysis(handle, post_count=post_count)
+                competitors.append(analysis)
+                all_posts += analysis.top_posts
+            for tag in hashtags:
                 posts = self.ig.scrape_hashtag_posts(tag, count=20)
                 all_posts += posts
 

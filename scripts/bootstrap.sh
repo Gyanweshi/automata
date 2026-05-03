@@ -49,9 +49,8 @@ require_cmd() {
 echo "==> Checking required tools"
 require_cmd python3 "Install Python 3.11+."
 require_cmd uv "Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
-require_cmd node "Install Node.js 18+ from https://nodejs.org/"
+require_cmd node "Install Node.js 20.19+, 22.12+, or 23+ from https://nodejs.org/."
 require_cmd npm "Install npm with Node.js."
-require_cmd npx "Install npx with Node.js/npm."
 
 PYTHON_OK="$(python3 - <<'PY'
 import sys
@@ -63,11 +62,11 @@ if [[ "$PYTHON_OK" != "yes" ]]; then
 fi
 ok "$(python3 --version)"
 
-NODE_MAJOR="$(node -p "Number(process.versions.node.split('.')[0])")"
-if [[ "$NODE_MAJOR" -lt 18 ]]; then
-  fail "Node.js 18+ is required. Found: $(node --version)"
+MCP_NODE_VERSION="$(scripts/mcp-npx.sh -c "node --version" 2>/dev/null || true)"
+if [[ -z "$MCP_NODE_VERSION" ]]; then
+  fail "Node.js 20.19+, 22.12+, or 23+ is required for chrome-devtools-mcp. Found default node: $(node --version)"
 fi
-ok "Node $(node --version)"
+ok "MCP Node $MCP_NODE_VERSION"
 
 echo ""
 echo "==> Creating Python virtual environment"
@@ -88,9 +87,10 @@ echo "==> Installing agency packages into .venv"
 ok "agency CLIs installed"
 
 echo ""
-echo "==> Preparing vendored Freepik FastMCP"
+echo "==> Preparing vendored MCP dependencies"
 uv sync --directory packages/freepik-fastmcp
-ok "Freepik FastMCP dependencies ready"
+uv sync --directory packages/instaloader-mcp
+ok "vendored MCP dependencies ready"
 
 echo ""
 echo "==> Validating MCP JSON files"
@@ -105,13 +105,15 @@ npm view @perplexity-ai/mcp-server@0.9.0 version >/dev/null
 npm view @playwright/mcp@0.0.73 version >/dev/null
 npm view firecrawl-mcp@3.14.1 version >/dev/null
 npm view chrome-devtools-mcp@0.23.0 version >/dev/null
-npm view @glifxyz/glif-mcp-server@0.9.9 version >/dev/null
+npm view @roomi-fields/notebooklm-mcp@1.5.9 version >/dev/null
+npm view mcp-remote@0.1.38 version >/dev/null
+npm view @apify/actors-mcp-server@0.9.20 version >/dev/null
 ok "pinned npm MCP packages are available"
 
 if [[ "$SKIP_PLAYWRIGHT_BROWSER" -eq 0 ]]; then
   echo ""
   echo "==> Installing Playwright Chromium browser"
-  npx -y playwright@1.56.1 install chromium
+  scripts/mcp-npx.sh -y playwright@1.56.1 install chromium
   ok "Playwright Chromium ready"
 else
   warn "skipped Playwright browser install"
@@ -119,7 +121,7 @@ fi
 
 echo ""
 echo "==> Checking API key environment variables"
-for var in FREEPIK_API_KEY PERPLEXITY_API_KEY FIRECRAWL_API_KEY GLIF_API_TOKEN; do
+for var in FREEPIK_API_KEY PERPLEXITY_API_KEY FIRECRAWL_API_KEY CAPSULEHUB_API_KEY APIFY_API_TOKEN; do
   if [[ -n "${!var:-}" ]]; then
     ok "$var is set"
   else

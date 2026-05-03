@@ -46,4 +46,19 @@ class AgencyConfig:
 
     @classmethod
     def from_env(cls) -> "AgencyConfig":
+        """Load config from environment, auto-loading .env if present."""
+        _load_dotenv()
         return cls()
+
+
+def _load_dotenv():
+    """Load .env from cwd or repo root if present. Skips if already loaded."""
+    try:
+        from dotenv import load_dotenv
+        # Try cwd first, then walk up to find .env
+        for candidate in [Path.cwd() / ".env", Path(__file__).parents[6] / ".env"]:
+            if candidate.exists():
+                load_dotenv(candidate, override=False)
+                return
+    except ImportError:
+        pass  # python-dotenv not installed; rely on shell env

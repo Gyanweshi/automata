@@ -12,7 +12,12 @@ Types: `carousel` | `reel` | `post` | `mood_board`
 
 1. **Verify install**: `python3 -c "import agency_storyboard; print('OK')"`
 
-2. **Generate the storyboard**:
+2. **Load context** — do all three before generating:
+   - Read `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>.md` — get visual identity, mood, photography style
+   - Call `search_second_brain` with `"<brand> visual direction storyboard"` — surface past visual decisions
+   - Call `search_second_brain` with the topic — surface any relevant reference material
+
+3. **Generate the storyboard**:
    ```
    agency-storyboard --brand <brand-slug> --type <type> --topic "<topic>" \
      [--slides 7] [--duration 30] [--tool freepik_image] --format markdown
