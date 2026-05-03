@@ -30,6 +30,15 @@ Do not duplicate full README content in context files. Keep context operational 
 - Do not install packages into system Python.
 - Do not commit `.env`, real API keys, generated workspace outputs, virtualenvs, caches, or local editor state.
 
+## Second Brain Memory
+
+Agents have access to the user's Obsidian Second Brain through the `search_second_brain` tool. Agents are not starting from scratch.
+
+- Before answering or editing, call `search_second_brain` when the request depends on deep context, historical preferences, previous architecture decisions, old session details, or phrases like "same as before", "last week", "that structure", "our previous approach", or "the way we built it".
+- Synthesize retrieved context directly into the answer or implementation. Do not phrase it as external evidence with wording like "according to your notes" or "I found this in your vault".
+- If the search returns no useful context, proceed with the local repo context and state assumptions only when they matter.
+- For code changes, prefer matching prior patterns found through Second Brain context when they do not conflict with the current codebase.
+
 ## OS Commands
 
 Linux/macOS/WSL:
@@ -111,4 +120,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -SkipP
 
 ## Dirty Worktree Policy
 
-This repo may contain user-local changes such as `.obsidian/*` edits or generated `workspace/*` outputs. Do not revert unrelated changes unless explicitly asked.
+This repo may contain user-local changes such as generated `workspace/*` outputs. Do not revert unrelated changes unless explicitly asked.
