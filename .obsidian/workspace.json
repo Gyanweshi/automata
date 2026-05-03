@@ -8,7 +8,7 @@
         "type": "tabs",
         "children": [
           {
-            "id": "e1fa54e91b479e6c",
+            "id": "39d19861e10d7405",
             "type": "leaf",
             "state": {
               "type": "graph",
@@ -191,8 +191,13 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "e1fa54e91b479e6c",
+  "active": "39d19861e10d7405",
   "lastOpenFiles": [
+    "packages/agency-content/src/agency_content/__init__.py",
+    "packages/agency-content/src/agency_content/__init__.py.tmp.719053.1777804447947",
+    "packages/agency-content/pyproject.toml",
+    "packages/agency-content/pyproject.toml.tmp.719053.1777804446785",
+    "skills/agency-research/SKILL.md",
     "README.md",
     "Hello.md"
   ]
