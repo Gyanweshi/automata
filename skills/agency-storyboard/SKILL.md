@@ -49,7 +49,14 @@ Types: `carousel` | `reel` | `post` | `mood_board`
 - `freepik_image` — best for carousels and static posts (uses Mystic model)
 - `freepik_video` — best for reels (uses Kling 2.1)
 - `blender` — for 3D visualization (uses Blender MCP, already configured)
+- `glif` — for Glif.app creative workflows, visual concepts, memes, and storyboard asset ideation
 - `generic` — tool-agnostic prompts for any AI generator
+
+## MCP Integrations
+
+Agent-scoped MCP configuration is stored in `mcp/agents/storyboard.json`.
+
+- **Glif** (`GLIF_API_TOKEN`) — discover and run Glif.app workflows for image concepts, visual treatments, and storyboard assets.
 
 ## Standalone Use
 

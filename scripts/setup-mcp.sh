@@ -1,37 +1,34 @@
 #!/bin/bash
 # Sets up MCP dependencies for this project on a fresh system.
-# Run once after cloning: bash setup-mcp.sh
+# Run once after cloning: bash scripts/setup-mcp.sh
 
 set -e
 
-echo "==> Installing fnm (Node version manager)..."
-if ! command -v fnm &>/dev/null; then
-  curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+if ! command -v uv &>/dev/null; then
+  echo "uv is required for the Blender and Freepik MCP servers."
+  echo "Install it with:"
+  echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"
+  exit 1
 fi
-export PATH="$HOME/.local/share/fnm:$PATH"
-eval "$(fnm env --shell bash)"
 
-echo "==> Installing Node 22..."
-fnm install 22
-fnm use 22
+if ! command -v npx &>/dev/null; then
+  echo "npx is required for the Perplexity, Playwright, Firecrawl, Chrome DevTools, and Glif MCP servers."
+  echo "Install Node.js 18+ and npm, then rerun this script."
+  exit 1
+fi
 
-echo "==> Installing mcp-remote..."
-mkdir -p "$HOME/.local/share/mcp-remote"
-"$HOME/.local/share/fnm/node-versions/v22.22.2/installation/bin/npm" \
-  install mcp-remote --prefix "$HOME/.local/share/mcp-remote"
+echo "==> Preparing Freepik FastMCP dependencies..."
+uv sync --directory packages/freepik-fastmcp
 
-echo "==> Creating mcp-remote-n22 wrapper..."
-mkdir -p "$HOME/.local/bin"
-cat > "$HOME/.local/bin/mcp-remote-n22" << 'EOF'
-#!/bin/bash
-exec "$HOME/.local/share/fnm/node-versions/v22.22.2/installation/bin/node" \
-  "$HOME/.local/share/mcp-remote/node_modules/.bin/mcp-remote" "$@"
-EOF
-chmod +x "$HOME/.local/bin/mcp-remote-n22"
+echo "==> Checking pinned npm MCP packages..."
+npm view @perplexity-ai/mcp-server@0.9.0 version >/dev/null
+npm view @playwright/mcp@0.0.73 version >/dev/null
+npm view firecrawl-mcp@3.14.1 version >/dev/null
+npm view chrome-devtools-mcp@0.23.0 version >/dev/null
+npm view @glifxyz/glif-mcp-server@0.9.9 version >/dev/null
 
-echo ""
-echo "==> Done. Make sure ~/.local/bin is in your PATH, then set your API key:"
+echo "==> Done. Make sure ~/.local/bin is in your PATH, then set any API keys you use:"
 echo "    export FREEPIK_API_KEY=your_key_here"
-echo ""
-echo "    uv is required for the blender MCP:"
-echo "    curl -LsSf https://astral.sh/uv/install.sh | sh"
+echo "    export PERPLEXITY_API_KEY=your_key_here"
+echo "    export FIRECRAWL_API_KEY=your_key_here"
+echo "    export GLIF_API_TOKEN=your_token_here"
