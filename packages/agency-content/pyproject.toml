@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agency-content"
+version = "0.1.0"
+description = "Content writing agent — multi-brand social media content for Instagram and LinkedIn"
+requires-python = ">=3.11"
+dependencies = [
+    "agency-common",
+    "jinja2>=3.1",
+]
+
+[project.scripts]
+agency-content = "agency_content.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Workspace outputs (generated content — don't commit by default)
+workspace/research/*/
+workspace/storyboards/*/
+workspace/content/*/
+!workspace/research/.gitkeep
+!workspace/storyboards/.gitkeep
+!workspace/content/.gitkeep
+
+# API keys and secrets
+*.key
+secrets.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
+
+# Editor
+.vscode/
+*.swp
