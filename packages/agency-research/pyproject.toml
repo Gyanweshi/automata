@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agency-research"
+version = "0.1.0"
+description = "Research agent — social media scraping and competitive analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "agency-common",
+    "instaloader>=4.13",
+    "apify-client>=2.5",
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+]
+
+[project.scripts]
+agency-research = "agency_research.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

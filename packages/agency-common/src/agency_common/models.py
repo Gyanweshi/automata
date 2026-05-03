@@ -1,0 +1,245 @@
+"""Shared Pydantic models used as data contracts between all agency agents."""
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Optional
+from pydantic import BaseModel, Field
+
+
+# ---------------------------------------------------------------------------
+# Brand Profile
+# ---------------------------------------------------------------------------
+
+class BrandVoice(BaseModel):
+    formal_casual: int = Field(5, ge=1, le=10, description="1=extremely formal, 10=extremely casual")
+    serious_playful: int = Field(5, ge=1, le=10, description="1=extremely serious, 10=extremely playful")
+    technical_simple: int = Field(5, ge=1, le=10, description="1=extremely technical, 10=extremely simple")
+    reserved_bold: int = Field(5, ge=1, le=10, description="1=extremely reserved, 10=extremely bold")
+    archetype_primary: str = "friend"
+    archetype_secondary: Optional[str] = None
+
+
+class BrandVocabulary(BaseModel):
+    use_words: list[str] = Field(default_factory=list)
+    avoid_words: list[str] = Field(default_factory=list)
+    signature_phrases: list[str] = Field(default_factory=list)
+
+
+class BrandWritingRules(BaseModel):
+    dos: list[str] = Field(default_factory=list)
+    donts: list[str] = Field(default_factory=list)
+
+
+class BrandAudience(BaseModel):
+    primary: str = ""
+    secondary: Optional[str] = None
+    pain_points: list[str] = Field(default_factory=list)
+    desires: list[str] = Field(default_factory=list)
+
+
+class BrandColors(BaseModel):
+    primary: str = "#000000"
+    secondary: Optional[str] = None
+    accent: Optional[str] = None
+    background: Optional[str] = None
+
+
+class BrandVisual(BaseModel):
+    colors: BrandColors = Field(default_factory=BrandColors)
+    fonts: dict[str, str] = Field(default_factory=dict)
+    photography_style: str = ""
+    mood: str = ""
+    avoid_visuals: list[str] = Field(default_factory=list)
+
+
+class BrandHashtagGroups(BaseModel):
+    niche: list[str] = Field(default_factory=list)
+    broad: list[str] = Field(default_factory=list)
+    branded: list[str] = Field(default_factory=list)
+
+
+class BrandPlatformConfig(BaseModel):
+    handle: str = ""
+    content_types: list[str] = Field(default_factory=list)
+    posting_frequency: str = ""
+    hashtag_groups: BrandHashtagGroups = Field(default_factory=BrandHashtagGroups)
+
+
+class BrandPlatforms(BaseModel):
+    instagram: Optional[BrandPlatformConfig] = None
+    linkedin: Optional[BrandPlatformConfig] = None
+
+
+class BrandCompetitors(BaseModel):
+    instagram: list[str] = Field(default_factory=list)
+    linkedin: list[str] = Field(default_factory=list)
+    facebook: list[str] = Field(default_factory=list)
+
+
+class BrandContentPillars(BaseModel):
+    educational: int = 35
+    behind_the_scenes: int = 20
+    social_proof: int = 15
+    engagement: int = 20
+    promotional: int = 10
+
+
+class BrandProfile(BaseModel):
+    slug: str
+    name: str
+    onboarded: str = ""
+    voice: BrandVoice = Field(default_factory=BrandVoice)
+    vocabulary: BrandVocabulary = Field(default_factory=BrandVocabulary)
+    writing: BrandWritingRules = Field(default_factory=BrandWritingRules)
+    audience: BrandAudience = Field(default_factory=BrandAudience)
+    visual: BrandVisual = Field(default_factory=BrandVisual)
+    platforms: BrandPlatforms = Field(default_factory=BrandPlatforms)
+    competitors: BrandCompetitors = Field(default_factory=BrandCompetitors)
+    content_pillars: BrandContentPillars = Field(default_factory=BrandContentPillars)
+
+
+# ---------------------------------------------------------------------------
+# Research Output
+# ---------------------------------------------------------------------------
+
+class PostData(BaseModel):
+    platform: str
+    post_id: str = ""
+    url: str = ""
+    caption: str = ""
+    likes: int = 0
+    comments: int = 0
+    shares: int = 0
+    timestamp: Optional[str] = None
+    hashtags: list[str] = Field(default_factory=list)
+    media_type: str = ""
+    engagement_rate: float = 0.0
+
+
+class CompetitorAnalysis(BaseModel):
+    handle: str
+    platform: str
+    follower_count: int = 0
+    following_count: int = 0
+    post_count: int = 0
+    avg_likes: float = 0.0
+    avg_comments: float = 0.0
+    avg_engagement_rate: float = 0.0
+    top_posts: list[PostData] = Field(default_factory=list)
+    top_hashtags: list[str] = Field(default_factory=list)
+    content_types: dict[str, int] = Field(default_factory=dict)
+    posting_frequency: str = ""
+    bio: str = ""
+
+
+class HashtagTrend(BaseModel):
+    tag: str
+    post_count: int = 0
+    avg_likes: float = 0.0
+    trend_score: float = 0.0
+    trend_direction: str = "stable"
+
+
+class ContentTheme(BaseModel):
+    theme: str
+    keywords: list[str] = Field(default_factory=list)
+    frequency: int = 0
+    platforms: list[str] = Field(default_factory=list)
+
+
+class SentimentReport(BaseModel):
+    positive_pct: float = 0.0
+    neutral_pct: float = 0.0
+    negative_pct: float = 0.0
+    top_positive_themes: list[str] = Field(default_factory=list)
+    top_negative_themes: list[str] = Field(default_factory=list)
+    sample_size: int = 0
+
+
+class PlatformResearch(BaseModel):
+    platform: str
+    scraped_at: str = ""
+    competitors: list[CompetitorAnalysis] = Field(default_factory=list)
+    trending_hashtags: list[HashtagTrend] = Field(default_factory=list)
+    content_themes: list[ContentTheme] = Field(default_factory=list)
+    sentiment: Optional[SentimentReport] = None
+    raw_posts: list[PostData] = Field(default_factory=list)
+
+
+class ResearchOutput(BaseModel):
+    brand_slug: str
+    run_id: str
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    platforms: dict[str, PlatformResearch] = Field(default_factory=dict)
+    cross_platform_trends: list[HashtagTrend] = Field(default_factory=list)
+    cross_platform_themes: list[ContentTheme] = Field(default_factory=list)
+    summary: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Storyboard Output
+# ---------------------------------------------------------------------------
+
+class Shot(BaseModel):
+    shot_number: int
+    shot_type: str = ""
+    subject: str = ""
+    action: str = ""
+    lighting: str = ""
+    props: list[str] = Field(default_factory=list)
+    notes: str = ""
+
+
+class Scene(BaseModel):
+    scene_number: int
+    description: str = ""
+    visual_elements: list[str] = Field(default_factory=list)
+    text_overlay: str = ""
+    mood: str = ""
+    camera_angle: str = ""
+    duration_seconds: Optional[int] = None
+    shots: list[Shot] = Field(default_factory=list)
+
+
+class GenerationPrompt(BaseModel):
+    tool: str = ""
+    positive_prompt: str = ""
+    negative_prompt: str = ""
+    style: str = ""
+    aspect_ratio: str = "1:1"
+    additional_params: dict[str, Any] = Field(default_factory=dict)
+
+
+class StoryboardOutput(BaseModel):
+    brand_slug: str
+    run_id: str
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    content_type: str = ""
+    topic: str = ""
+    scenes: list[Scene] = Field(default_factory=list)
+    prompts: list[GenerationPrompt] = Field(default_factory=list)
+    mood_board_description: str = ""
+    summary: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Content Output
+# ---------------------------------------------------------------------------
+
+class ContentPiece(BaseModel):
+    platform: str
+    content_type: str = ""
+    topic: str = ""
+    body: str = ""
+    hashtags: list[str] = Field(default_factory=list)
+    cta: str = ""
+    notes: str = ""
+    variation_index: int = 1
+
+
+class ContentOutput(BaseModel):
+    brand_slug: str
+    run_id: str
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    pieces: list[ContentPiece] = Field(default_factory=list)
+    summary: str = ""

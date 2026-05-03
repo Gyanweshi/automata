@@ -1,0 +1,112 @@
+# Brand Profile Template
+# Copy this file to brands/{your-brand-slug}.yaml and fill it in.
+# All fields are optional except slug and name.
+
+slug: "your-brand-slug"
+name: "Your Brand Display Name"
+onboarded: "2026-01-01"
+
+# --- Voice & Tone ---
+# Each scale is 1–10. Archetyp options: authority | innovator | friend | rebel | guide
+voice:
+  formal_casual: 5        # 1=extremely formal, 10=extremely casual
+  serious_playful: 5      # 1=extremely serious, 10=extremely playful
+  technical_simple: 5     # 1=extremely technical, 10=extremely simple
+  reserved_bold: 5        # 1=extremely reserved, 10=extremely bold
+  archetype_primary: "friend"
+  archetype_secondary: "guide"
+
+# --- Vocabulary ---
+vocabulary:
+  use_words:
+    - "empower"
+    - "real"
+    - "grow"
+  avoid_words:
+    - "synergy"
+    - "leverage"
+    - "guru"
+  signature_phrases:
+    - "Keep it real."
+
+# --- Writing Rules ---
+writing:
+  dos:
+    - "Use contractions freely"
+    - "Address reader as 'you'"
+    - "Lead with the benefit, not the feature"
+  donts:
+    - "Never use corporate jargon"
+    - "Avoid passive voice in CTAs"
+
+# --- Audience ---
+audience:
+  primary: "Describe your primary audience (age, role, platform)"
+  secondary: "Optional secondary audience"
+  pain_points:
+    - "Pain point 1"
+    - "Pain point 2"
+  desires:
+    - "What they want to achieve"
+
+# --- Visual Identity ---
+visual:
+  colors:
+    primary: "#000000"
+    secondary: "#FFFFFF"
+    accent: "#CCCCCC"
+    background: "#FAFAFA"
+  fonts:
+    heading: "Font Name"
+    body: "Font Name"
+  photography_style: "Describe photo style (e.g., warm natural light, candid)"
+  mood: "Describe overall visual mood"
+  avoid_visuals:
+    - "Stock photos with fake smiles"
+
+# --- Platforms ---
+platforms:
+  instagram:
+    handle: "@yourbrand"
+    content_types:
+      - "carousel"
+      - "reel"
+      - "story"
+      - "static_post"
+    posting_frequency: "5x/week"
+    hashtag_groups:
+      niche:
+        - "#yourniche"
+      broad:
+        - "#broadtag"
+      branded:
+        - "#yourbrand"
+  linkedin:
+    handle: "company/your-brand"
+    content_types:
+      - "post"
+      - "article"
+      - "document_carousel"
+    posting_frequency: "3x/week"
+    hashtag_groups:
+      niche: []
+      broad: []
+      branded: []
+
+# --- Competitors ---
+competitors:
+  instagram:
+    - "@competitor1"
+    - "@competitor2"
+  linkedin:
+    - "company/competitor1"
+  facebook:
+    - "competitor.page"
+
+# --- Content Pillars (must sum to 100) ---
+content_pillars:
+  educational: 35
+  behind_the_scenes: 20
+  social_proof: 15
+  engagement: 20
+  promotional: 10
