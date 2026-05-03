@@ -29,14 +29,15 @@ help:
 	@echo ""
 	@echo "Other:"
 	@echo "  make dry-run        Validate all agent configs without API calls"
+	@echo "  make test           Run the automated test suite"
 	@echo "  make clean          Remove workspace outputs"
 	@echo "  make status         Show installed packages"
 
 install:
 	python3 -m venv $(VENV)
 	$(PYTHON) -m pip install --upgrade pip
-	$(PIP) install -e ./packages/agency-common
-	$(PIP) install -e ./packages/agency-research
+	$(PIP) install -e ./packages/agency-common[test]
+	$(PIP) install -e ./packages/agency-research[test]
 	$(PIP) install -e ./packages/agency-storyboard
 	$(PIP) install -e ./packages/agency-content
 	@echo ""
@@ -81,6 +82,9 @@ dry-run:
 
 status:
 	$(PIP) show agency-common agency-research agency-storyboard agency-content 2>/dev/null | grep -E "^(Name|Version|Location)"
+
+test:
+	$(PYTHON) -m pytest packages/*/tests -v
 
 clean:
 	rm -rf $(WORKSPACE)/research/ $(WORKSPACE)/storyboards/ $(WORKSPACE)/content/
