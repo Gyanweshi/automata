@@ -34,6 +34,8 @@ def load_brand(slug: str, brands_dir: str | Path | None = None) -> BrandProfile:
         )
     with open(yaml_path, "r") as f:
         data = yaml.safe_load(f)
+    if not isinstance(data, dict):
+        raise ValueError(f"Brand profile at {yaml_path} is empty or malformed.")
     if not data.get("slug"):
         data["slug"] = slug
     return BrandProfile.model_validate(data)

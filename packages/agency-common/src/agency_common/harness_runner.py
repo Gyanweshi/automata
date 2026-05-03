@@ -106,6 +106,12 @@ class HarnessRunner:
                     }
                 )
         else:
+            log_agent_session(
+                agent_name=self.agent_name,
+                task_summary=user_task,
+                transcript=self.format_transcript(),
+                tags=[self.agent_name.lower(), "autonomous-run", "max-iterations-exceeded"],
+            )
             raise HarnessRunnerError(f"{self.agent_name} exceeded {self.max_iterations} loop iterations")
 
         final_answer = self._last_assistant_content()

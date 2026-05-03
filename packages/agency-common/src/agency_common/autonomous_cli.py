@@ -31,7 +31,7 @@ def get_persona_prompt(agent_type: str) -> str:
     return PERSONA_PROMPTS.get(agent_type, "You are a helpful AI assistant.") + CORE_DIRECTIVE
 
 
-def load_client(client_path: str = DEFAULT_CLIENT_PATH) -> Any:
+def load_client(client_path: str = DEFAULT_CLIENT_PATH, **kwargs: Any) -> Any:
     """Load and instantiate an LLM client from a module path in module:Class format."""
     if ":" not in client_path:
         raise ValueError("client path must use module:Class format")
@@ -50,7 +50,7 @@ def load_client(client_path: str = DEFAULT_CLIENT_PATH) -> Any:
     except AttributeError as exc:
         raise RuntimeError(f"Module '{module_name}' does not define '{class_name}'.") from exc
 
-    return client_class()
+    return client_class(**kwargs)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -62,6 +62,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_CLIENT_PATH,
         help="LLM client class path in module:Class format. Defaults to api_client:BaseLLMClient.",
     )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Model name to pass to the LLM client (e.g. gpt-4o, gpt-4o-mini).",
+    )
     parser.add_argument("--max-iterations", type=int, default=5)
     return parser
 
@@ -71,8 +76,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    client_kwargs: dict[str, Any] = {}
+    if args.model:
+        client_kwargs["model"] = args.model
+
     try:
-        llm_client = load_client(args.client_path)
+        llm_client = load_client(args.client_path, **client_kwargs)
         runner = HarnessRunner(
             agent_name=f"{args.agent.capitalize()}Agent",
             system_prompt=get_persona_prompt(args.agent),
@@ -84,8 +93,8 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         print("\nExecution aborted by user.")
         return 1
-    except Exception as exc:
-        LOGGER.error("%s", exc)
+    except Exception:
+        LOGGER.error("Agent failed", exc_info=True)
         return 1
 
     print("\n=== FINAL OUTPUT ===\n")
