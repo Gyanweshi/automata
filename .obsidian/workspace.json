@@ -11,10 +11,14 @@
             "id": "39d19861e10d7405",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "packages/freepik-fastmcp/README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "README"
             }
           }
         ]
@@ -193,6 +197,8 @@
   },
   "active": "39d19861e10d7405",
   "lastOpenFiles": [
+    "README.md",
+    "packages/freepik-fastmcp/README.md",
     "skills/agency-orchestrator/SKILL.md",
     "skills/agency-storyboard/SKILL.md",
     "workspace/content/example-brand/2026-05-03_104234-content.md",
@@ -201,7 +207,6 @@
     "packages/agency-content/pyproject.toml",
     "packages/agency-content/pyproject.toml.tmp.719053.1777804446785",
     "skills/agency-research/SKILL.md",
-    "README.md",
     "Hello.md"
   ]
 }

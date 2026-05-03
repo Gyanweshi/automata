@@ -11,3 +11,4 @@ src/agency_common.egg-info/SOURCES.txt
 src/agency_common.egg-info/dependency_links.txt
 src/agency_common.egg-info/requires.txt
 src/agency_common.egg-info/top_level.txt
+tests/test_models.py
