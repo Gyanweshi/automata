@@ -1,7 +1,5 @@
-import pytest
 from unittest.mock import MagicMock
 from agency_research.scrapers.instagram import InstagramScraper
-from agency_common.models import CompetitorAnalysis
 
 def test_instagram_scrape_profile_success(mocker):
     # Mock instaloader classes

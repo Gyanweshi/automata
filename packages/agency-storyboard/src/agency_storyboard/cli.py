@@ -128,7 +128,7 @@ def main():
         print(f"\n{output.summary}")
         print(f"Scenes: {len(output.scenes)} | Prompts: {len(output.prompts)}")
         if output.prompts:
-            print(f"\nFirst prompt preview:")
+            print("\nFirst prompt preview:")
             print(f"  {output.prompts[0].positive_prompt[:120]}...")
 
 

@@ -2,7 +2,6 @@ import asyncio
 import time
 from typing import Any
 
-import httpx
 from fastmcp import Context
 
 from .http_client import HttpClientFactory
@@ -25,7 +24,7 @@ class MysticService:
 
         # Create a fresh client with current configuration for this request
         client = HttpClientFactory.create_dynamic_client()
-        
+
         try:
             # 1. Make POST request to create the task
             await ctx.debug(f"Sending POST request with payload: {payload}")
@@ -96,7 +95,7 @@ class MysticService:
 
             await ctx.warning(f"⏰ Timeout after {elapsed:.1f}s waiting for Mystic to finish")
             raise TimeoutError("Timeout waiting for Mystic to complete the task")
-            
+
         finally:
             # Always close the client to free resources
             await client.aclose()

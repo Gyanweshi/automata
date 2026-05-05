@@ -1,7 +1,7 @@
 """Shot list generator — expands scenes into production-ready shots."""
 from __future__ import annotations
 
-from agency_common.models import BrandProfile, Scene, Shot
+from agency_common.models import BrandProfile, Scene
 
 
 def generate_shot_list(scenes: list[Scene], brand: BrandProfile) -> list[dict]:

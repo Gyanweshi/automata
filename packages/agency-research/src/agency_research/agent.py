@@ -8,7 +8,8 @@ from datetime import datetime
 from agency_common.config import AgencyConfig
 from agency_common.models import BrandProfile, PlatformResearch, ResearchOutput
 from agency_common.obsidian_writer import log_brand_run_summary
-from agency_common.workspace import WorkspaceManager
+from .analyzers import CompetitorAnalyzer, SentimentAnalyzer, TrendAnalyzer
+from .scrapers import ApifyInstagramScraper, FacebookScraper, InstagramScraper, LinkedInScraper, PlaywrightInstagramScraper
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,9 +25,6 @@ def _try_vault_search(query: str) -> str:
     except Exception as exc:
         LOGGER.debug("Vault search unavailable: %s", exc)
         return ""
-
-from .analyzers import CompetitorAnalyzer, SentimentAnalyzer, TrendAnalyzer
-from .scrapers import ApifyInstagramScraper, FacebookScraper, InstagramScraper, LinkedInScraper, PlaywrightInstagramScraper
 
 # Scraper backends available for Instagram
 INSTAGRAM_SCRAPERS = {

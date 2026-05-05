@@ -7,11 +7,9 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 from pathlib import Path
 from collections import Counter, defaultdict
-from typing import Optional
 
 from agency_common.models import CompetitorAnalysis, PostData
 
@@ -355,7 +353,6 @@ class PlaywrightInstagramScraper:
             }""")
             if content:
                 data = json.loads(content)
-                user = self._dig(data, "edge_followed_by") or {}
                 # Try multiple known JSON shapes
                 for path in [
                     ["data", "user"],

@@ -47,7 +47,7 @@ class ServerFactory:
         http_client = HttpClientFactory.create_api_client(api_config)
 
         # --- Custom Mystic handler ---
-        mystic_service = MysticService() 
+        mystic_service = MysticService()
         transformed_tools = []
 
         async def mystic_transform_fn(**kwargs: Any) -> dict[str, Any]:

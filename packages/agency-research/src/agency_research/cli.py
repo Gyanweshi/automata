@@ -147,7 +147,7 @@ def main():
             )
         transcript = "\n".join([
             f"## Brand\n[[Brands/{args.brand}|{brand.name}]]",
-            f"\n## Platforms researched\n" + "\n".join(platform_lines),
+            "\n## Platforms researched\n" + "\n".join(platform_lines),
             f"\n## Output\n`{json_path}`",
         ])
         log_agent_session(
@@ -220,7 +220,7 @@ def _run_notebooklm(brand_name: str, brand_slug: str, md_path: Path):
     except Exception:
         print(f"[notebooklm] Source add output: {add_result.stdout}")
 
-    print(f"[notebooklm] Notebook ready. Generate a brief with:")
+    print("[notebooklm] Notebook ready. Generate a brief with:")
     print(f"  notebooklm --notebook {nb_id} generate report --format briefing-doc")
 
 
