@@ -4,7 +4,7 @@ Log a Claude Code or Codex session to the Obsidian vault.
 
 Reads session info from stdin, finds the corresponding JSONL transcript,
 extracts the conversation, detects relevant files and brands mentioned, writes
-a Markdown note to Claude_Sessions/ or Codex_Sessions/, and
+a Markdown note to Agent_Sessions/ in the vault, and
 appends a one-line summary to the Session History section of each mentioned
 brand note.
 
@@ -24,8 +24,8 @@ from datetime import datetime
 from pathlib import Path
 
 VAULT_ENV = "OBSIDIAN_VAULT_PATH"
-CLAUDE_SESSIONS_DIR = "Claude_Sessions"
-CODEX_SESSIONS_DIR = "Codex_Sessions"
+CLAUDE_SESSIONS_DIR = "Agent_Sessions"
+CODEX_SESSIONS_DIR = "Agent_Sessions"
 BRANDS_SUBDIR = "Brands"
 PROJECTS_DIR = Path.home() / ".claude" / "projects"
 CODEX_SESSIONS_DIR_ROOT = Path.home() / ".codex" / "sessions"
