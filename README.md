@@ -189,7 +189,7 @@ Claude Code and Codex sessions can be logged into the Obsidian vault configured 
 python3 scripts/log_session_to_vault.py --codex-current
 ```
 
-Codex transcripts are read from `~/.codex/sessions/` and written to `Codex_Sessions/` in the vault. Claude Code Stop hook payloads still write to `Claude_Sessions/`.
+Session transcripts (both Claude Code and Codex) are written to `Agent_Sessions/` in the vault. This directory is excluded from the vector index so session noise does not pollute second-brain searches. Structured run summaries are written instead to `Brands/<slug>/Agent_Runs/` and are indexed.
 
 ## MCP Servers
 

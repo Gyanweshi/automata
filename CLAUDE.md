@@ -66,7 +66,7 @@ Use `brands/_template.yaml` as the schema reference. When onboarding a new brand
 
 **Obsidian linking rules** — only wikilink things that have actual notes:
 - Other managed brands → `[[Brands/slug|Name]]`
-- Session notes → `[[Claude_Sessions/Session_...|view session]]`
+- Session notes → `[[Agent_Sessions/Session_...|view session]]`
 - Competitor handles, Instagram pages, external accounts → plain external links `[@handle](https://instagram.com/handle)`
 - Never wikilink handles, hashtags, or external accounts — Obsidian creates empty stubs
 
