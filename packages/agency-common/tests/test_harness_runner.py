@@ -32,7 +32,7 @@ def test_harness_runner_executes_tool_and_returns_final_answer(monkeypatch):
     )
     client = FakeClient([first_response, second_response])
     logged = []
-    monkeypatch.setattr("agency_common.harness_runner.log_agent_session", lambda **kwargs: logged.append(kwargs))
+    monkeypatch.setattr("agency_common.harness_runner.log_agent_session_with_related_notes", lambda **kwargs: logged.append(kwargs))
 
     runner = HarnessRunner(
         agent_name="Core_Architect",
@@ -75,7 +75,7 @@ def test_harness_runner_supports_openai_style_function_tool_calls(monkeypatch):
     )
     final_response = SimpleNamespace(message=SimpleNamespace(role="assistant", content="Done"), tool_calls=[])
     client = FakeClient([response, final_response])
-    monkeypatch.setattr("agency_common.harness_runner.log_agent_session", lambda **kwargs: None)
+    monkeypatch.setattr("agency_common.harness_runner.log_agent_session_with_related_notes", lambda **kwargs: None)
 
     runner = HarnessRunner(
         agent_name="Agent",
@@ -94,7 +94,7 @@ def test_harness_runner_records_unknown_tool_observation(monkeypatch):
     )
     final_response = SimpleNamespace(message={"role": "assistant", "content": "Recovered"}, tool_calls=[])
     client = FakeClient([first_response, final_response])
-    monkeypatch.setattr("agency_common.harness_runner.log_agent_session", lambda **kwargs: None)
+    monkeypatch.setattr("agency_common.harness_runner.log_agent_session_with_related_notes", lambda **kwargs: None)
 
     runner = HarnessRunner(agent_name="Agent", system_prompt="System", llm_client=client)
 
@@ -125,7 +125,7 @@ def test_harness_runner_iteration_failsafe(monkeypatch):
         tool_calls=[SimpleNamespace(id="call_1", name="search_second_brain", arguments="{}")],
     )
     client = FakeClient([looping_response, looping_response])
-    monkeypatch.setattr("agency_common.harness_runner.log_agent_session", lambda **kwargs: None)
+    monkeypatch.setattr("agency_common.harness_runner.log_agent_session_with_related_notes", lambda **kwargs: None)
     runner = HarnessRunner(
         agent_name="Agent",
         system_prompt="System",

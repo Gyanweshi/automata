@@ -56,7 +56,7 @@ def _load_dotenv():
     try:
         from dotenv import load_dotenv
         # Try cwd first, then walk up to find .env
-        for candidate in [Path.cwd() / ".env", Path(__file__).parents[6] / ".env"]:
+        for candidate in [Path.cwd() / ".env", Path(__file__).parents[4] / ".env"]:
             if candidate.exists():
                 load_dotenv(candidate, override=False)
                 return

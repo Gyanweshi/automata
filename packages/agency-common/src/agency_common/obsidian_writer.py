@@ -125,6 +125,61 @@ def format_related_concepts_section(related_links: list[str]) -> str:
     return f"### Related Concepts\n{links_formatted}"
 
 
+def log_brand_run_summary(
+    brand_slug: str,
+    agent_name: str,
+    summary: str,
+    *,
+    vault_path: Path | None = None,
+    extra_tags: list[str] | None = None,
+) -> Path | None:
+    """
+    Write a structured run-summary note into the vault under Brands/<slug>/Agent_Runs/.
+
+    This is intentionally NOT a transcript — it is a concise, searchable record of what
+    the agent found or decided, written so that a future search_second_brain call can
+    retrieve it and use it as context. Transcripts are noise; this is signal.
+
+    Returns the path written, or None if the vault is not configured.
+    """
+    try:
+        resolved_vault_path = vault_path.expanduser().resolve() if vault_path else get_vault_path()
+    except Exception:
+        return None  # Vault not configured — skip silently
+
+    runs_dir = resolved_vault_path / "Brands" / brand_slug / "Agent_Runs"
+    try:
+        runs_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return None
+
+    timestamp = datetime.now()
+    filename = f"{timestamp.strftime('%Y-%m-%d_%H-%M')}_{agent_name.lower().replace(' ', '-')}.md"
+    output_path = runs_dir / filename
+
+    tags = [agent_name.lower().replace(" ", "-"), brand_slug, "agent-run"] + (extra_tags or [])
+    metadata: dict[str, Any] = {
+        "date": timestamp.strftime("%Y-%m-%d"),
+        "time": timestamp.strftime("%H:%M"),
+        "agent": agent_name,
+        "brand": brand_slug,
+        "tags": tags,
+    }
+    body = "\n".join([
+        f"# {agent_name} — {brand_slug} — {timestamp.strftime('%Y-%m-%d')}",
+        "",
+        summary,
+    ])
+    markdown = frontmatter.dumps(frontmatter.Post(body, **metadata))
+
+    try:
+        output_path.write_text(markdown, encoding="utf-8")
+    except OSError:
+        return None
+
+    return output_path
+
+
 def append_related_concepts(transcript: str, related_links: list[str]) -> str:
     """Append related concept backlinks to a transcript when links are available."""
     section = format_related_concepts_section(related_links)

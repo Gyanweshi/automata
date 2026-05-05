@@ -1,6 +1,7 @@
 """ContentAgent — orchestrates voice engine and writers for a brand."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 from agency_common.config import AgencyConfig
@@ -11,10 +12,26 @@ from agency_common.models import (
     ResearchOutput,
     StoryboardOutput,
 )
+from agency_common.obsidian_writer import log_brand_run_summary
 from agency_common.workspace import WorkspaceManager
 
 from .voice import BrandVoiceEngine
 from .writers import InstagramWriter, LinkedInWriter
+
+LOGGER = logging.getLogger(__name__)
+
+
+def _try_vault_search(query: str) -> str:
+    """Search the Second Brain vault. Returns empty string silently on any failure."""
+    try:
+        from agency_common.obsidian_vector_index import search_second_brain
+        result = search_second_brain(query, num_results=2)
+        if "No relevant notes" in result or "No readable" in result:
+            return ""
+        return result
+    except Exception as exc:
+        LOGGER.debug("Vault search unavailable: %s", exc)
+        return ""
 
 
 CONTENT_TYPES = {
@@ -58,20 +75,44 @@ class ContentAgent:
         **kwargs,
     ) -> ContentOutput:
         """Generate content briefs for a specific platform and content type."""
+        vault_context = _try_vault_search(f"{brand.slug} content style campaigns {topic}")
+        if vault_context:
+            LOGGER.info("Loaded vault context for %s (%d chars)", brand.slug, len(vault_context))
+
         run_id = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
         pieces: list[ContentPiece] = []
 
         for i in range(1, variations + 1):
-            piece = self._generate_piece(brand, platform, content_type, topic, research, **kwargs)
+            piece = self._generate_piece(brand, platform, content_type, topic, research, vault_context=vault_context, **kwargs)
             piece.variation_index = i
             pieces.append(piece)
 
-        return ContentOutput(
+        output = ContentOutput(
             brand_slug=brand.slug,
             run_id=run_id,
             pieces=pieces,
             summary=f"{variations} {platform}/{content_type} brief(s) generated for '{topic}' ({brand.name})",
         )
+
+        # Write a short note to the vault recording what was generated and for which topic.
+        # Future runs searching for this brand's content style will find this.
+        run_note = (
+            f"Generated {variations} {platform}/{content_type} brief(s) for topic: '{topic}'.\n\n"
+            + "\n\n---\n\n".join(
+                f"**Piece {p.variation_index}** ({p.content_type}):\n{p.body[:600]}{'...' if len(p.body) > 600 else ''}"
+                for p in pieces
+            )
+        )
+        written = log_brand_run_summary(
+            brand_slug=brand.slug,
+            agent_name="ContentAgent",
+            summary=run_note,
+            extra_tags=["content", platform, content_type],
+        )
+        if written:
+            LOGGER.info("Content run summary written to vault: %s", written)
+
+        return output
 
     def generate_week(
         self,
@@ -79,9 +120,12 @@ class ContentAgent:
         research: ResearchOutput | None = None,
     ) -> ContentOutput:
         """Generate a week of content briefs based on brand content pillars and platform schedules."""
+        vault_context = _try_vault_search(f"{brand.slug} content style campaigns weekly")
+        if vault_context:
+            LOGGER.info("Loaded vault context for %s weekly plan (%d chars)", brand.slug, len(vault_context))
+
         run_id = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
         pieces: list[ContentPiece] = []
-        pillars = brand.content_pillars
 
         ig = brand.platforms.instagram
         li = brand.platforms.linkedin
@@ -96,7 +140,7 @@ class ContentAgent:
                 ("caption", "educational", "Quick tip caption"),
             ]
             for ct, pillar, placeholder_topic in ig_schedule:
-                piece = self._generate_piece(brand, "instagram", ct, placeholder_topic, research)
+                piece = self._generate_piece(brand, "instagram", ct, placeholder_topic, research, vault_context=vault_context)
                 piece.notes += f" | Pillar: {pillar}"
                 pieces.append(piece)
 
@@ -108,15 +152,33 @@ class ContentAgent:
                 ("post", "Engagement post — question or opinion"),
             ]
             for ct, placeholder_topic in li_schedule:
-                piece = self._generate_piece(brand, "linkedin", ct, placeholder_topic, research)
+                piece = self._generate_piece(brand, "linkedin", ct, placeholder_topic, research, vault_context=vault_context)
                 pieces.append(piece)
 
-        return ContentOutput(
+        output = ContentOutput(
             brand_slug=brand.slug,
             run_id=run_id,
             pieces=pieces,
             summary=f"Weekly content plan: {len(pieces)} briefs generated for {brand.name}",
         )
+
+        run_note = (
+            f"Weekly content plan: {len(pieces)} briefs generated for {brand.name}.\n\n"
+            + "\n\n---\n\n".join(
+                f"**{p.platform}/{p.content_type}** — {p.topic}:\n{p.body[:400]}{'...' if len(p.body) > 400 else ''}"
+                for p in pieces
+            )
+        )
+        written = log_brand_run_summary(
+            brand_slug=brand.slug,
+            agent_name="ContentAgent",
+            summary=run_note,
+            extra_tags=["content", "weekly-plan"],
+        )
+        if written:
+            LOGGER.info("Weekly content plan written to vault: %s", written)
+
+        return output
 
     def _generate_piece(
         self,
@@ -125,35 +187,44 @@ class ContentAgent:
         content_type: str,
         topic: str,
         research: ResearchOutput | None = None,
+        vault_context: str = "",
         **kwargs,
     ) -> ContentPiece:
         if platform == "instagram":
             writer = InstagramWriter(brand)
             if content_type in ("caption",):
-                return writer.caption_brief(topic, research=research, **kwargs)
+                piece = writer.caption_brief(topic, research=research, **kwargs)
             elif content_type in ("carousel",):
-                return writer.carousel_brief(topic, research=research, **kwargs)
+                piece = writer.carousel_brief(topic, research=research, **kwargs)
             elif content_type in ("reel", "reel_script"):
-                return writer.reel_script_brief(topic, research=research, **kwargs)
+                piece = writer.reel_script_brief(topic, research=research, **kwargs)
             else:
-                return writer.caption_brief(topic, research=research)
+                piece = writer.caption_brief(topic, research=research)
         elif platform == "linkedin":
             writer = LinkedInWriter(brand)
             if content_type in ("post",):
-                return writer.post_brief(topic, research=research, **kwargs)
+                piece = writer.post_brief(topic, research=research, **kwargs)
             elif content_type in ("article",):
-                return writer.article_brief(topic, research=research, **kwargs)
+                piece = writer.article_brief(topic, research=research, **kwargs)
             elif content_type in ("carousel", "document_carousel"):
-                return writer.document_carousel_brief(topic, **kwargs)
+                piece = writer.document_carousel_brief(topic, **kwargs)
             else:
-                return writer.post_brief(topic, research=research)
+                piece = writer.post_brief(topic, research=research)
         else:
-            return ContentPiece(
+            piece = ContentPiece(
                 platform=platform,
                 content_type=content_type,
                 topic=topic,
                 body=f"Unsupported platform: {platform}",
             )
+
+        if vault_context:
+            piece.body += (
+                "\n\n---\n## Vault Context (past decisions and campaign style for this brand)\n"
+                + vault_context
+            )
+
+        return piece
 
     def voice_brief(self, brand: BrandProfile) -> str:
         """Return the full brand voice brief string (for Claude skill system prompt)."""

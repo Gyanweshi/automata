@@ -67,10 +67,11 @@ class ApifyInstagramScraper:
         if competitor_handles:
             try:
                 usernames = [h.lstrip("@") for h in competitor_handles]
+                direct_urls = [f"https://www.instagram.com/{u}/" for u in usernames]
                 items = self._run_actor({
-                    "usernames": usernames,
+                    "directUrls": direct_urls,
+                    "resultsType": "posts",
                     "resultsLimit": post_count,
-                    "scrapeType": "posts",
                 })
                 # Group items by username
                 by_user: dict[str, list[dict]] = defaultdict(list)
@@ -95,9 +96,9 @@ class ApifyInstagramScraper:
             tag = tag.lstrip("#")
             try:
                 items = self._run_actor({
-                    "hashtags": [tag],
+                    "directUrls": [f"https://www.instagram.com/explore/tags/{tag}/"],
+                    "resultsType": "posts",
                     "resultsLimit": hashtag_post_count,
-                    "scrapeType": "hashtag",
                 })
                 for item in items:
                     post = self._item_to_post(item)

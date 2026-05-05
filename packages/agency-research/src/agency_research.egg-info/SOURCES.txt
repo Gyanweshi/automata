@@ -14,6 +14,7 @@ src/agency_research/analyzers/competitors.py
 src/agency_research/analyzers/sentiment.py
 src/agency_research/analyzers/trends.py
 src/agency_research/scrapers/__init__.py
+src/agency_research/scrapers/apify_instagram.py
 src/agency_research/scrapers/facebook.py
 src/agency_research/scrapers/instagram.py
 src/agency_research/scrapers/linkedin.py

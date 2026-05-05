@@ -38,6 +38,21 @@ writing:
   donts:
     - "Never use corporate jargon"
     - "Avoid passive voice in CTAs"
+  # Hard cap on sentence length. 0 = no limit. Recommended: 15 for casual brands, 20 for professional.
+  sentence_max_words: 15
+  # Specific sentence patterns or constructions to never use.
+  banned_constructions:
+    - "Em dashes (—) of any kind"
+    - "Sentences starting with 'It is worth noting' or 'It is important to'"
+    - "Any use of: delve, leverage, seamlessly, game-changer, groundbreaking, innovative, cutting-edge"
+    - "Subordinate clause chains requiring more than one comma per sentence"
+    - "Passive voice constructions in hooks or CTAs"
+  # 1-3 real approved captions that anchor the voice. The model will match these exactly.
+  example_captions:
+    - |
+      [Paste a real caption you love here — ideally one that got good engagement]
+    - |
+      [A second example, different format — e.g. a story-based one vs a list-based one]
 
 # --- Audience ---
 audience:

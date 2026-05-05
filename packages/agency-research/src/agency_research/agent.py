@@ -1,11 +1,29 @@
 """ResearchAgent — orchestrates scrapers and analyzers for a brand."""
 from __future__ import annotations
 
+import logging
+from collections import Counter
 from datetime import datetime
 
 from agency_common.config import AgencyConfig
 from agency_common.models import BrandProfile, PlatformResearch, ResearchOutput
+from agency_common.obsidian_writer import log_brand_run_summary
 from agency_common.workspace import WorkspaceManager
+
+LOGGER = logging.getLogger(__name__)
+
+
+def _try_vault_search(query: str) -> str:
+    """Search the Second Brain vault. Returns empty string silently on any failure."""
+    try:
+        from agency_common.obsidian_vector_index import search_second_brain
+        result = search_second_brain(query, num_results=3)
+        if "No relevant notes" in result or "No readable" in result:
+            return ""
+        return result
+    except Exception as exc:
+        LOGGER.debug("Vault search unavailable: %s", exc)
+        return ""
 
 from .analyzers import CompetitorAnalyzer, SentimentAnalyzer, TrendAnalyzer
 from .scrapers import ApifyInstagramScraper, FacebookScraper, InstagramScraper, LinkedInScraper, PlaywrightInstagramScraper
@@ -59,6 +77,11 @@ class ResearchAgent:
         post_count: int = 20,
     ) -> ResearchOutput:
         """Run research for a brand. platforms defaults to all configured platforms."""
+        # Pull any prior research notes from the vault before we start
+        vault_context = _try_vault_search(f"{brand.slug} competitors research findings")
+        if vault_context:
+            LOGGER.info("Loaded vault context for %s (%d chars)", brand.slug, len(vault_context))
+
         if platforms is None:
             platforms = []
             if brand.platforms.instagram:
@@ -85,14 +108,27 @@ class ResearchAgent:
         cross_trends = self.trend_analyzer.trending_hashtags(all_posts, top_n=20)
         cross_themes = self.trend_analyzer.content_themes(all_posts, top_n=10)
 
-        return ResearchOutput(
+        output = ResearchOutput(
             brand_slug=brand.slug,
             run_id=run_id,
             platforms=platform_results,
             cross_platform_trends=cross_trends,
             cross_platform_themes=cross_themes,
-            summary=self._generate_summary(brand, platform_results),
+            summary=self._generate_summary(brand, platform_results, vault_context=vault_context),
         )
+
+        # Write a structured summary note to the vault so future second-brain searches
+        # can find what this research run found — not a transcript, just the signal.
+        written = log_brand_run_summary(
+            brand_slug=brand.slug,
+            agent_name="ResearchAgent",
+            summary=output.summary,
+            extra_tags=["research"] + list(platform_results.keys()),
+        )
+        if written:
+            LOGGER.info("Research summary written to vault: %s", written)
+
+        return output
 
     def _research_instagram(self, brand: BrandProfile, post_count: int) -> PlatformResearch:
         competitors = []
@@ -175,10 +211,86 @@ class ResearchAgent:
             raw_posts=all_posts[:100],
         )
 
-    def _generate_summary(self, brand: BrandProfile, results: dict[str, PlatformResearch]) -> str:
-        parts = [f"Research completed for {brand.name}."]
+    def _generate_summary(
+        self,
+        brand: BrandProfile,
+        results: dict[str, PlatformResearch],
+        vault_context: str = "",
+    ) -> str:
+        parts = [f"# Research Summary: {brand.name}\n"]
+
         for platform, research in results.items():
             comp_count = len(research.competitors)
             post_count = len(research.raw_posts)
-            parts.append(f"{platform.capitalize()}: {comp_count} competitors, {post_count} posts analyzed.")
-        return " ".join(parts)
+            parts.append(f"## {platform.capitalize()} ({comp_count} competitors, {post_count} posts)\n")
+
+            # Highest-engagement competitor
+            active = [c for c in research.competitors if c.avg_engagement_rate > 0]
+            if active:
+                top = max(active, key=lambda c: c.avg_engagement_rate)
+                parts.append(
+                    f"**Highest engagement**: {top.handle} "
+                    f"({top.avg_engagement_rate:.2%} avg) — "
+                    f"{top.follower_count:,} followers, "
+                    f"posting {top.posting_frequency or 'unknown frequency'}."
+                )
+
+            # Dominant content formats across all competitors
+            format_counter: Counter = Counter()
+            for c in research.competitors:
+                for fmt, cnt in c.content_types.items():
+                    format_counter[fmt] += cnt
+            if format_counter:
+                ranked = format_counter.most_common(3)
+                fmt_str = ", ".join(f"{fmt} ({cnt})" for fmt, cnt in ranked)
+                parts.append(f"**Format distribution**: {fmt_str}.")
+
+            # Top themes from competitor captions
+            if research.content_themes:
+                themes = [t.theme for t in research.content_themes[:6]]
+                parts.append(f"**Competitor content themes**: {', '.join(themes)}.")
+
+            # Top trending hashtags by trend score
+            if research.trending_hashtags:
+                rising = [h for h in research.trending_hashtags if h.trend_direction == "rising"]
+                stable = [h for h in research.trending_hashtags if h.trend_direction == "stable"]
+                if rising:
+                    parts.append(f"**Rising tags**: {', '.join(h.tag for h in rising[:5])}.")
+                if stable:
+                    parts.append(f"**Established tags**: {', '.join(h.tag for h in stable[:5])}.")
+
+            # Top posts worth noting
+            top_posts = sorted(research.raw_posts, key=lambda p: p.likes + p.comments * 3, reverse=True)[:3]
+            if top_posts:
+                parts.append("\n**Top performing posts:**")
+                for post in top_posts:
+                    snippet = post.caption[:120].replace("\n", " ").strip()
+                    if len(post.caption) > 120:
+                        snippet += "..."
+                    parts.append(
+                        f"- {post.likes:,} likes / {post.comments:,} comments "
+                        f"[{post.media_type or 'post'}]: \"{snippet}\""
+                    )
+
+            parts.append("")
+
+        # Content gap: themes competitors cluster on vs. brand's declared pillars
+        all_competitor_themes: set[str] = set()
+        for r in results.values():
+            for t in r.content_themes[:10]:
+                all_competitor_themes.add(t.theme.lower())
+
+        if all_competitor_themes:
+            theme_list = ", ".join(sorted(all_competitor_themes)[:8])
+            parts.append(
+                f"## Content Gap Opportunity\n"
+                f"Competitors cluster around: {theme_list}.\n"
+                f"Cross-reference with {brand.name}'s content pillars to identify "
+                f"angles they're not covering — that's where differentiated content lives.\n"
+            )
+
+        # Append any relevant vault context found
+        if vault_context:
+            parts.append(f"## Prior Research Notes (from vault)\n{vault_context}\n")
+
+        return "\n".join(parts)

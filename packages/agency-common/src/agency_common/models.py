@@ -28,6 +28,9 @@ class BrandVocabulary(BaseModel):
 class BrandWritingRules(BaseModel):
     dos: list[str] = Field(default_factory=list)
     donts: list[str] = Field(default_factory=list)
+    sentence_max_words: int = Field(0, description="Hard cap on words per sentence. 0 = no limit.")
+    banned_constructions: list[str] = Field(default_factory=list, description="Specific sentence patterns to never use.")
+    example_captions: list[str] = Field(default_factory=list, description="Real approved captions that anchor the voice.")
 
 
 class BrandAudience(BaseModel):
