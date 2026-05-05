@@ -193,10 +193,11 @@ class InstagramWriter:
         lines += [
             f"| {t}-{duration}s | CTA + branding | [Call to action] |",
             "",
-            "## Hooks to try (pick one):",
-            "- 'Most people don't know this about [topic]...'",
-            "- 'Stop doing X — here's why'",
-            "- 'The [number] [topic] hack that changed everything'",
+            f"## Hook guidance ({vc['archetype']} archetype)",
+            self.voice.archetype_hooks(),
+            "",
+            "Write ONE opening line specific to this brand, this topic, and this audience.",
+            "Do not use fill-in-the-blank patterns. The hook must feel like it could only come from this brand.",
         ]
         return "\n".join(lines)
 

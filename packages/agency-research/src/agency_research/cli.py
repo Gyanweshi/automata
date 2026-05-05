@@ -43,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
     p.add_argument(
         "--scraper",
-        choices=["playwright", "instaloader"],
+        choices=["playwright", "instaloader", "apify"],
         default="playwright",
         help="Instagram scraper backend (default: playwright)",
     )
@@ -134,6 +134,30 @@ def main():
             if research.sentiment:
                 s = research.sentiment
                 print(f"  Sentiment: {s.positive_pct}% positive, {s.negative_pct}% negative")
+
+    # Log session to Obsidian vault
+    try:
+        from agency_common.obsidian_writer import log_agent_session
+        platform_lines = []
+        for platform, research in output.platforms.items():
+            platform_lines.append(
+                f"- **{platform.capitalize()}**: {len(research.competitors)} competitors, "
+                f"{len(research.raw_posts)} posts, top tags: "
+                f"{', '.join(h.tag for h in research.trending_hashtags[:5])}"
+            )
+        transcript = "\n".join([
+            f"## Brand\n[[Brands/{args.brand}|{brand.name}]]",
+            f"\n## Platforms researched\n" + "\n".join(platform_lines),
+            f"\n## Output\n`{json_path}`",
+        ])
+        log_agent_session(
+            agent_name="ResearchAgent",
+            task_summary=f"Competitor research for {brand.name}",
+            transcript=transcript,
+            tags=["research", "competitor-analysis", f"brand/{args.brand}"],
+        )
+    except Exception as exc:
+        print(f"[warn] Could not write session log: {exc}")
 
     if args.notebooklm and md_path:
         _run_notebooklm(brand.name, args.brand, md_path)
