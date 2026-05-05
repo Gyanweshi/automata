@@ -8,7 +8,6 @@ from agency_common.models import BrandProfile, ResearchOutput, StoryboardOutput
 
 from .prompt_writer import PromptWriter
 from .scene_builder import SceneBuilder
-from .shot_list import generate_shot_list
 
 
 class StoryboardAgent:

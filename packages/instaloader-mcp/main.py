@@ -8,7 +8,6 @@ from typing import Any
 import instaloader
 from fastmcp import FastMCP
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOWNLOAD_ROOT = REPO_ROOT / "workspace" / "instagram"
 

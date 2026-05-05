@@ -48,7 +48,7 @@ class SceneBuilder:
                     subject=f"Visual for point {i}",
                     action="static",
                     lighting=self.brand.visual.photography_style,
-                    notes=f"One idea per slide. Headline + 1-2 supporting lines max.",
+                    notes="One idea per slide. Headline + 1-2 supporting lines max.",
                 )],
             ))
 

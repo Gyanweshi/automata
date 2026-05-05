@@ -132,7 +132,7 @@ def parse_brand_yaml_file(file_path: Path) -> dict[str, Any]:
         arch_str = archetype
         if archetype_sec:
             arch_str += f" / {archetype_sec}"
-        lines += ["", f"## Voice", f"Archetype: {arch_str}"]
+        lines += ["", "## Voice", f"Archetype: {arch_str}"]
         scale_notes = []
         if voice.get("formal_casual"):
             scale_notes.append(f"formal-casual score {voice['formal_casual']}/10")

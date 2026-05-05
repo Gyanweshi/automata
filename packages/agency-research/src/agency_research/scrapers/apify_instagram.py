@@ -6,7 +6,6 @@ Requires APIFY_API_TOKEN in env.
 from __future__ import annotations
 
 import logging
-import time
 from collections import Counter, defaultdict
 
 from agency_common.models import CompetitorAnalysis, PostData

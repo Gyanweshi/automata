@@ -1,4 +1,3 @@
-import pytest
 import yaml
 from agency_common.models import BrandProfile
 
