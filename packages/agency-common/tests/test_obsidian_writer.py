@@ -10,6 +10,7 @@ from agency_common.obsidian_writer import (
     get_sessions_dir,
     log_agent_session,
     log_agent_session_with_related_notes,
+    update_brand_memory,
 )
 
 
@@ -123,6 +124,74 @@ def test_append_related_concepts_adds_section():
     assert append_related_concepts("Transcript\n", ["[[Architecture]]"]) == (
         "Transcript\n\n### Related Concepts\n- [[Architecture]]"
     )
+
+
+def test_update_brand_memory_creates_section_when_absent(tmp_path):
+    brands_dir = tmp_path / "Brands"
+    brands_dir.mkdir()
+    brand_md = brands_dir / "maple.md"
+    brand_md.write_text("# Maple\n\nSome body text.", encoding="utf-8")
+
+    result = update_brand_memory("maple", "carousel brief for topic A.", vault_path=tmp_path)
+
+    assert result is True
+    content = brand_md.read_text(encoding="utf-8")
+    assert "## Memory" in content
+    assert "carousel brief for topic A." in content
+
+
+def test_update_brand_memory_appends_to_existing_section(tmp_path):
+    brands_dir = tmp_path / "Brands"
+    brands_dir.mkdir()
+    brand_md = brands_dir / "maple.md"
+    brand_md.write_text(
+        "# Maple\n\n## Memory\n\n- 2026-05-01: first insight.\n",
+        encoding="utf-8",
+    )
+
+    update_brand_memory("maple", "second insight.", vault_path=tmp_path)
+
+    content = brand_md.read_text(encoding="utf-8")
+    assert "first insight." in content
+    assert "second insight." in content
+
+
+def test_update_brand_memory_trims_to_ten_bullets(tmp_path):
+    brands_dir = tmp_path / "Brands"
+    brands_dir.mkdir()
+    brand_md = brands_dir / "maple.md"
+    existing_bullets = "\n".join(f"- 2026-05-01: insight {i}." for i in range(10))
+    brand_md.write_text(f"# Maple\n\n## Memory\n\n{existing_bullets}\n", encoding="utf-8")
+
+    update_brand_memory("maple", "newest insight.", vault_path=tmp_path)
+
+    content = brand_md.read_text(encoding="utf-8")
+    bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
+    assert len(bullets) == 10
+    assert "newest insight." in content
+    assert "insight 0." not in content  # oldest was dropped
+
+
+def test_update_brand_memory_returns_false_when_brand_note_missing(tmp_path):
+    result = update_brand_memory("nonexistent-brand", "some insight.", vault_path=tmp_path)
+    assert result is False
+
+
+def test_update_brand_memory_ignores_html_comments_in_memory_section(tmp_path):
+    brands_dir = tmp_path / "Brands"
+    brands_dir.mkdir()
+    brand_md = brands_dir / "maple.md"
+    brand_md.write_text(
+        "# Maple\n\n## Memory\n\n<!-- a comment -->\n\n",
+        encoding="utf-8",
+    )
+
+    update_brand_memory("maple", "real insight.", vault_path=tmp_path)
+
+    content = brand_md.read_text(encoding="utf-8")
+    bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
+    assert len(bullets) == 1
+    assert "real insight." in bullets[0]
 
 
 def test_log_agent_session_with_related_notes_appends_and_logs(monkeypatch, tmp_path):

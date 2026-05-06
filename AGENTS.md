@@ -17,7 +17,7 @@ This is an agency multi-agent monorepo for:
 - Aggregate MCP config: `.mcp.json`
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
 - Agent behavior docs: `skills/agency-*/SKILL.md`
-- Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/*.yaml` (not committed to repo)
+- Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter is the agent config, body is the brand narrative and memory (not committed to repo)
 - Generated outputs: `workspace/research/`, `workspace/storyboards/`, `workspace/content/`
 
 Do not duplicate full README content in context files. Keep context operational and concise.
@@ -32,16 +32,12 @@ Do not duplicate full README content in context files. Keep context operational 
 
 ## Context Layers — Load These Before Any Brand Work
 
-**1. Brand note** — read `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` before working on any brand. Frontmatter is the authoritative config. The markdown body has the brand essence, key constraints, audience, and competitors.
+**1. Brand note** — read `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` before working on any brand. This is the single source of truth. The frontmatter is the agent config (voice, vocabulary, writing rules, audience, competitors, platforms). The markdown body contains:
+- Brand essence and the one rule that matters most
+- Audience and platform summaries
+- `## Memory` — distilled run history, max 10 bullets, maintained automatically by agents after every run. Read this section carefully: it contains decisions already made, what worked, what was rejected, and key findings from past research. Do not ask the user to re-explain anything already in Memory.
 
-**2. Vault RAG** — call `search_second_brain` proactively. Specific triggers:
-- Before writing content → `"<brand> content style campaigns"`
-- Before research → `"<brand> competitors research findings"`
-- Before storyboard → `"<brand> visual direction"`
-- Any mention of history, "last time", "same as before", "that campaign", "what we decided"
-- Any strategic decision — search first to avoid contradicting what's already agreed
-
-Synthesise retrieved context directly into your work. Never say "according to your notes" — just use it.
+**Do not call `search_second_brain` for brand-specific context.** The brand `.md` contains everything already. Vault RAG is reserved for broad queries — topic research, general knowledge — where the answer is not already in the brand file.
 
 **Note for Claude Code sessions:** a third layer exists — memory files at `~/.claude/projects/.../memory/` — which are loaded automatically and contain always-on rules and preferences. Codex does not have this layer; `AGENTS.md` serves the same purpose.
 

@@ -125,59 +125,67 @@ def format_related_concepts_section(related_links: list[str]) -> str:
     return f"### Related Concepts\n{links_formatted}"
 
 
-def log_brand_run_summary(
+_MEMORY_HEADING = "## Memory"
+_MEMORY_MAX_BULLETS = 10
+
+
+def update_brand_memory(
     brand_slug: str,
-    agent_name: str,
-    summary: str,
+    insight: str,
     *,
     vault_path: Path | None = None,
-    extra_tags: list[str] | None = None,
-) -> Path | None:
+) -> bool:
     """
-    Write a structured run-summary note into the vault under Brands/<slug>/Agent_Runs/.
+    Append a distilled one-line insight to the brand's ## Memory section.
 
-    This is intentionally NOT a transcript — it is a concise, searchable record of what
-    the agent found or decided, written so that a future search_second_brain call can
-    retrieve it and use it as context. Transcripts are noise; this is signal.
+    Trims to _MEMORY_MAX_BULLETS, keeping the most recent. Writes in-place to
+    Brands/<slug>.md. Returns True on success, False (silently) if vault is not
+    configured or the brand note does not exist.
 
-    Returns the path written, or None if the vault is not configured.
+    This replaces log_brand_run_summary — instead of writing separate log files
+    that accumulate noise, we maintain a single compact memory in the brand note
+    itself. The memory is always in context via BrandVoiceEngine.full_brief(),
+    with zero retrieval cost.
     """
     try:
-        resolved_vault_path = vault_path.expanduser().resolve() if vault_path else get_vault_path()
+        resolved = vault_path.expanduser().resolve() if vault_path else get_vault_path()
     except Exception:
-        return None  # Vault not configured — skip silently
+        return False
 
-    runs_dir = resolved_vault_path / "Brands" / brand_slug / "Agent_Runs"
+    brand_md = resolved / "Brands" / f"{brand_slug}.md"
+    if not brand_md.exists():
+        return False
+
+    content = brand_md.read_text(encoding="utf-8")
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    new_bullet = f"- {date_str}: {insight.strip()}"
+
+    if _MEMORY_HEADING in content:
+        lines = content.splitlines()
+        mem_start = next(
+            (i for i, l in enumerate(lines) if l.strip() == _MEMORY_HEADING), None
+        )
+        if mem_start is not None:
+            mem_end = len(lines)
+            for i in range(mem_start + 1, len(lines)):
+                if lines[i].startswith("## "):
+                    mem_end = i
+                    break
+            bullets = [l for l in lines[mem_start + 1:mem_end] if l.strip().startswith("-")]
+            bullets.append(new_bullet)
+            if len(bullets) > _MEMORY_MAX_BULLETS:
+                bullets = bullets[-_MEMORY_MAX_BULLETS:]
+            new_block = [_MEMORY_HEADING, ""] + bullets + [""]
+            lines = lines[:mem_start] + new_block + lines[mem_end:]
+            content = "\n".join(lines)
+    else:
+        content = content.rstrip() + f"\n\n{_MEMORY_HEADING}\n\n{new_bullet}\n"
+
     try:
-        runs_dir.mkdir(parents=True, exist_ok=True)
+        brand_md.write_text(content, encoding="utf-8")
+        return True
     except OSError:
-        return None
-
-    timestamp = datetime.now()
-    filename = f"{timestamp.strftime('%Y-%m-%d_%H-%M')}_{agent_name.lower().replace(' ', '-')}.md"
-    output_path = runs_dir / filename
-
-    tags = [agent_name.lower().replace(" ", "-"), brand_slug, "agent-run"] + (extra_tags or [])
-    metadata: dict[str, Any] = {
-        "date": timestamp.strftime("%Y-%m-%d"),
-        "time": timestamp.strftime("%H:%M"),
-        "agent": agent_name,
-        "brand": brand_slug,
-        "tags": tags,
-    }
-    body = "\n".join([
-        f"# {agent_name} — {brand_slug} — {timestamp.strftime('%Y-%m-%d')}",
-        "",
-        summary,
-    ])
-    markdown = frontmatter.dumps(frontmatter.Post(body, **metadata))
-
-    try:
-        output_path.write_text(markdown, encoding="utf-8")
-    except OSError:
-        return None
-
-    return output_path
+        return False
 
 
 def append_related_concepts(transcript: str, related_links: list[str]) -> str:

@@ -7,24 +7,11 @@ from datetime import datetime
 
 from agency_common.config import AgencyConfig
 from agency_common.models import BrandProfile, PlatformResearch, ResearchOutput
-from agency_common.obsidian_writer import log_brand_run_summary
+from agency_common.obsidian_writer import update_brand_memory
 from .analyzers import CompetitorAnalyzer, SentimentAnalyzer, TrendAnalyzer
 from .scrapers import ApifyInstagramScraper, FacebookScraper, InstagramScraper, LinkedInScraper, PlaywrightInstagramScraper
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _try_vault_search(query: str) -> str:
-    """Search the Second Brain vault. Returns empty string silently on any failure."""
-    try:
-        from agency_common.obsidian_vector_index import search_second_brain
-        result = search_second_brain(query, num_results=3)
-        if "No relevant notes" in result or "No readable" in result:
-            return ""
-        return result
-    except Exception as exc:
-        LOGGER.debug("Vault search unavailable: %s", exc)
-        return ""
 
 # Scraper backends available for Instagram
 INSTAGRAM_SCRAPERS = {
@@ -75,10 +62,10 @@ class ResearchAgent:
         post_count: int = 20,
     ) -> ResearchOutput:
         """Run research for a brand. platforms defaults to all configured platforms."""
-        # Pull any prior research notes from the vault before we start
-        vault_context = _try_vault_search(f"{brand.slug} competitors research findings")
-        if vault_context:
-            LOGGER.info("Loaded vault context for %s (%d chars)", brand.slug, len(vault_context))
+        # Brand memory (past research findings) is already in brand.memory,
+        # loaded from the ## Memory section of the brand .md note. No retrieval needed.
+        if brand.memory:
+            LOGGER.info("Brand memory loaded for %s (%d entries)", brand.slug, len(brand.memory))
 
         if platforms is None:
             platforms = []
@@ -112,19 +99,26 @@ class ResearchAgent:
             platforms=platform_results,
             cross_platform_trends=cross_trends,
             cross_platform_themes=cross_themes,
-            summary=self._generate_summary(brand, platform_results, vault_context=vault_context),
+            summary=self._generate_summary(brand, platform_results),
         )
 
-        # Write a structured summary note to the vault so future second-brain searches
-        # can find what this research run found — not a transcript, just the signal.
-        written = log_brand_run_summary(
-            brand_slug=brand.slug,
-            agent_name="ResearchAgent",
-            summary=output.summary,
-            extra_tags=["research"] + list(platform_results.keys()),
+        # Distil one line from this research run into the brand memory.
+        top_insights = []
+        for platform, research in platform_results.items():
+            active = [c for c in research.competitors if c.avg_engagement_rate > 0]
+            if active:
+                top = max(active, key=lambda c: c.avg_engagement_rate)
+                top_insights.append(
+                    f"{platform}: {top.handle} leads at {top.avg_engagement_rate:.1%} engagement"
+                )
+        insight = (
+            "Research — " + "; ".join(top_insights)
+            if top_insights
+            else f"Research run on {', '.join(platform_results.keys()) or 'no platforms'}."
         )
-        if written:
-            LOGGER.info("Research summary written to vault: %s", written)
+        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
+        if updated:
+            LOGGER.info("Brand memory updated for %s", brand.slug)
 
         return output
 
@@ -213,7 +207,6 @@ class ResearchAgent:
         self,
         brand: BrandProfile,
         results: dict[str, PlatformResearch],
-        vault_context: str = "",
     ) -> str:
         parts = [f"# Research Summary: {brand.name}\n"]
 
@@ -286,9 +279,5 @@ class ResearchAgent:
                 f"Cross-reference with {brand.name}'s content pillars to identify "
                 f"angles they're not covering — that's where differentiated content lives.\n"
             )
-
-        # Append any relevant vault context found
-        if vault_context:
-            parts.append(f"## Prior Research Notes (from vault)\n{vault_context}\n")
 
         return "\n".join(parts)

@@ -11,7 +11,7 @@ You are the master orchestrator for the agency multi-agent system. Route command
 2. Ask about target audience, voice (formal/casual scale 1-10), archetype (authority/innovator/friend/rebel/guide)
 3. If they provide a website URL, run `/market brand <url>` to auto-detect voice dimensions
 4. Write the brand profile as `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter contains the structured data, markdown body contains human-readable sections. Never write brand files to the repo.
-5. The `.md` body must include these sections in order: `## Voice`, `## Audience`, `## Platforms` (external links, not wikilinks), `## Competitors` (external links), `## Content Mix`, `## Strategy Notes` (initial decisions from this onboarding), `## Session History` (empty, auto-populated)
+5. The `.md` body must include these sections in order: `## Audience`, `## Platforms` (external links, not wikilinks), `## Competitors` (external links), `## Strategy Notes` (initial decisions from this onboarding), `## Memory` (empty block with comment `<!-- Maintained automatically by agents. Max 10 bullets. -->` — do not populate manually)
 6. Create workspace folders: `workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`
 7. Confirm success and show next steps
 
@@ -58,7 +58,7 @@ Run all three agents in sequence for a brand and topic:
 `/agency brands`
 
 ```bash
-python3 -c "from agency_common.brand_loader import list_brands; print(list_brands('./brands'))"
+python3 -c "from agency_common.brand_loader import list_brands; print(list_brands())"
 ```
 
 ### Show brand profile
@@ -68,7 +68,7 @@ python3 -c "from agency_common.brand_loader import list_brands; print(list_brand
 python3 -c "
 from agency_common.brand_loader import load_brand
 import json
-b = load_brand('<brand-slug>', './brands')
+b = load_brand('<brand-slug>')
 print(b.model_dump_json(indent=2))
 "
 ```

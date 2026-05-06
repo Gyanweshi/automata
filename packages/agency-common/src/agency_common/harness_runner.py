@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .obsidian_vector_index import search_second_brain
-from .obsidian_writer import log_agent_session_with_related_notes
+from .obsidian_writer import log_agent_session_with_related_notes, update_brand_memory
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ class HarnessRunner:
         *,
         available_tools: dict[str, ToolFunction] | None = None,
         max_iterations: int = 5,
+        brand_slug: str | None = None,
     ) -> None:
         if max_iterations < 1:
             raise ValueError("max_iterations must be at least 1")
@@ -45,6 +46,7 @@ class HarnessRunner:
         self.agent_name = agent_name
         self.llm_client = llm_client
         self.max_iterations = max_iterations
+        self.brand_slug = brand_slug
         self.messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
         self.available_tools: dict[str, ToolFunction] = available_tools or {
             "search_second_brain": search_second_brain,
@@ -121,6 +123,10 @@ class HarnessRunner:
             transcript=self.format_transcript(),
             tags=[self.agent_name.lower(), "autonomous-run"],
         )
+        if self.brand_slug:
+            insight = f"Autonomous {self.agent_name}: {user_task[:120].strip()}"
+            update_brand_memory(brand_slug=self.brand_slug, insight=insight)
+            LOGGER.info("[%s] Brand memory updated for %s", self.agent_name, self.brand_slug)
         return final_answer
 
     def _execute_tool_call(self, tool_call: NormalizedToolCall) -> str:

@@ -1,13 +1,17 @@
 """StoryboardAgent — orchestrates scene builder and prompt writer for a brand."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 from agency_common.config import AgencyConfig
 from agency_common.models import BrandProfile, ResearchOutput, StoryboardOutput
+from agency_common.obsidian_writer import update_brand_memory
 
 from .prompt_writer import PromptWriter
 from .scene_builder import SceneBuilder
+
+LOGGER = logging.getLogger(__name__)
 
 
 class StoryboardAgent:
@@ -39,6 +43,9 @@ class StoryboardAgent:
             duration_seconds: For reels — length in seconds
             aspect_ratio:   Override default aspect ratio for the tool
         """
+        if brand.memory:
+            LOGGER.info("Brand memory loaded for %s (%d entries)", brand.slug, len(brand.memory))
+
         run_id = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
         scene_builder = SceneBuilder(brand)
         prompt_writer = PromptWriter(brand)
@@ -65,7 +72,7 @@ class StoryboardAgent:
         else:
             mood_board = prompt_writer.mood_board_description(topic)
 
-        return StoryboardOutput(
+        output = StoryboardOutput(
             brand_slug=brand.slug,
             run_id=run_id,
             content_type=content_type,
@@ -78,3 +85,10 @@ class StoryboardAgent:
                 f"{len(scenes)} scenes, {len(prompts)} generation prompts, tool: {tool}"
             ),
         )
+
+        insight = f"Storyboard: {content_type} for '{topic}' — {len(scenes)} scenes, tool: {tool}."
+        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
+        if updated:
+            LOGGER.info("Brand memory updated for %s", brand.slug)
+
+        return output
