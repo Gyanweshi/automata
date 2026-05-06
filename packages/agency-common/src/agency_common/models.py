@@ -99,6 +99,11 @@ class BrandProfile(BaseModel):
     platforms: BrandPlatforms = Field(default_factory=BrandPlatforms)
     competitors: BrandCompetitors = Field(default_factory=BrandCompetitors)
     content_pillars: BrandContentPillars = Field(default_factory=BrandContentPillars)
+    memory: list[str] = Field(
+        default_factory=list,
+        description="Distilled run history — max 10 bullets, always current. "
+                    "Parsed from the ## Memory section of the brand .md note.",
+    )
 
 
 # ---------------------------------------------------------------------------

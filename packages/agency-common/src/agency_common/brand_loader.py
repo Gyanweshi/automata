@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 import frontmatter
@@ -9,6 +10,18 @@ import yaml
 from dotenv import find_dotenv, load_dotenv
 
 from .models import BrandProfile
+
+
+def _parse_memory_section(body: str) -> list[str]:
+    """Extract bullet points from the ## Memory section of a brand note body."""
+    match = re.search(r'^## Memory\s*\n(.*?)(?=\n## |\Z)', body, re.DOTALL | re.MULTILINE)
+    if not match:
+        return []
+    return [
+        line.lstrip("- ").strip()
+        for line in match.group(1).splitlines()
+        if line.strip().startswith("-")
+    ]
 
 _VAULT_BRANDS_SUBDIR = "Brands"
 
@@ -71,6 +84,9 @@ def load_brand(slug: str, brands_dir: str | Path | None = None) -> BrandProfile:
             if ext == ".md":
                 post = frontmatter.loads(raw)
                 data = dict(post.metadata)
+                memory = _parse_memory_section(post.content)
+                if memory:
+                    data["memory"] = memory
             else:
                 data = yaml.safe_load(raw)
             if not isinstance(data, dict):

@@ -158,6 +158,16 @@ class BrandVoiceEngine:
         primary = self.brand.voice.archetype_primary
         return f"HOOK STYLE ({primary} archetype): {archetype_hooks.get(primary, 'Write an opening line specific to this brand and topic.')}"
 
+    def memory_context(self) -> str:
+        """Include distilled run history directly in the brief — no retrieval needed."""
+        if not self.brand.memory:
+            return ""
+        bullets = "\n".join(f"- {m}" for m in self.brand.memory)
+        return (
+            "BRAND MEMORY (distilled history — use as context, do not repeat verbatim):\n"
+            + bullets
+        )
+
     def full_brief(self) -> str:
         """Generate a complete writing brief string for Claude prompts."""
         sections = [
@@ -179,6 +189,9 @@ class BrandVoiceEngine:
         examples = self.example_copy()
         if examples:
             sections.append(examples)
+        memory = self.memory_context()
+        if memory:
+            sections.append(memory)
         return "\n\n".join(s for s in sections if s.strip())
 
     def template_context(self) -> dict:

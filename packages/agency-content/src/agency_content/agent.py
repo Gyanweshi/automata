@@ -12,26 +12,12 @@ from agency_common.models import (
     ResearchOutput,
     StoryboardOutput,
 )
-from agency_common.obsidian_writer import log_brand_run_summary
+from agency_common.obsidian_writer import update_brand_memory
 
 from .voice import BrandVoiceEngine
 from .writers import InstagramWriter, LinkedInWriter
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _try_vault_search(query: str) -> str:
-    """Search the Second Brain vault. Returns empty string silently on any failure."""
-    try:
-        from agency_common.obsidian_vector_index import search_second_brain
-        result = search_second_brain(query, num_results=2)
-        if "No relevant notes" in result or "No readable" in result:
-            return ""
-        return result
-    except Exception as exc:
-        LOGGER.debug("Vault search unavailable: %s", exc)
-        return ""
-
 
 CONTENT_TYPES = {
     "instagram": {
@@ -53,10 +39,13 @@ class ContentAgent:
     """Generate content briefs for a brand on Instagram and LinkedIn.
 
     The agent produces structured writing briefs that contain:
-    - Brand voice instructions
+    - Brand voice instructions (including distilled memory — no retrieval needed)
     - Platform-specific formatting rules
     - Research-informed hashtag recommendations
     - Slot structure for Claude to fill in
+
+    After each run, a one-line distilled insight is written back into the brand
+    note's ## Memory section, so future runs accumulate context without retrieval.
     """
 
     def __init__(self, config: AgencyConfig | None = None):
@@ -74,15 +63,16 @@ class ContentAgent:
         **kwargs,
     ) -> ContentOutput:
         """Generate content briefs for a specific platform and content type."""
-        vault_context = _try_vault_search(f"{brand.slug} content style campaigns {topic}")
-        if vault_context:
-            LOGGER.info("Loaded vault context for %s (%d chars)", brand.slug, len(vault_context))
+        # Brand memory is already in brand.memory, loaded from the .md note by brand_loader.
+        # BrandVoiceEngine.full_brief() includes it directly — no retrieval needed.
+        if brand.memory:
+            LOGGER.info("Brand memory loaded for %s (%d entries)", brand.slug, len(brand.memory))
 
         run_id = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
         pieces: list[ContentPiece] = []
 
         for i in range(1, variations + 1):
-            piece = self._generate_piece(brand, platform, content_type, topic, research, vault_context=vault_context, **kwargs)
+            piece = self._generate_piece(brand, platform, content_type, topic, research, **kwargs)
             piece.variation_index = i
             pieces.append(piece)
 
@@ -93,23 +83,11 @@ class ContentAgent:
             summary=f"{variations} {platform}/{content_type} brief(s) generated for '{topic}' ({brand.name})",
         )
 
-        # Write a short note to the vault recording what was generated and for which topic.
-        # Future runs searching for this brand's content style will find this.
-        run_note = (
-            f"Generated {variations} {platform}/{content_type} brief(s) for topic: '{topic}'.\n\n"
-            + "\n\n---\n\n".join(
-                f"**Piece {p.variation_index}** ({p.content_type}):\n{p.body[:600]}{'...' if len(p.body) > 600 else ''}"
-                for p in pieces
-            )
-        )
-        written = log_brand_run_summary(
-            brand_slug=brand.slug,
-            agent_name="ContentAgent",
-            summary=run_note,
-            extra_tags=["content", platform, content_type],
-        )
-        if written:
-            LOGGER.info("Content run summary written to vault: %s", written)
+        # Distil one line from this run into the brand memory — in-place, no separate files.
+        insight = f"{platform}/{content_type} brief for '{topic}' ({variations} variation(s))."
+        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
+        if updated:
+            LOGGER.info("Brand memory updated for %s", brand.slug)
 
         return output
 
@@ -119,9 +97,8 @@ class ContentAgent:
         research: ResearchOutput | None = None,
     ) -> ContentOutput:
         """Generate a week of content briefs based on brand content pillars and platform schedules."""
-        vault_context = _try_vault_search(f"{brand.slug} content style campaigns weekly")
-        if vault_context:
-            LOGGER.info("Loaded vault context for %s weekly plan (%d chars)", brand.slug, len(vault_context))
+        if brand.memory:
+            LOGGER.info("Brand memory loaded for %s (%d entries)", brand.slug, len(brand.memory))
 
         run_id = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
         pieces: list[ContentPiece] = []
@@ -129,7 +106,6 @@ class ContentAgent:
         ig = brand.platforms.instagram
         li = brand.platforms.linkedin
 
-        # Instagram: 5x/week by default — rotate content types
         if ig:
             ig_schedule = [
                 ("carousel", "educational", "Your weekly educational carousel"),
@@ -139,11 +115,10 @@ class ContentAgent:
                 ("caption", "educational", "Quick tip caption"),
             ]
             for ct, pillar, placeholder_topic in ig_schedule:
-                piece = self._generate_piece(brand, "instagram", ct, placeholder_topic, research, vault_context=vault_context)
+                piece = self._generate_piece(brand, "instagram", ct, placeholder_topic, research)
                 piece.notes += f" | Pillar: {pillar}"
                 pieces.append(piece)
 
-        # LinkedIn: 3x/week
         if li:
             li_schedule = [
                 ("post", "Thought leadership post"),
@@ -151,7 +126,7 @@ class ContentAgent:
                 ("post", "Engagement post — question or opinion"),
             ]
             for ct, placeholder_topic in li_schedule:
-                piece = self._generate_piece(brand, "linkedin", ct, placeholder_topic, research, vault_context=vault_context)
+                piece = self._generate_piece(brand, "linkedin", ct, placeholder_topic, research)
                 pieces.append(piece)
 
         output = ContentOutput(
@@ -161,21 +136,10 @@ class ContentAgent:
             summary=f"Weekly content plan: {len(pieces)} briefs generated for {brand.name}",
         )
 
-        run_note = (
-            f"Weekly content plan: {len(pieces)} briefs generated for {brand.name}.\n\n"
-            + "\n\n---\n\n".join(
-                f"**{p.platform}/{p.content_type}** — {p.topic}:\n{p.body[:400]}{'...' if len(p.body) > 400 else ''}"
-                for p in pieces
-            )
-        )
-        written = log_brand_run_summary(
-            brand_slug=brand.slug,
-            agent_name="ContentAgent",
-            summary=run_note,
-            extra_tags=["content", "weekly-plan"],
-        )
-        if written:
-            LOGGER.info("Weekly content plan written to vault: %s", written)
+        insight = f"Weekly plan: {len(pieces)} briefs across instagram/linkedin."
+        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
+        if updated:
+            LOGGER.info("Brand memory updated for %s (weekly plan)", brand.slug)
 
         return output
 
@@ -186,7 +150,6 @@ class ContentAgent:
         content_type: str,
         topic: str,
         research: ResearchOutput | None = None,
-        vault_context: str = "",
         **kwargs,
     ) -> ContentPiece:
         if platform == "instagram":
@@ -215,12 +178,6 @@ class ContentAgent:
                 content_type=content_type,
                 topic=topic,
                 body=f"Unsupported platform: {platform}",
-            )
-
-        if vault_context:
-            piece.body += (
-                "\n\n---\n## Vault Context (past decisions and campaign style for this brand)\n"
-                + vault_context
             )
 
         return piece

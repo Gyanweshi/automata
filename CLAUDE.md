@@ -90,21 +90,16 @@ There are three layers of context. Use all three, in order, before doing any bra
 
 **1. Memory files** (`~/.claude/projects/.../memory/`) — loaded automatically. Contains working rules, preferences, and brand decisions. Never ask the user to re-explain things that are already in memory.
 
-**2. Brand note** (`$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`) — read this before working on any brand. The frontmatter is the authoritative config. The markdown body gives the feel, the key constraint, and the audience tension. Read it with the `Read` tool directly.
+**2. Brand note** (`$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`) — read this before working on any brand. The frontmatter is the authoritative config. The markdown body has the brand essence, key constraints, audience, and the `## Memory` section — distilled run history maintained automatically by agents after every run. Read it with the `Read` tool directly. This is the single source of truth for brand-specific context.
 
-**3. Vault RAG** (`search_second_brain` tool) — call this proactively, not just when asked. Specific triggers:
-- Before writing any content for a brand → search `"<brand> content style campaigns"`
-- Before research → search `"<brand> competitors research findings"`
-- Before onboarding a new brand → search the brand name in case notes exist
-- Any reference to history → "last time", "same as before", "that campaign", "what we decided"
-- Any strategic decision → search first to avoid contradicting something already agreed
+**Do not call `search_second_brain` for brand-specific context.** The `## Memory` section in the brand note already contains what matters — past decisions, research findings, what worked, what was rejected. It is always current. Vault RAG is for broad queries only: topic research, general knowledge, things genuinely not in the brand file.
 
-Synthesise what you find directly into your work. Never say "according to your notes" — just use the context.
+**3. Vault RAG** (`search_second_brain` tool) — use only for broad, non-brand-specific queries: competitor landscape, topic research, industry trends. Not for "what do I know about this brand."
 
 **What each layer is for:**
 - Memory files = always-on rules that never change session to session
-- Brand notes = current client state, lean and accurate
-- Vault RAG = deep context, past decisions, anything written in Obsidian
+- Brand notes = current client state + distilled run history in ## Memory — always read first
+- Vault RAG = broad research queries only, not brand-specific context
 
 ## Skills
 

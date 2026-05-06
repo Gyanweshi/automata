@@ -1,6 +1,7 @@
 import yaml
 from agency_common.models import BrandProfile
 
+
 def test_brand_profile_parsing():
     yaml_data = """
 slug: "test-brand"
@@ -28,3 +29,18 @@ content_pillars:
     assert brand.name == "Test Brand"
     assert brand.platforms.instagram is not None
     assert brand.platforms.instagram.handle == "@test"
+
+
+def test_brand_profile_memory_defaults_empty():
+    brand = BrandProfile.model_validate({"slug": "x", "name": "X"})
+    assert brand.memory == []
+
+
+def test_brand_profile_memory_accepts_list():
+    brand = BrandProfile.model_validate({
+        "slug": "x",
+        "name": "X",
+        "memory": ["2026-05-06: carousel brief for topic A.", "2026-05-06: research — @cashify leads."],
+    })
+    assert len(brand.memory) == 2
+    assert "carousel" in brand.memory[0]
