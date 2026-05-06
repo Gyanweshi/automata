@@ -158,7 +158,7 @@ class ApifyInstagramScraper:
             comments = item.get("commentsCount") or item.get("comments") or 0
             timestamp = item.get("timestamp") or item.get("takenAt") or ""
             hashtags = item.get("hashtags") or []
-            if isinstance(hashtags[0], dict) if hashtags else False:
+            if hashtags and isinstance(hashtags[0], dict):
                 hashtags = [h.get("name", "") for h in hashtags]
             media_type = item.get("type") or item.get("mediaType") or "GraphImage"
             return PostData(

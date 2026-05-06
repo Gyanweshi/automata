@@ -42,21 +42,6 @@
       "command": "bash",
       "args": ["scripts/mcp-npx.sh", "-y", "@roomi-fields/notebooklm-mcp@1.5.9"]
     },
-    "instaloader": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "packages/instaloader-mcp",
-        "main.py"
-      ],
-      "env": {
-        "INSTALOADER_USERNAME": "${INSTALOADER_USERNAME}",
-        "INSTALOADER_PASSWORD": "${INSTALOADER_PASSWORD}",
-        "INSTALOADER_SESSION_USERNAME": "${INSTALOADER_SESSION_USERNAME}",
-        "INSTALOADER_SESSION_FILE": "${INSTALOADER_SESSION_FILE}"
-      }
-    },
     "capsulehub": {
       "command": "bash",
       "args": [
