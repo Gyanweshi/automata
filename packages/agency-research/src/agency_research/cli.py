@@ -43,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
     p.add_argument(
         "--scraper",
-        choices=["playwright", "instaloader", "apify"],
+        choices=["playwright", "apify"],
         default="playwright",
         help="Instagram scraper backend (default: playwright)",
     )

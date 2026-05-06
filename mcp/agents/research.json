@@ -32,22 +32,6 @@
       "args": ["scripts/mcp-npx.sh", "-y", "@roomi-fields/notebooklm-mcp@1.5.9"],
       "purpose": "Interact with Google NotebookLM notebooks for source-grounded Q&A and notebook workflows."
     },
-    "instaloader": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "packages/instaloader-mcp",
-        "main.py"
-      ],
-      "env": {
-        "INSTALOADER_USERNAME": "${INSTALOADER_USERNAME}",
-        "INSTALOADER_PASSWORD": "${INSTALOADER_PASSWORD}",
-        "INSTALOADER_SESSION_USERNAME": "${INSTALOADER_SESSION_USERNAME}",
-        "INSTALOADER_SESSION_FILE": "${INSTALOADER_SESSION_FILE}"
-      },
-      "purpose": "Use Instaloader for Instagram profile and post metadata, with optional downloads into workspace/instagram."
-    },
     "apify": {
       "command": "bash",
       "args": ["scripts/mcp-npx.sh", "-y", "@apify/actors-mcp-server@0.9.20"],
