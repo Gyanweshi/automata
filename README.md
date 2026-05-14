@@ -204,7 +204,6 @@ The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests
 | `firecrawl` | `firecrawl-mcp@3.14.1` | Research | `FIRECRAWL_API_KEY` | Search, scrape, crawl, and structured extraction |
 | `chrome-devtools` | `chrome-devtools-mcp@0.23.0` | Research | No | Console, network, screenshot, and performance inspection |
 | `notebooklm` | `@roomi-fields/notebooklm-mcp@1.5.9` | Research | Google login/session | NotebookLM source-grounded Q&A and notebook workflows |
-| `instaloader` | vendored | Research | Optional Instagram session | Instagram profile and post metadata via Instaloader |
 | `capsulehub` | `mcp-remote@0.1.38` bridge to `https://backend.tilantra.com/mcp/` | Shared context | `CAPSULEHUB_API_KEY` | CapsuleHub context capsules via Tilantra's remote MCP endpoint |
 | `apify` | `@apify/actors-mcp-server@0.9.20` | Research | `APIFY_API_TOKEN` | Apify Actor-backed scraping for social and web workflows |
 
