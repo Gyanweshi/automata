@@ -26,7 +26,7 @@ class ResearchAgent:
         self,
         config: AgencyConfig | None = None,
         dry_run: bool = False,
-        scraper: str = "playwright",
+        scraper: str = "apify",
     ):
         self.config = config or AgencyConfig.from_env()
         self.dry_run = dry_run
