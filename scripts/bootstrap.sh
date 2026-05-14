@@ -89,7 +89,6 @@ ok "agency CLIs installed"
 echo ""
 echo "==> Preparing vendored MCP dependencies"
 uv sync --directory packages/freepik-fastmcp
-uv sync --directory packages/instaloader-mcp
 ok "vendored MCP dependencies ready"
 
 echo ""
