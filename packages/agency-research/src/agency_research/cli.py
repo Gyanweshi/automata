@@ -44,8 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--scraper",
         choices=["playwright", "apify"],
-        default="playwright",
-        help="Instagram scraper backend (default: playwright)",
+        default="apify",
+        help="Instagram scraper backend (default: apify)",
     )
     p.add_argument(
         "--notebooklm",

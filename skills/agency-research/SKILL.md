@@ -22,7 +22,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
    ```
    agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper playwright|apify]
    ```
-   Default scraper is `playwright` (browser-based). Use `apify` for managed Instagram scraping when `APIFY_API_TOKEN` is available.
+   Default scraper is `apify` (managed scraping; requires `APIFY_API_TOKEN`). Use `playwright` for local browser-based scraping.
    Add `--notebooklm` to feed the markdown report into a NotebookLM notebook for AI synthesis.
    Use `--dry-run` first if the user just wants to verify config.
 
@@ -41,7 +41,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 ## Platform Notes
 
-- **Instagram**: use `playwright` by default or `apify` for managed scraping with `APIFY_API_TOKEN`.
+- **Instagram**: use `apify` by default for managed scraping with `APIFY_API_TOKEN`, or `playwright` for local browser-based scraping.
 - **LinkedIn** (Apify): requires `APIFY_API_TOKEN` env var. If missing, skip with a note.
 - **Facebook** (Graph API + Apify): owned pages need `FB_PAGE_ACCESS_TOKEN`; competitor pages need `APIFY_API_TOKEN`.
 
@@ -64,6 +64,6 @@ Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use thes
 - `--list` — show past research runs for the brand
 - `--latest` — print the most recent research output
 - `--platforms ig` — scrape only Instagram
-- `--scraper playwright` - use browser-based scraper (default)
-- `--scraper apify` - use Apify's managed Instagram scraper; requires `APIFY_API_TOKEN`
+- `--scraper apify` - use Apify's managed Instagram scraper (default); requires `APIFY_API_TOKEN`
+- `--scraper playwright` - use local browser-based scraping
 - `--notebooklm` — after research, create a NotebookLM notebook and add the report as a source for AI synthesis; requires `notebooklm login` once
