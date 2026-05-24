@@ -52,6 +52,62 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Feed research output into NotebookLM for AI synthesis",
     )
+
+    # Deep research pipeline flags (auto-enabled when brand YAML has relevant config)
+    intel = p.add_argument_group(
+        "deep intelligence",
+        "Steps 1-5 of the extended research pipeline. Each auto-enables when the "
+        "brand YAML has the relevant config (subreddits, meta_ads.keywords, etc). "
+        "Use --all-intel to force-enable all, or the individual flags to override.",
+    )
+    intel.add_argument(
+        "--all-intel",
+        action="store_true",
+        help="Force-enable all five deep intelligence steps",
+    )
+    intel.add_argument(
+        "--listen",
+        action="store_true",
+        default=None,
+        help="Step 1: Community listening node (Reddit / YouTube RSS / X lists)",
+    )
+    intel.add_argument(
+        "--no-listen",
+        action="store_true",
+        help="Disable Step 1 even if brand has community config",
+    )
+    intel.add_argument(
+        "--audit-ads",
+        action="store_true",
+        default=None,
+        help="Step 2: Meta Ad Library audit (requires META_AD_LIBRARY_TOKEN or APIFY_API_TOKEN)",
+    )
+    intel.add_argument(
+        "--no-audit-ads",
+        action="store_true",
+        help="Disable Step 2 even if brand has meta_ads.keywords",
+    )
+    intel.add_argument(
+        "--no-visual-dna",
+        action="store_true",
+        help="Skip Step 3: Visual DNA extraction (runs by default when posts are available)",
+    )
+    intel.add_argument(
+        "--no-comments",
+        action="store_true",
+        help="Skip Step 4: LLM comment / audience analysis",
+    )
+    intel.add_argument(
+        "--adjacencies",
+        action="store_true",
+        default=None,
+        help="Step 5: Cross-industry adjacency mapping",
+    )
+    intel.add_argument(
+        "--no-adjacencies",
+        action="store_true",
+        help="Disable Step 5 even if brand has adjacent_industries",
+    )
     return p
 
 
@@ -98,6 +154,9 @@ def main():
         print(f"[dry-run] Instagram competitors: {brand.competitors.instagram}")
         print(f"[dry-run] LinkedIn competitors: {brand.competitors.linkedin}")
         print(f"[dry-run] Workspace: {workspace.root.resolve()}")
+        print(f"[dry-run] Community subreddits: {brand.community.subreddits}")
+        print(f"[dry-run] Meta Ad Library keywords: {brand.meta_ads.keywords}")
+        print(f"[dry-run] Adjacent industries: {brand.adjacent_industries}")
         print("[dry-run] OK — no API calls made.")
         return
 
@@ -109,9 +168,36 @@ def main():
     from .agent import ResearchAgent
     from .outputs import write_research_output
 
+    # Resolve deep intel flags
+    force_all = getattr(args, "all_intel", False)
+
+    def _flag(enable_arg: str, disable_arg: str) -> bool | None:
+        if force_all:
+            return True
+        if getattr(args, disable_arg, False):
+            return False
+        if getattr(args, enable_arg, False):
+            return True
+        return None  # auto-detect from brand config
+
+    enable_listening = _flag("listen", "no_listen")
+    enable_ads = _flag("audit_ads", "no_audit_ads")
+    enable_visual_dna = False if getattr(args, "no_visual_dna", False) else (True if force_all else None)
+    enable_comments = False if getattr(args, "no_comments", False) else (True if force_all else None)
+    enable_adjacencies = _flag("adjacencies", "no_adjacencies")
+
     agent = ResearchAgent(config=config, scraper=args.scraper)
     print(f"Running research for '{brand.name}' (scraper: {args.scraper})...")
-    output = agent.run(brand, platforms=platforms, post_count=args.post_count)
+    output = agent.run(
+        brand,
+        platforms=platforms,
+        post_count=args.post_count,
+        enable_listening=enable_listening,
+        enable_ads=enable_ads,
+        enable_visual_dna=enable_visual_dna,
+        enable_comments=enable_comments,
+        enable_adjacencies=enable_adjacencies,
+    )
 
     # Write to workspace
     md_dir = None if args.no_markdown else workspace.root / "research" / args.brand
