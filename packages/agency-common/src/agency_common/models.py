@@ -87,6 +87,17 @@ class BrandContentPillars(BaseModel):
     promotional: int = 10
 
 
+class BrandCommunityConfig(BaseModel):
+    subreddits: list[str] = Field(default_factory=list, description="e.g. ['apple', 'MachineLearning']")
+    youtube_channels: list[str] = Field(default_factory=list, description="YouTube channel IDs")
+    x_lists: list[str] = Field(default_factory=list, description="Full X/Twitter list URLs")
+
+
+class BrandMetaAdsConfig(BaseModel):
+    keywords: list[str] = Field(default_factory=list, description="Keywords to search in Meta Ad Library")
+    countries: list[str] = Field(default_factory=lambda: ["US", "GB", "AU"], description="ISO country codes")
+
+
 class BrandProfile(BaseModel):
     slug: str
     name: str
@@ -99,6 +110,18 @@ class BrandProfile(BaseModel):
     platforms: BrandPlatforms = Field(default_factory=BrandPlatforms)
     competitors: BrandCompetitors = Field(default_factory=BrandCompetitors)
     content_pillars: BrandContentPillars = Field(default_factory=BrandContentPillars)
+    community: BrandCommunityConfig = Field(
+        default_factory=BrandCommunityConfig,
+        description="Reddit/YouTube/X community listening configuration",
+    )
+    meta_ads: BrandMetaAdsConfig = Field(
+        default_factory=BrandMetaAdsConfig,
+        description="Meta Ad Library audit keywords",
+    )
+    adjacent_industries: list[str] = Field(
+        default_factory=list,
+        description="Premium adjacent industries to scan for cross-pollination trends",
+    )
     memory: list[str] = Field(
         default_factory=list,
         description="Distilled run history — max 10 bullets, always current. "
@@ -174,6 +197,115 @@ class PlatformResearch(BaseModel):
     raw_posts: list[PostData] = Field(default_factory=list)
 
 
+# ---------------------------------------------------------------------------
+# Community Listening Node (Step 1)
+# ---------------------------------------------------------------------------
+
+class CommunityPost(BaseModel):
+    source: str  # "reddit" | "youtube" | "x"
+    subreddit: str = ""
+    title: str = ""
+    body: str = ""
+    url: str = ""
+    upvotes: int = 0
+    comments: int = 0
+    author: str = ""
+    timestamp: Optional[str] = None
+    score: float = 0.0
+
+
+class ListeningNodeReport(BaseModel):
+    scraped_at: str = ""
+    sources: list[str] = Field(default_factory=list)
+    posts: list[CommunityPost] = Field(default_factory=list)
+    top_questions: list[str] = Field(default_factory=list)
+    recurring_debates: list[str] = Field(default_factory=list)
+    emerging_keywords: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Meta Ad Library (Step 2)
+# ---------------------------------------------------------------------------
+
+class AdLibraryAd(BaseModel):
+    ad_id: str = ""
+    page_name: str = ""
+    started_running: Optional[str] = None
+    days_running: int = 0
+    impressions_lower: int = 0
+    impressions_upper: int = 0
+    ad_copy: str = ""
+    cta: str = ""
+    hook: str = ""
+    visual_description: str = ""
+    url: str = ""
+
+
+class AdLibraryReport(BaseModel):
+    scraped_at: str = ""
+    keywords_searched: list[str] = Field(default_factory=list)
+    ads: list[AdLibraryAd] = Field(default_factory=list)
+    top_hooks: list[str] = Field(default_factory=list)
+    top_ctas: list[str] = Field(default_factory=list)
+    winning_angles: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Visual DNA (Step 3)
+# ---------------------------------------------------------------------------
+
+class VisualDNA(BaseModel):
+    analyzed_at: str = ""
+    dominant_aesthetic: str = ""
+    color_palette_trend: str = ""
+    typography_trend: str = ""
+    pacing_trend: str = ""
+    industry_standard_aesthetic: str = ""
+    pattern_interrupt_opportunity: str = ""
+    raw_analysis: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Comment / Audience Analysis (Step 4)
+# ---------------------------------------------------------------------------
+
+class CommentCluster(BaseModel):
+    category: str  # "fears" | "recurring_questions" | "knowledge_gaps" | "desires"
+    items: list[str] = Field(default_factory=list)
+    sentiment: str = ""
+
+
+class CommentAnalysis(BaseModel):
+    analyzed_at: str = ""
+    source_posts: list[str] = Field(default_factory=list)
+    comment_count: int = 0
+    clusters: list[CommentCluster] = Field(default_factory=list)
+    content_pillars: list[str] = Field(default_factory=list)
+    raw_analysis: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Cross-Industry Adjacency Mapping (Step 5)
+# ---------------------------------------------------------------------------
+
+class AdjacencyInsight(BaseModel):
+    source_industry: str
+    trend_or_narrative: str = ""
+    how_to_adapt: str = ""
+    readiness_to_cross: str = ""  # "peaked" | "crossing now" | "emerging"
+
+
+class AdjacencyReport(BaseModel):
+    analyzed_at: str = ""
+    adjacent_industries: list[str] = Field(default_factory=list)
+    insights: list[AdjacencyInsight] = Field(default_factory=list)
+    top_opportunities: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Research Output
+# ---------------------------------------------------------------------------
+
 class ResearchOutput(BaseModel):
     brand_slug: str
     run_id: str
@@ -181,6 +313,11 @@ class ResearchOutput(BaseModel):
     platforms: dict[str, PlatformResearch] = Field(default_factory=dict)
     cross_platform_trends: list[HashtagTrend] = Field(default_factory=list)
     cross_platform_themes: list[ContentTheme] = Field(default_factory=list)
+    listening_node: Optional[ListeningNodeReport] = None
+    ad_library: Optional[AdLibraryReport] = None
+    visual_dna: Optional[VisualDNA] = None
+    comment_analysis: Optional[CommentAnalysis] = None
+    adjacency_report: Optional[AdjacencyReport] = None
     summary: str = ""
 
 
