@@ -193,7 +193,7 @@ Session transcripts (both Claude Code and Codex) are written to `Agent_Sessions/
 
 ## MCP Servers
 
-The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests live under `mcp/agents/`.
+The project-level MCP config [.mcp.json](.mcp.json) is intentionally empty so MCP clients that auto-load project configs do not start every server at session startup. Agent-specific MCP manifests live under `mcp/agents/`; use those manifests to register only the servers needed for the current workflow.
 
 | Server | Version | Agent | Needs Key | Purpose |
 |--------|---------|-------|-----------|---------|
@@ -209,7 +209,7 @@ The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests
 
 ### Different MCP Harnesses
 
-Most MCP clients can use `.mcp.json` directly or with small changes. If your harness expects a different format, use `.mcp.json` as the source of truth and copy the `command`, `args`, and `env` entries into that client.
+Most MCP clients can use the manifests under `mcp/agents/` directly or with small changes. If your harness expects a different format, copy the relevant `command`, `args`, and `env` entries from the agent manifest into that client.
 
 For Codex on this machine, you can register a server manually with:
 
@@ -237,7 +237,7 @@ codex mcp add perplexity --env "PERPLEXITY_API_KEY=$env:PERPLEXITY_API_KEY" -- n
 
 </details>
 
-Repeat the same pattern for any server in `.mcp.json`.
+Repeat the same pattern for any server in `mcp/agents/research.json` or `mcp/agents/storyboard.json`.
 
 ## Using The Agents
 
@@ -462,7 +462,7 @@ Blender MCP needs Blender running with the MCP addon enabled. The repo config on
 
 ### A Different Harness Does Not Read `.mcp.json`
 
-Use `.mcp.json` as a copy source. The important pieces are the server name, `command`, `args`, and `env`. Keep real API keys out of committed files.
+Use `mcp/agents/*.json` as a copy source. The important pieces are the server name, `command`, `args`, and `env`. Keep real API keys out of committed files.
 
 ## Maintenance
 
@@ -477,4 +477,4 @@ npm view mcp-remote version
 npm view @apify/actors-mcp-server version
 ```
 
-Then update `.mcp.json`, `mcp/agents/*.json`, and this README together.
+Then update `mcp/agents/*.json` and this README together.

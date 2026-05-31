@@ -14,7 +14,7 @@ This is an agency multi-agent monorepo for:
 ## Source Of Truth
 
 - Human setup and usage guide: `README.md`
-- Aggregate MCP config: `.mcp.json`
+- Startup-safe MCP config: `.mcp.json` (intentionally empty by default)
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
 - Agent behavior docs: `skills/agency-*/SKILL.md`
 - Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter is the agent config, body is the brand narrative and memory (not committed to repo)
@@ -87,7 +87,7 @@ Content agent:
 - primarily Python CLI output and brand voice files
 - may use research outputs from `workspace/research/<brand-slug>/`
 
-MCP package versions are pinned in `.mcp.json` and `mcp/agents/*.json`. Keep them synchronized if updated.
+MCP package versions are pinned in `mcp/agents/*.json`. Keep README and agent manifests synchronized if updated.
 
 ## Verification Checklist
 
@@ -115,7 +115,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -SkipP
 ## Known Caveats
 
 - `README.md` uses collapsible sections as README-safe OS selection buttons. GitHub Markdown does not allow arbitrary JavaScript buttons.
-- `.mcp.json` env interpolation is common but not universal. If a harness does not support it, copy `command`, `args`, and `env` into that harness's native MCP config format.
+- `.mcp.json` is intentionally empty so MCP clients that auto-load project configs do not start every server at session startup. Use `mcp/agents/*.json` as the source for opt-in server registration.
 - Blender MCP requires Blender and the MCP addon to be installed and running outside this repo.
 - API keys belong in environment variables or local `.env`, never in committed config.
 - `.agents` and `.codex` directories may be read-only in some harnesses. Use repo-owned `AGENTS.md`, `skills/`, and `mcp/agents/` as portable context.
