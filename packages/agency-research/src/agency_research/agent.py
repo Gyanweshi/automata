@@ -40,6 +40,7 @@ from .analyzers import (
 from .scrapers import (
     ApifyInstagramScraper,
     BrowserActInstagramScraper,
+    CDPInstagramScraper,
     CommunityListener,
     FacebookScraper,
     LinkedInScraper,
@@ -54,6 +55,7 @@ INSTAGRAM_SCRAPERS = {
     "apify": ApifyInstagramScraper,
     "playwright": PlaywrightInstagramScraper,
     "browser-act": BrowserActInstagramScraper,
+    "cdp": CDPInstagramScraper,
 }
 
 
@@ -87,6 +89,8 @@ class ResearchAgent:
                 mode=self.browser_act_mode,
                 session_name=self.browser_act_session_name or None,
             )
+        elif ig_cls is CDPInstagramScraper:
+            self.ig = ig_cls(dry_run=dry_run)
         elif scraper == "playwright":
             self.ig = ig_cls(
                 dry_run=dry_run,
@@ -133,10 +137,7 @@ class ResearchAgent:
         )
 
         # Step 6: Framework analysis layer
-        self.framework_orchestrator = FrameworkOrchestrator(
-            anthropic_api_key=self.config.anthropic_api_key,
-            dry_run=dry_run,
-        )
+        self.framework_orchestrator = FrameworkOrchestrator(dry_run=dry_run)
 
     def run(
         self,

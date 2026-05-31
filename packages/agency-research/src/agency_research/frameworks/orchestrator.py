@@ -14,11 +14,6 @@ from .base import FrameworkBase
 from .engagement_benchmarking import EngagementBenchmarkingFramework
 from .content_audit import ContentAuditFramework
 from .hashtag_landscape import HashtagLandscapeFramework
-from .share_of_voice import ShareOfVoiceFramework
-from .swot import SWOTFramework
-from .jtbd import JTBDFramework
-from .cep import CEPFramework
-from .persona import PersonaFramework
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,23 +22,17 @@ class FrameworkOrchestrator:
     """Run the framework analysis layer (Step 6) over a ResearchOutput.
 
     Args:
-        anthropic_api_key: Required for LLM-driven frameworks (SWOT, JTBD, CEP, Persona).
-        dry_run: Skip all LLM calls, return empty results.
-        only: If given, restrict to these OUTPUT_FIELD names (e.g. ["swot", "jtbd"]).
+        dry_run: Skip computation and return empty results.
+        only: If given, restrict to these OUTPUT_FIELD names.
         force: Re-run every framework regardless of staleness.
     """
 
-    def __init__(self, anthropic_api_key: str = "", dry_run: bool = False):
+    def __init__(self, dry_run: bool = False):
         self.dry_run = dry_run
         self._frameworks: list[FrameworkBase] = [
             EngagementBenchmarkingFramework(),
             ContentAuditFramework(),
             HashtagLandscapeFramework(),
-            ShareOfVoiceFramework(),
-            SWOTFramework(anthropic_api_key=anthropic_api_key, dry_run=dry_run),
-            JTBDFramework(anthropic_api_key=anthropic_api_key, dry_run=dry_run),
-            CEPFramework(anthropic_api_key=anthropic_api_key, dry_run=dry_run),
-            PersonaFramework(anthropic_api_key=anthropic_api_key, dry_run=dry_run),
         ]
 
     def run(
