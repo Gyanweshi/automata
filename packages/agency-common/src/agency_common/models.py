@@ -310,6 +310,137 @@ class AdjacencyReport(BaseModel):
 # Research Output
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Framework Analysis Layer (Step 6)
+# ---------------------------------------------------------------------------
+
+class CompetitorEngagementRow(BaseModel):
+    handle: str
+    platform: str
+    follower_count: int = 0
+    avg_engagement_rate: float = 0.0
+    er_vs_industry_avg: float = 0.0
+    primary_format: str = ""
+
+
+class EngagementBenchmark(BaseModel):
+    computed_at: str = ""
+    industry_avg_er: float = 0.0
+    rows: list[CompetitorEngagementRow] = Field(default_factory=list)
+    top_format_by_er: str = ""
+    summary: str = ""
+
+
+class ContentAuditRow(BaseModel):
+    handle: str
+    platform: str
+    primary_format: str = ""
+    format_mix: dict[str, int] = Field(default_factory=dict)
+    posting_frequency: str = ""
+    primary_themes: list[str] = Field(default_factory=list)
+    engagement_leader: bool = False
+
+
+class ContentAuditResult(BaseModel):
+    computed_at: str = ""
+    rows: list[ContentAuditRow] = Field(default_factory=list)
+    coverage_gaps: list[str] = Field(default_factory=list)
+    opportunity_formats: list[str] = Field(default_factory=list)
+    summary: str = ""
+
+
+class HashtagTierGroup(BaseModel):
+    tier: str
+    tags: list[str] = Field(default_factory=list)
+    avg_trend_score: float = 0.0
+
+
+class HashtagLandscapeResult(BaseModel):
+    computed_at: str = ""
+    tiers: list[HashtagTierGroup] = Field(default_factory=list)
+    opportunity_tags: list[str] = Field(default_factory=list)
+    oversaturated_tags: list[str] = Field(default_factory=list)
+    recommended_mix: dict[str, list[str]] = Field(default_factory=dict)
+    summary: str = ""
+
+
+class SOVRow(BaseModel):
+    handle: str
+    platform: str
+    estimated_engagement_weight: float = 0.0
+    sov_pct: float = 0.0
+
+
+class ShareOfVoiceResult(BaseModel):
+    computed_at: str = ""
+    rows: list[SOVRow] = Field(default_factory=list)
+    leader_handle: str = ""
+    leader_sov_pct: float = 0.0
+    summary: str = ""
+
+
+class SWOTResult(BaseModel):
+    computed_at: str = ""
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
+    opportunities: list[str] = Field(default_factory=list)
+    threats: list[str] = Field(default_factory=list)
+    summary: str = ""
+
+
+class JTBDJob(BaseModel):
+    job: str
+    context: str = ""
+    trigger: str = ""
+    desired_outcome: str = ""
+    content_hook: str = ""
+
+
+class JTBDResult(BaseModel):
+    computed_at: str = ""
+    jobs: list[JTBDJob] = Field(default_factory=list)
+    summary: str = ""
+
+
+class CEPEntry(BaseModel):
+    trigger: str
+    description: str = ""
+    content_hook: str = ""
+
+
+class CEPResult(BaseModel):
+    computed_at: str = ""
+    entries: list[CEPEntry] = Field(default_factory=list)
+    summary: str = ""
+
+
+class PersonaSegment(BaseModel):
+    name: str
+    age_range: str = ""
+    psychographic: str = ""
+    pain_points: list[str] = Field(default_factory=list)
+    content_preferences: list[str] = Field(default_factory=list)
+    where_they_hang_out: list[str] = Field(default_factory=list)
+
+
+class PersonaResult(BaseModel):
+    computed_at: str = ""
+    personas: list[PersonaSegment] = Field(default_factory=list)
+    summary: str = ""
+
+
+class FrameworksOutput(BaseModel):
+    brand_slug: str
+    engagement_benchmark: Optional[EngagementBenchmark] = None
+    content_audit: Optional[ContentAuditResult] = None
+    hashtag_landscape: Optional[HashtagLandscapeResult] = None
+    share_of_voice: Optional[ShareOfVoiceResult] = None
+    swot: Optional[SWOTResult] = None
+    jtbd: Optional[JTBDResult] = None
+    cep: Optional[CEPResult] = None
+    persona: Optional[PersonaResult] = None
+
+
 class ResearchOutput(BaseModel):
     brand_slug: str
     run_id: str
@@ -322,6 +453,7 @@ class ResearchOutput(BaseModel):
     visual_dna: Optional[VisualDNA] = None
     comment_analysis: Optional[CommentAnalysis] = None
     adjacency_report: Optional[AdjacencyReport] = None
+    frameworks: Optional[FrameworksOutput] = None
     summary: str = ""
 
 

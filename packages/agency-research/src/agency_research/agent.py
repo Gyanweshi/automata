@@ -28,6 +28,7 @@ from agency_common.models import (
     VisualDNA,
 )
 from agency_common.obsidian_writer import update_brand_memory
+from .frameworks import FrameworkOrchestrator
 from .analyzers import (
     AdjacencyMapper,
     CommentAnalyzer,
@@ -127,6 +128,12 @@ class ResearchAgent:
             dry_run=dry_run,
         )
         self.adjacency_mapper = AdjacencyMapper(
+            anthropic_api_key=self.config.anthropic_api_key,
+            dry_run=dry_run,
+        )
+
+        # Step 6: Framework analysis layer
+        self.framework_orchestrator = FrameworkOrchestrator(
             anthropic_api_key=self.config.anthropic_api_key,
             dry_run=dry_run,
         )
@@ -276,6 +283,24 @@ class ResearchAgent:
             comment_analysis = analysis_results.get("comment_analysis") if do_comments else None
             adjacency_report = analysis_results.get("adjacency_report") if do_adjacencies else None
 
+        # ---- Step 6: Framework analysis layer ----
+        LOGGER.info("Step 6: Running framework analysis layer for %s", brand.slug)
+        frameworks_output = self.framework_orchestrator.run(
+            research=ResearchOutput(
+                brand_slug=brand.slug,
+                run_id=run_id,
+                platforms=platform_results,
+                cross_platform_trends=cross_trends,
+                cross_platform_themes=cross_themes,
+                listening_node=listening_node,
+                ad_library=ad_library,
+                visual_dna=visual_dna,
+                comment_analysis=comment_analysis,
+                adjacency_report=adjacency_report,
+            ),
+            brand=brand,
+        )
+
         output = ResearchOutput(
             brand_slug=brand.slug,
             run_id=run_id,
@@ -287,6 +312,7 @@ class ResearchAgent:
             visual_dna=visual_dna,
             comment_analysis=comment_analysis,
             adjacency_report=adjacency_report,
+            frameworks=frameworks_output,
             summary=self._generate_summary(
                 brand,
                 platform_results,
