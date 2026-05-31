@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+import os
 from pathlib import Path
+import time
 from typing import Any
 
 import frontmatter
@@ -127,6 +129,53 @@ def format_related_concepts_section(related_links: list[str]) -> str:
 
 _MEMORY_HEADING = "## Memory"
 _MEMORY_MAX_BULLETS = 10
+_MEMORY_LOCK_TIMEOUT_SECONDS = 10.0
+_MEMORY_LOCK_STALE_SECONDS = 60.0
+
+
+class _FileLock:
+    """Tiny cross-platform lock for short metadata writes."""
+
+    def __init__(self, lock_path: Path, *, timeout_seconds: float, stale_seconds: float):
+        self.lock_path = lock_path
+        self.timeout_seconds = timeout_seconds
+        self.stale_seconds = stale_seconds
+        self._fd: int | None = None
+
+    def __enter__(self) -> "_FileLock":
+        deadline = time.monotonic() + self.timeout_seconds
+        self.lock_path.parent.mkdir(parents=True, exist_ok=True)
+
+        while True:
+            try:
+                self._fd = os.open(str(self.lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(self._fd, str(os.getpid()).encode("ascii", errors="ignore"))
+                return self
+            except FileExistsError:
+                self._clear_stale_lock()
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(f"Timed out waiting for lock: {self.lock_path}")
+                time.sleep(0.05)
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        if self._fd is not None:
+            os.close(self._fd)
+            self._fd = None
+        try:
+            self.lock_path.unlink()
+        except FileNotFoundError:
+            pass
+
+    def _clear_stale_lock(self) -> None:
+        try:
+            age = time.time() - self.lock_path.stat().st_mtime
+        except FileNotFoundError:
+            return
+        if age > self.stale_seconds:
+            try:
+                self.lock_path.unlink()
+            except FileNotFoundError:
+                pass
 
 
 def update_brand_memory(
@@ -156,35 +205,40 @@ def update_brand_memory(
     if not brand_md.exists():
         return False
 
-    content = brand_md.read_text(encoding="utf-8")
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    new_bullet = f"- {date_str}: {insight.strip()}"
-
-    if _MEMORY_HEADING in content:
-        lines = content.splitlines()
-        mem_start = next(
-            (i for i, l in enumerate(lines) if l.strip() == _MEMORY_HEADING), None
-        )
-        if mem_start is not None:
-            mem_end = len(lines)
-            for i in range(mem_start + 1, len(lines)):
-                if lines[i].startswith("## "):
-                    mem_end = i
-                    break
-            bullets = [l for l in lines[mem_start + 1:mem_end] if l.strip().startswith("-")]
-            bullets.append(new_bullet)
-            if len(bullets) > _MEMORY_MAX_BULLETS:
-                bullets = bullets[-_MEMORY_MAX_BULLETS:]
-            new_block = [_MEMORY_HEADING, ""] + bullets + [""]
-            lines = lines[:mem_start] + new_block + lines[mem_end:]
-            content = "\n".join(lines)
-    else:
-        content = content.rstrip() + f"\n\n{_MEMORY_HEADING}\n\n{new_bullet}\n"
-
     try:
-        brand_md.write_text(content, encoding="utf-8")
+        with _FileLock(
+            brand_md.with_suffix(f"{brand_md.suffix}.lock"),
+            timeout_seconds=_MEMORY_LOCK_TIMEOUT_SECONDS,
+            stale_seconds=_MEMORY_LOCK_STALE_SECONDS,
+        ):
+            content = brand_md.read_text(encoding="utf-8")
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            new_bullet = f"- {date_str}: {insight.strip()}"
+
+            if _MEMORY_HEADING in content:
+                lines = content.splitlines()
+                mem_start = next(
+                    (i for i, l in enumerate(lines) if l.strip() == _MEMORY_HEADING), None
+                )
+                if mem_start is not None:
+                    mem_end = len(lines)
+                    for i in range(mem_start + 1, len(lines)):
+                        if lines[i].startswith("## "):
+                            mem_end = i
+                            break
+                    bullets = [l for l in lines[mem_start + 1:mem_end] if l.strip().startswith("-")]
+                    bullets.append(new_bullet)
+                    if len(bullets) > _MEMORY_MAX_BULLETS:
+                        bullets = bullets[-_MEMORY_MAX_BULLETS:]
+                    new_block = [_MEMORY_HEADING, ""] + bullets + [""]
+                    lines = lines[:mem_start] + new_block + lines[mem_end:]
+                    content = "\n".join(lines)
+            else:
+                content = content.rstrip() + f"\n\n{_MEMORY_HEADING}\n\n{new_bullet}\n"
+
+            brand_md.write_text(content, encoding="utf-8")
         return True
-    except OSError:
+    except (OSError, TimeoutError):
         return False
 
 

@@ -9,9 +9,11 @@ Five-step deep research pipeline:
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from collections import Counter
 from datetime import datetime
+from typing import Callable, TypeVar
 
 from agency_common.config import AgencyConfig
 from agency_common.models import (
@@ -36,6 +38,7 @@ from .analyzers import (
 )
 from .scrapers import (
     ApifyInstagramScraper,
+    BrowserActInstagramScraper,
     CommunityListener,
     FacebookScraper,
     LinkedInScraper,
@@ -44,10 +47,12 @@ from .scrapers import (
 )
 
 LOGGER = logging.getLogger(__name__)
+T = TypeVar("T")
 
 INSTAGRAM_SCRAPERS = {
     "apify": ApifyInstagramScraper,
     "playwright": PlaywrightInstagramScraper,
+    "browser-act": BrowserActInstagramScraper,
 }
 
 
@@ -59,13 +64,33 @@ class ResearchAgent:
         config: AgencyConfig | None = None,
         dry_run: bool = False,
         scraper: str = "apify",
+        browser_act_proxy_region: str | None = None,
+        instagram_login_mode: str = "auto",
+        browser_act_mode: str = "stealth",
+        browser_act_session_name: str | None = None,
     ):
         self.config = config or AgencyConfig.from_env()
         self.dry_run = dry_run
+        self.browser_act_proxy_region = browser_act_proxy_region or self.config.browser_act_proxy_region or ""
+        self.instagram_login_mode = instagram_login_mode
+        self.browser_act_mode = browser_act_mode or self.config.browser_act_mode or "stealth"
+        self.browser_act_session_name = browser_act_session_name or self.config.browser_act_session_name or ""
 
         ig_cls = INSTAGRAM_SCRAPERS.get(scraper, ApifyInstagramScraper)
         if ig_cls is ApifyInstagramScraper:
             self.ig = ig_cls(dry_run=dry_run, api_token=self.config.apify_token)
+        elif ig_cls is BrowserActInstagramScraper:
+            self.ig = ig_cls(
+                dry_run=dry_run,
+                proxy_region=self.browser_act_proxy_region or None,
+                mode=self.browser_act_mode,
+                session_name=self.browser_act_session_name or None,
+            )
+        elif scraper == "playwright":
+            self.ig = ig_cls(
+                dry_run=dry_run,
+                manual_login=self.instagram_login_mode == "manual",
+            )
         else:
             self.ig = ig_cls(dry_run=dry_run)
 
@@ -116,6 +141,8 @@ class ResearchAgent:
         enable_visual_dna: bool | None = None,
         enable_comments: bool | None = None,
         enable_adjacencies: bool | None = None,
+        parallel: bool = False,
+        max_workers: int = 4,
     ) -> ResearchOutput:
         """Run full research for a brand.
 
@@ -131,7 +158,12 @@ class ResearchAgent:
             enable_visual_dna: Step 3 — visual DNA extraction
             enable_comments: Step 4 — LLM comment analysis
             enable_adjacencies: Step 5 — cross-industry adjacency map
+            parallel: run independent platform/source/analyzer jobs concurrently
+            max_workers: upper bound for concurrent jobs when parallel is enabled
         """
+        if max_workers < 1:
+            raise ValueError("max_workers must be at least 1")
+
         if brand.memory:
             LOGGER.info("Brand memory loaded for %s (%d entries)", brand.slug, len(brand.memory))
 
@@ -154,28 +186,37 @@ class ResearchAgent:
         run_id = datetime.utcnow().strftime("%Y-%m-%d_%H%M%S")
         platform_results: dict[str, PlatformResearch] = {}
         all_posts: list[PostData] = []
+        self._current_max_workers = max_workers
 
         # ---- Platform scraping (existing pipeline) ----
+        platform_tasks: dict[str, Callable[[], PlatformResearch]] = {}
         if "instagram" in platforms:
-            platform_results["instagram"] = self._research_instagram(brand, post_count)
-            all_posts += platform_results["instagram"].raw_posts
-
+            platform_tasks["instagram"] = lambda: self._research_instagram(brand, post_count)
         if "linkedin" in platforms:
-            platform_results["linkedin"] = self._research_linkedin(brand, post_count)
-            all_posts += platform_results["linkedin"].raw_posts
-
+            platform_tasks["linkedin"] = lambda: self._research_linkedin(brand, post_count, parallel=parallel, max_workers=max_workers)
         if "facebook" in platforms:
-            platform_results["facebook"] = self._research_facebook(brand, post_count)
-            all_posts += platform_results["facebook"].raw_posts
+            platform_tasks["facebook"] = lambda: self._research_facebook(brand, post_count, parallel=parallel, max_workers=max_workers)
+
+        if parallel:
+            platform_results = self._run_named_tasks(platform_tasks, max_workers=max_workers)
+        else:
+            platform_results = {
+                name: task()
+                for name, task in platform_tasks.items()
+            }
+
+        for research in platform_results.values():
+            all_posts += research.raw_posts
 
         cross_trends = self.trend_analyzer.trending_hashtags(all_posts, top_n=20)
         cross_themes = self.trend_analyzer.content_themes(all_posts, top_n=10)
 
         # ---- Step 1: Listening node ----
         listening_node: ListeningNodeReport | None = None
+        ad_library: AdLibraryReport | None = None
+        source_tasks: dict[str, Callable[[], ListeningNodeReport | AdLibraryReport]] = {}
         if do_listening:
-            LOGGER.info("Step 1: Running community listening node for %s", brand.slug)
-            listening_node = self.community.scrape(
+            source_tasks["listening_node"] = lambda: self.community.scrape(
                 subreddits=brand.community.subreddits,
                 youtube_channels=brand.community.youtube_channels,
                 x_lists=brand.community.x_lists,
@@ -183,37 +224,57 @@ class ResearchAgent:
             )
 
         # ---- Step 2: Meta Ad Library ----
-        ad_library: AdLibraryReport | None = None
         if do_ads:
-            LOGGER.info("Step 2: Auditing Meta Ad Library for %s", brand.slug)
-            ad_library = self.meta_ads.audit(
+            source_tasks["ad_library"] = lambda: self.meta_ads.audit(
                 keywords=brand.meta_ads.keywords,
                 countries=brand.meta_ads.countries or None,
             )
 
+        if source_tasks:
+            if do_listening:
+                LOGGER.info("Step 1: Running community listening node for %s", brand.slug)
+            if do_ads:
+                LOGGER.info("Step 2: Auditing Meta Ad Library for %s", brand.slug)
+            source_results = (
+                self._run_named_tasks(source_tasks, max_workers=max_workers)
+                if parallel
+                else {name: task() for name, task in source_tasks.items()}
+            )
+            listening_node = source_results.get("listening_node") if do_listening else None
+            ad_library = source_results.get("ad_library") if do_ads else None
+
         # ---- Step 3: Visual DNA ----
         visual_dna: VisualDNA | None = None
-        if do_visual_dna and all_posts:
-            LOGGER.info("Step 3: Extracting visual DNA from %d posts", len(all_posts))
-            visual_dna = self.visual_analyzer.analyze(all_posts)
-
         # ---- Step 4: Comment / audience analysis ----
         comment_analysis: CommentAnalysis | None = None
+        # ---- Step 5: Adjacency mapping ----
+        adjacency_report: AdjacencyReport | None = None
+        analysis_tasks: dict[str, Callable[[], VisualDNA | CommentAnalysis | AdjacencyReport]] = {}
+        if do_visual_dna and all_posts:
+            LOGGER.info("Step 3: Extracting visual DNA from %d posts", len(all_posts))
+            analysis_tasks["visual_dna"] = lambda: self.visual_analyzer.analyze(all_posts)
         if do_comments and all_posts:
             LOGGER.info("Step 4: Running LLM comment analysis on %d posts", len(all_posts))
-            comment_analysis = self.comment_analyzer.analyze(
+            analysis_tasks["comment_analysis"] = lambda: self.comment_analyzer.analyze(
                 posts=all_posts,
                 subject=f"{brand.name} — {brand.audience.primary}",
             )
-
-        # ---- Step 5: Adjacency mapping ----
-        adjacency_report: AdjacencyReport | None = None
         if do_adjacencies:
             LOGGER.info("Step 5: Mapping cross-industry adjacencies for %s", brand.slug)
-            adjacency_report = self.adjacency_mapper.map(
+            analysis_tasks["adjacency_report"] = lambda: self.adjacency_mapper.map(
                 primary_category=brand.name,
                 adjacent_industries=brand.adjacent_industries,
             )
+
+        if analysis_tasks:
+            analysis_results = (
+                self._run_named_tasks(analysis_tasks, max_workers=max_workers)
+                if parallel
+                else {name: task() for name, task in analysis_tasks.items()}
+            )
+            visual_dna = analysis_results.get("visual_dna") if do_visual_dna else None
+            comment_analysis = analysis_results.get("comment_analysis") if do_comments else None
+            adjacency_report = analysis_results.get("adjacency_report") if do_adjacencies else None
 
         output = ResearchOutput(
             brand_slug=brand.slug,
@@ -274,6 +335,9 @@ class ResearchAgent:
         ig_config = brand.platforms.instagram
         hashtags = ig_config.hashtag_groups.niche[:3] if ig_config else []
 
+        if hasattr(self.ig, "max_workers"):
+            self.ig.max_workers = max(1, getattr(self, "_current_max_workers", 4))
+
         competitors, hashtag_posts = self.ig.research_brand(
             competitor_handles=brand.competitors.instagram,
             hashtags=hashtags,
@@ -294,12 +358,30 @@ class ResearchAgent:
             raw_posts=all_posts[:100],
         )
 
-    def _research_linkedin(self, brand: BrandProfile, post_count: int) -> PlatformResearch:
-        competitors = []
+    def _research_linkedin(
+        self,
+        brand: BrandProfile,
+        post_count: int,
+        *,
+        parallel: bool = False,
+        max_workers: int = 4,
+    ) -> PlatformResearch:
+        competitors: list = []
         all_posts: list[PostData] = []
-        for company_url in brand.competitors.linkedin:
-            analysis = self.li.build_competitor_analysis(company_url, post_count=post_count)
-            competitors.append(analysis)
+        if parallel:
+            tasks = {
+                company_url: lambda company_url=company_url: self.li.build_competitor_analysis(
+                    company_url,
+                    post_count=post_count,
+                )
+                for company_url in brand.competitors.linkedin
+            }
+            competitors = list(self._run_named_tasks(tasks, max_workers=max_workers).values())
+        else:
+            for company_url in brand.competitors.linkedin:
+                competitors.append(self.li.build_competitor_analysis(company_url, post_count=post_count))
+
+        for analysis in competitors:
             all_posts += analysis.top_posts
 
         return PlatformResearch(
@@ -312,12 +394,27 @@ class ResearchAgent:
             raw_posts=all_posts[:100],
         )
 
-    def _research_facebook(self, brand: BrandProfile, post_count: int) -> PlatformResearch:
-        competitors = []
+    def _research_facebook(
+        self,
+        brand: BrandProfile,
+        post_count: int,
+        *,
+        parallel: bool = False,
+        max_workers: int = 4,
+    ) -> PlatformResearch:
+        competitors: list = []
         all_posts: list[PostData] = []
-        for page in brand.competitors.facebook:
-            analysis = self.fb.build_competitor_analysis(page, post_count=post_count)
-            competitors.append(analysis)
+        if parallel:
+            tasks = {
+                page: lambda page=page: self.fb.build_competitor_analysis(page, post_count=post_count)
+                for page in brand.competitors.facebook
+            }
+            competitors = list(self._run_named_tasks(tasks, max_workers=max_workers).values())
+        else:
+            for page in brand.competitors.facebook:
+                competitors.append(self.fb.build_competitor_analysis(page, post_count=post_count))
+
+        for analysis in competitors:
             all_posts += analysis.top_posts
 
         return PlatformResearch(
@@ -327,6 +424,29 @@ class ResearchAgent:
             content_themes=self.trend_analyzer.content_themes(all_posts),
             raw_posts=all_posts[:100],
         )
+
+    def _run_named_tasks(
+        self,
+        tasks: dict[str, Callable[[], T]],
+        *,
+        max_workers: int,
+    ) -> dict[str, T]:
+        """Run independent research tasks with bounded concurrency."""
+        if not tasks:
+            return {}
+
+        worker_count = max(1, min(max_workers, len(tasks)))
+        results: dict[str, T] = {}
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            future_to_name = {executor.submit(task): name for name, task in tasks.items()}
+            for future in as_completed(future_to_name):
+                name = future_to_name[future]
+                try:
+                    results[name] = future.result()
+                except Exception:
+                    LOGGER.exception("Parallel research task failed: %s", name)
+
+        return {name: results[name] for name in tasks if name in results}
 
     # ------------------------------------------------------------------
     # Summary generation

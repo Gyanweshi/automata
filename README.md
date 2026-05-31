@@ -266,6 +266,30 @@ Run research:
 make research BRAND=example-brand
 ```
 
+Run research with bounded parallel workers:
+
+```bash
+make research BRAND=example-brand PARALLEL=1 MAX_WORKERS=4
+```
+
+Use browser-act stealth extraction for public Instagram research:
+
+```bash
+make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig PARALLEL=1 MAX_WORKERS=4
+```
+
+Use browser-act with a logged-in persistent session:
+
+```bash
+make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig BROWSER_ACT_MODE=session BROWSER_ACT_SESSION_NAME=instagram-main
+```
+
+Use Playwright with a manually logged-in Instagram session:
+
+```bash
+make research BRAND=example-brand SCRAPER=playwright PLATFORMS=ig INSTAGRAM_LOGIN_MODE=manual
+```
+
 Run storyboard:
 
 ```bash
@@ -307,6 +331,30 @@ Run research:
 
 ```powershell
 .\scripts\run-agent.ps1 research -Brand example-brand
+```
+
+Run research with bounded parallel workers:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Parallel -MaxWorkers 4
+```
+
+Use browser-act stealth extraction for public Instagram research:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper browser-act -Platforms ig -Parallel -MaxWorkers 4
+```
+
+Use browser-act with a logged-in persistent session:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper browser-act -Platforms ig -BrowserActMode session -BrowserActSessionName instagram-main
+```
+
+Use Playwright with a manually logged-in Instagram session:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper playwright -Platforms ig -InstagramLoginMode manual
 ```
 
 Run storyboard:

@@ -161,6 +161,10 @@ class CompetitorAnalysis(BaseModel):
     content_types: dict[str, int] = Field(default_factory=dict)
     posting_frequency: str = ""
     bio: str = ""
+    scrape_status: str = Field(
+        default="",
+        description="Scrape outcome for the source: ok, partial, gated, empty, error.",
+    )
 
 
 class HashtagTrend(BaseModel):
