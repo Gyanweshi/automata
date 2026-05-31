@@ -50,6 +50,8 @@ bash scripts/bootstrap.sh
 make status
 make dry-run BRAND=example-brand
 make research BRAND=example-brand
+make research BRAND=example-brand PARALLEL=1 MAX_WORKERS=4
+make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig PARALLEL=1 MAX_WORKERS=4
 make storyboard BRAND=example-brand TYPE=carousel TOPIC="5 tips"
 make content BRAND=example-brand TYPE=carousel TOPIC="5 tips"
 make pipeline BRAND=example-brand TYPE=carousel TOPIC="5 tips"

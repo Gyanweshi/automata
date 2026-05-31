@@ -43,14 +43,47 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
     p.add_argument(
         "--scraper",
-        choices=["playwright", "apify"],
+        choices=["playwright", "apify", "browser-act"],
         default="apify",
         help="Instagram scraper backend (default: apify)",
+    )
+    p.add_argument(
+        "--browser-act-proxy-region",
+        default=None,
+        help="Dynamic proxy region for browser-act Instagram scraping (e.g. US, GB, IN).",
+    )
+    p.add_argument(
+        "--browser-act-mode",
+        choices=["stealth", "session"],
+        default=None,
+        help="browser-act Instagram mode: stealth uses one-off extraction; session reuses a logged-in browser-act session.",
+    )
+    p.add_argument(
+        "--browser-act-session-name",
+        default=None,
+        help="Named browser-act session to reuse when --browser-act-mode session is selected.",
+    )
+    p.add_argument(
+        "--instagram-login-mode",
+        choices=["auto", "manual"],
+        default="auto",
+        help="Instagram login mode for Playwright scraper: auto uses saved session or creds, manual waits for a headed login once and reuses it later.",
     )
     p.add_argument(
         "--notebooklm",
         action="store_true",
         help="Feed research output into NotebookLM for AI synthesis",
+    )
+    p.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run independent platform/source/analyzer jobs concurrently.",
+    )
+    p.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Maximum concurrent workers when --parallel is enabled.",
     )
 
     # Deep research pipeline flags (auto-enabled when brand YAML has relevant config)
@@ -157,6 +190,9 @@ def main():
         print(f"[dry-run] Community subreddits: {brand.community.subreddits}")
         print(f"[dry-run] Meta Ad Library keywords: {brand.meta_ads.keywords}")
         print(f"[dry-run] Adjacent industries: {brand.adjacent_industries}")
+        if args.scraper == "browser-act":
+            proxy_region = args.browser_act_proxy_region or config.browser_act_proxy_region
+            print(f"[dry-run] Browser-act proxy region: {proxy_region or 'none'}")
         print("[dry-run] OK — no API calls made.")
         return
 
@@ -186,8 +222,25 @@ def main():
     enable_comments = False if getattr(args, "no_comments", False) else (True if force_all else None)
     enable_adjacencies = _flag("adjacencies", "no_adjacencies")
 
-    agent = ResearchAgent(config=config, scraper=args.scraper)
-    print(f"Running research for '{brand.name}' (scraper: {args.scraper})...")
+    browser_act_proxy_region = (
+        args.browser_act_proxy_region if args.browser_act_proxy_region is not None else config.browser_act_proxy_region
+    )
+    browser_act_mode = args.browser_act_mode if args.browser_act_mode is not None else config.browser_act_mode
+    browser_act_session_name = (
+        args.browser_act_session_name
+        if args.browser_act_session_name is not None
+        else config.browser_act_session_name
+    )
+    agent = ResearchAgent(
+        config=config,
+        scraper=args.scraper,
+        browser_act_proxy_region=browser_act_proxy_region or None,
+        instagram_login_mode=args.instagram_login_mode,
+        browser_act_mode=browser_act_mode or "stealth",
+        browser_act_session_name=browser_act_session_name or None,
+    )
+    parallel_note = f", parallel: {args.max_workers} workers" if args.parallel else ""
+    print(f"Running research for '{brand.name}' (scraper: {args.scraper}{parallel_note})...")
     output = agent.run(
         brand,
         platforms=platforms,
@@ -197,6 +250,8 @@ def main():
         enable_visual_dna=enable_visual_dna,
         enable_comments=enable_comments,
         enable_adjacencies=enable_adjacencies,
+        parallel=args.parallel,
+        max_workers=args.max_workers,
     )
 
     # Write to workspace

@@ -1,4 +1,5 @@
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 import frontmatter
 
@@ -192,6 +193,28 @@ def test_update_brand_memory_ignores_html_comments_in_memory_section(tmp_path):
     bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
     assert len(bullets) == 1
     assert "real insight." in bullets[0]
+
+
+def test_update_brand_memory_handles_concurrent_writes(tmp_path):
+    brands_dir = tmp_path / "Brands"
+    brands_dir.mkdir()
+    brand_md = brands_dir / "maple.md"
+    brand_md.write_text("# Maple\n\n## Memory\n\n", encoding="utf-8")
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        results = list(
+            executor.map(
+                lambda i: update_brand_memory("maple", f"parallel insight {i}.", vault_path=tmp_path),
+                range(20),
+            )
+        )
+
+    content = brand_md.read_text(encoding="utf-8")
+    bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
+    assert all(results)
+    assert len(bullets) == 10
+    assert all("parallel insight" in bullet for bullet in bullets)
+    assert not brand_md.with_suffix(".md.lock").exists()
 
 
 def test_log_agent_session_with_related_notes_appends_and_logs(monkeypatch, tmp_path):

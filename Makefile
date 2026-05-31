@@ -5,12 +5,26 @@ TOPIC ?= "5 tips for entrepreneurs"
 TYPE  ?= carousel
 WORKSPACE ?= ./workspace
 BRANDS_DIR ?= ./brands
+PARALLEL ?= 0
+MAX_WORKERS ?= 4
+SCRAPER ?= apify
+INSTAGRAM_LOGIN_MODE ?= auto
+BROWSER_ACT_MODE ?= stealth
+BROWSER_ACT_SESSION_NAME ?=
+PLATFORMS ?=
 VENV ?= .venv
 PYTHON ?= .venv/bin/python
 PIP ?= .venv/bin/pip
 AGENCY_RESEARCH ?= .venv/bin/agency-research
 AGENCY_STORYBOARD ?= .venv/bin/agency-storyboard
 AGENCY_CONTENT ?= .venv/bin/agency-content
+
+ifeq ($(PARALLEL),1)
+RESEARCH_PARALLEL_FLAGS := --parallel --max-workers $(MAX_WORKERS)
+endif
+ifneq ($(strip $(PLATFORMS)),)
+RESEARCH_PLATFORM_FLAGS := --platforms $(PLATFORMS)
+endif
 
 help:
 	@echo "Agency Multi-Agent System"
@@ -22,6 +36,9 @@ help:
 	@echo ""
 	@echo "Run agents (set BRAND=my-client TOPIC='...' TYPE=carousel):"
 	@echo "  make research       Run research agent"
+	@echo "  make research PARALLEL=1 MAX_WORKERS=4  Run research with bounded concurrency"
+	@echo "  make research SCRAPER=browser-act PARALLEL=1  Run research with browser-act stealth extraction"
+	@echo "  make research SCRAPER=playwright INSTAGRAM_LOGIN_MODE=manual  Run research with a manual Instagram login session"
 	@echo "  make storyboard     Run storyboard agent"
 	@echo "  make content        Run content agent"
 	@echo "  make pipeline       Run all three agents in sequence"
@@ -50,7 +67,7 @@ uninstall:
 	$(PIP) uninstall -y agency-common agency-research agency-storyboard agency-content
 
 research:
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS)
 
 storyboard:
 	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
@@ -62,7 +79,7 @@ content:
 
 pipeline:
 	@echo "==> Research"
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS)
 	@echo ""
 	@echo "==> Storyboard"
 	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
