@@ -43,14 +43,103 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
     p.add_argument(
         "--scraper",
-        choices=["playwright", "apify"],
-        default="playwright",
-        help="Instagram scraper backend (default: playwright)",
+        choices=["playwright", "apify", "browser-act"],
+        default="apify",
+        help="Instagram scraper backend (default: apify)",
+    )
+    p.add_argument(
+        "--browser-act-proxy-region",
+        default=None,
+        help="Dynamic proxy region for browser-act Instagram scraping (e.g. US, GB, IN).",
+    )
+    p.add_argument(
+        "--browser-act-mode",
+        choices=["stealth", "session"],
+        default=None,
+        help="browser-act Instagram mode: stealth uses one-off extraction; session reuses a logged-in browser-act session.",
+    )
+    p.add_argument(
+        "--browser-act-session-name",
+        default=None,
+        help="Named browser-act session to reuse when --browser-act-mode session is selected.",
+    )
+    p.add_argument(
+        "--instagram-login-mode",
+        choices=["auto", "manual"],
+        default="auto",
+        help="Instagram login mode for Playwright scraper: auto uses saved session or creds, manual waits for a headed login once and reuses it later.",
     )
     p.add_argument(
         "--notebooklm",
         action="store_true",
         help="Feed research output into NotebookLM for AI synthesis",
+    )
+    p.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run independent platform/source/analyzer jobs concurrently.",
+    )
+    p.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Maximum concurrent workers when --parallel is enabled.",
+    )
+
+    # Deep research pipeline flags (auto-enabled when brand YAML has relevant config)
+    intel = p.add_argument_group(
+        "deep intelligence",
+        "Steps 1-5 of the extended research pipeline. Each auto-enables when the "
+        "brand YAML has the relevant config (subreddits, meta_ads.keywords, etc). "
+        "Use --all-intel to force-enable all, or the individual flags to override.",
+    )
+    intel.add_argument(
+        "--all-intel",
+        action="store_true",
+        help="Force-enable all five deep intelligence steps",
+    )
+    intel.add_argument(
+        "--listen",
+        action="store_true",
+        default=None,
+        help="Step 1: Community listening node (Reddit / YouTube RSS / X lists)",
+    )
+    intel.add_argument(
+        "--no-listen",
+        action="store_true",
+        help="Disable Step 1 even if brand has community config",
+    )
+    intel.add_argument(
+        "--audit-ads",
+        action="store_true",
+        default=None,
+        help="Step 2: Meta Ad Library audit (requires META_AD_LIBRARY_TOKEN or APIFY_API_TOKEN)",
+    )
+    intel.add_argument(
+        "--no-audit-ads",
+        action="store_true",
+        help="Disable Step 2 even if brand has meta_ads.keywords",
+    )
+    intel.add_argument(
+        "--no-visual-dna",
+        action="store_true",
+        help="Skip Step 3: Visual DNA extraction (runs by default when posts are available)",
+    )
+    intel.add_argument(
+        "--no-comments",
+        action="store_true",
+        help="Skip Step 4: LLM comment / audience analysis",
+    )
+    intel.add_argument(
+        "--adjacencies",
+        action="store_true",
+        default=None,
+        help="Step 5: Cross-industry adjacency mapping",
+    )
+    intel.add_argument(
+        "--no-adjacencies",
+        action="store_true",
+        help="Disable Step 5 even if brand has adjacent_industries",
     )
     return p
 
@@ -98,6 +187,12 @@ def main():
         print(f"[dry-run] Instagram competitors: {brand.competitors.instagram}")
         print(f"[dry-run] LinkedIn competitors: {brand.competitors.linkedin}")
         print(f"[dry-run] Workspace: {workspace.root.resolve()}")
+        print(f"[dry-run] Community subreddits: {brand.community.subreddits}")
+        print(f"[dry-run] Meta Ad Library keywords: {brand.meta_ads.keywords}")
+        print(f"[dry-run] Adjacent industries: {brand.adjacent_industries}")
+        if args.scraper == "browser-act":
+            proxy_region = args.browser_act_proxy_region or config.browser_act_proxy_region
+            print(f"[dry-run] Browser-act proxy region: {proxy_region or 'none'}")
         print("[dry-run] OK — no API calls made.")
         return
 
@@ -109,9 +204,55 @@ def main():
     from .agent import ResearchAgent
     from .outputs import write_research_output
 
-    agent = ResearchAgent(config=config, scraper=args.scraper)
-    print(f"Running research for '{brand.name}' (scraper: {args.scraper})...")
-    output = agent.run(brand, platforms=platforms, post_count=args.post_count)
+    # Resolve deep intel flags
+    force_all = getattr(args, "all_intel", False)
+
+    def _flag(enable_arg: str, disable_arg: str) -> bool | None:
+        if force_all:
+            return True
+        if getattr(args, disable_arg, False):
+            return False
+        if getattr(args, enable_arg, False):
+            return True
+        return None  # auto-detect from brand config
+
+    enable_listening = _flag("listen", "no_listen")
+    enable_ads = _flag("audit_ads", "no_audit_ads")
+    enable_visual_dna = False if getattr(args, "no_visual_dna", False) else (True if force_all else None)
+    enable_comments = False if getattr(args, "no_comments", False) else (True if force_all else None)
+    enable_adjacencies = _flag("adjacencies", "no_adjacencies")
+
+    browser_act_proxy_region = (
+        args.browser_act_proxy_region if args.browser_act_proxy_region is not None else config.browser_act_proxy_region
+    )
+    browser_act_mode = args.browser_act_mode if args.browser_act_mode is not None else config.browser_act_mode
+    browser_act_session_name = (
+        args.browser_act_session_name
+        if args.browser_act_session_name is not None
+        else config.browser_act_session_name
+    )
+    agent = ResearchAgent(
+        config=config,
+        scraper=args.scraper,
+        browser_act_proxy_region=browser_act_proxy_region or None,
+        instagram_login_mode=args.instagram_login_mode,
+        browser_act_mode=browser_act_mode or "stealth",
+        browser_act_session_name=browser_act_session_name or None,
+    )
+    parallel_note = f", parallel: {args.max_workers} workers" if args.parallel else ""
+    print(f"Running research for '{brand.name}' (scraper: {args.scraper}{parallel_note})...")
+    output = agent.run(
+        brand,
+        platforms=platforms,
+        post_count=args.post_count,
+        enable_listening=enable_listening,
+        enable_ads=enable_ads,
+        enable_visual_dna=enable_visual_dna,
+        enable_comments=enable_comments,
+        enable_adjacencies=enable_adjacencies,
+        parallel=args.parallel,
+        max_workers=args.max_workers,
+    )
 
     # Write to workspace
     md_dir = None if args.no_markdown else workspace.root / "research" / args.brand

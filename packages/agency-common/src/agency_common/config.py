@@ -21,6 +21,9 @@ class AgencyConfig:
         FB_PAGE_ACCESS_TOKEN  — Facebook Graph API token (owned pages)
         FREEPIK_API_KEY       — Freepik API key (image/video generation)
         CAPSULEHUB_API_KEY    — CapsuleHub / Tilantra API key
+        META_AD_LIBRARY_TOKEN — Facebook/Meta access token for Ad Library API
+        BROWSER_ACT_MODE      — browser-act Instagram mode: stealth or session
+        BROWSER_ACT_SESSION_NAME — named browser-act session to reuse in session mode
     """
 
     workspace: Path = field(default_factory=lambda: Path(
@@ -39,6 +42,10 @@ class AgencyConfig:
     fb_page_access_token: str = field(default_factory=lambda: os.environ.get("FB_PAGE_ACCESS_TOKEN", ""))
     freepik_api_key: str = field(default_factory=lambda: os.environ.get("FREEPIK_API_KEY", ""))
     capsulehub_api_key: str = field(default_factory=lambda: os.environ.get("CAPSULEHUB_API_KEY", ""))
+    meta_ad_library_token: str = field(default_factory=lambda: os.environ.get("META_AD_LIBRARY_TOKEN", ""))
+    browser_act_proxy_region: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_PROXY_REGION", ""))
+    browser_act_mode: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_MODE", "stealth"))
+    browser_act_session_name: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_SESSION_NAME", ""))
 
     def validate(self, required: list[str] | None = None) -> list[str]:
         """Return a list of missing required config keys. Empty list = all good."""

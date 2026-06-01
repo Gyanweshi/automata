@@ -101,6 +101,12 @@ There are three layers of context. Use all three, in order, before doing any bra
 - Brand notes = current client state + distilled run history in ## Memory — always read first
 - Vault RAG = broad research queries only, not brand-specific context
 
+## Research Methodology
+
+`skills/agency-research/METHODOLOGY.md` — practitioner guide for the human research layer. Covers what no scraper or LLM can reliably do: hypothesis formation, customer interviews, data quality judgment, triangulation, pattern recognition, and the feedback loop. Structured as a 16-week skill-building progression. Read this before designing research strategy for any client.
+
+The automated pipeline (scraping, engagement benchmarking, content audit, hashtag landscape) handles structural facts. The methodology guide handles interpretation and strategy.
+
 ## Skills
 
 `skills/agency-*/SKILL.md` define slash commands for Claude Code:

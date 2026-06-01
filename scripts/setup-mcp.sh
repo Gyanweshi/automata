@@ -26,7 +26,6 @@ fi
 
 echo "==> Preparing vendored MCP dependencies..."
 uv sync --directory packages/freepik-fastmcp
-uv sync --directory packages/instaloader-mcp
 
 echo "==> Checking pinned npm MCP packages..."
 npm view @perplexity-ai/mcp-server@0.9.0 version >/dev/null
