@@ -80,7 +80,6 @@ Ok "agency CLIs installed"
 Write-Host ""
 Write-Host "==> Preparing vendored MCP dependencies"
 uv sync --directory packages/freepik-fastmcp
-uv sync --directory packages/instaloader-mcp
 Ok "vendored MCP dependencies ready"
 
 Write-Host ""

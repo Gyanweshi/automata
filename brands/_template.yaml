@@ -125,3 +125,36 @@ content_pillars:
   social_proof: 15
   engagement: 20
   promotional: 10
+
+# --- Deep Intelligence (Steps 1–5) ---
+# These fields activate the extended research pipeline automatically.
+# Leave any section empty to skip that step.
+
+# Step 1: Community listening node
+# Subreddits (no r/ prefix), YouTube channel IDs, X/Twitter list URLs
+community:
+  subreddits:
+    - "yoursubreddit"
+    - "relatedtopic"
+  youtube_channels:
+    - "UCxxxxxxxxxxxxxxxxxxxxxxxx"   # YouTube channel ID (from channel URL)
+  x_lists: []                        # Full X/Twitter list URLs
+
+# Step 2: Meta Ad Library audit
+# Keywords to search. Requires META_AD_LIBRARY_TOKEN or APIFY_API_TOKEN.
+meta_ads:
+  keywords:
+    - "your product category"
+    - "competitor brand name"
+  countries:
+    - "US"
+    - "GB"
+    - "AU"
+
+# Step 5: Cross-industry adjacency mapping
+# Premium adjacent categories whose narrative/visual trends to scan.
+# Steps 3 (visual DNA) and 4 (comment analysis) run automatically from scraped posts.
+adjacent_industries:
+  - "luxury hospitality"
+  - "premium automotive"
+  - "high-end consumer tech"

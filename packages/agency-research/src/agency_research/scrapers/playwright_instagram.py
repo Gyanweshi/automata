@@ -1,7 +1,9 @@
 """Instagram scraper using Playwright browser automation.
 
 Falls back gracefully on any per-handle error. Saves session cookies to
-~/.agency/ig_session.json so login only happens once.
+~/.agency/ig_session.json so login only happens once. A manual-login mode can
+open a visible browser, let the user sign in once, and reuse the saved session
+on later runs.
 """
 from __future__ import annotations
 
@@ -31,11 +33,13 @@ class PlaywrightInstagramScraper:
         password: str = "",
         dry_run: bool = False,
         headless: bool = True,
+        manual_login: bool = False,
     ):
         self.username = username
         self.password = password
         self.dry_run = dry_run
-        self.headless = headless
+        self.manual_login = manual_login
+        self.headless = False if manual_login else headless
         self._browser = None
         self._context = None
         self._page = None
@@ -83,9 +87,15 @@ class PlaywrightInstagramScraper:
         page.goto("https://www.instagram.com/", wait_until="domcontentloaded", timeout=30000)
         time.sleep(3)
 
-        # Check for login wall
-        if "accounts/login" not in page.url and not page.query_selector('input[name="username"]'):
+        if self._is_logged_in(page):
             return True  # already logged in via saved session
+
+        if self.manual_login:
+            logger.info("Instagram manual login requested; waiting for you to sign in in the browser window.")
+            if self._wait_for_manual_login(page):
+                return True
+            logger.warning("Instagram manual login did not complete before timeout.")
+            return False
 
         if not self.username or not self.password:
             logger.warning("Instagram login required but no credentials provided.")
@@ -132,6 +142,28 @@ class PlaywrightInstagramScraper:
             return False
 
         return True
+
+    def _is_logged_in(self, page) -> bool:
+        return "accounts/login" not in page.url and not page.query_selector('input[name="username"]')
+
+    def _wait_for_manual_login(self, page, timeout_seconds: int = 300) -> bool:
+        """Wait for a human to complete Instagram login in the visible browser."""
+        deadline = time.time() + timeout_seconds
+        try:
+            page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded", timeout=30000)
+            time.sleep(2)
+        except Exception:
+            pass
+
+        while time.time() < deadline:
+            try:
+                if self._is_logged_in(page):
+                    logger.info("Instagram manual login detected; saving session state.")
+                    return True
+            except Exception:
+                pass
+            time.sleep(2)
+        return False
 
     # ------------------------------------------------------------------
     # Public scraping methods

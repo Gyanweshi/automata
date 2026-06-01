@@ -193,7 +193,7 @@ Session transcripts (both Claude Code and Codex) are written to `Agent_Sessions/
 
 ## MCP Servers
 
-The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests live under `mcp/agents/`.
+The project-level MCP config [.mcp.json](.mcp.json) is intentionally empty so MCP clients that auto-load project configs do not start every server at session startup. Agent-specific MCP manifests live under `mcp/agents/`; use those manifests to register only the servers needed for the current workflow.
 
 | Server | Version | Agent | Needs Key | Purpose |
 |--------|---------|-------|-----------|---------|
@@ -204,13 +204,12 @@ The aggregate MCP config is [.mcp.json](.mcp.json). Agent-specific MCP manifests
 | `firecrawl` | `firecrawl-mcp@3.14.1` | Research | `FIRECRAWL_API_KEY` | Search, scrape, crawl, and structured extraction |
 | `chrome-devtools` | `chrome-devtools-mcp@0.23.0` | Research | No | Console, network, screenshot, and performance inspection |
 | `notebooklm` | `@roomi-fields/notebooklm-mcp@1.5.9` | Research | Google login/session | NotebookLM source-grounded Q&A and notebook workflows |
-| `instaloader` | vendored | Research | Optional Instagram session | Instagram profile and post metadata via Instaloader |
 | `capsulehub` | `mcp-remote@0.1.38` bridge to `https://backend.tilantra.com/mcp/` | Shared context | `CAPSULEHUB_API_KEY` | CapsuleHub context capsules via Tilantra's remote MCP endpoint |
 | `apify` | `@apify/actors-mcp-server@0.9.20` | Research | `APIFY_API_TOKEN` | Apify Actor-backed scraping for social and web workflows |
 
 ### Different MCP Harnesses
 
-Most MCP clients can use `.mcp.json` directly or with small changes. If your harness expects a different format, use `.mcp.json` as the source of truth and copy the `command`, `args`, and `env` entries into that client.
+Most MCP clients can use the manifests under `mcp/agents/` directly or with small changes. If your harness expects a different format, copy the relevant `command`, `args`, and `env` entries from the agent manifest into that client.
 
 For Codex on this machine, you can register a server manually with:
 
@@ -238,7 +237,7 @@ codex mcp add perplexity --env "PERPLEXITY_API_KEY=$env:PERPLEXITY_API_KEY" -- n
 
 </details>
 
-Repeat the same pattern for any server in `.mcp.json`.
+Repeat the same pattern for any server in `mcp/agents/research.json` or `mcp/agents/storyboard.json`.
 
 ## Using The Agents
 
@@ -265,6 +264,30 @@ Run research:
 
 ```bash
 make research BRAND=example-brand
+```
+
+Run research with bounded parallel workers:
+
+```bash
+make research BRAND=example-brand PARALLEL=1 MAX_WORKERS=4
+```
+
+Use browser-act stealth extraction for public Instagram research:
+
+```bash
+make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig PARALLEL=1 MAX_WORKERS=4
+```
+
+Use browser-act with a logged-in persistent session:
+
+```bash
+make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig BROWSER_ACT_MODE=session BROWSER_ACT_SESSION_NAME=instagram-main
+```
+
+Use Playwright with a manually logged-in Instagram session:
+
+```bash
+make research BRAND=example-brand SCRAPER=playwright PLATFORMS=ig INSTAGRAM_LOGIN_MODE=manual
 ```
 
 Run storyboard:
@@ -308,6 +331,30 @@ Run research:
 
 ```powershell
 .\scripts\run-agent.ps1 research -Brand example-brand
+```
+
+Run research with bounded parallel workers:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Parallel -MaxWorkers 4
+```
+
+Use browser-act stealth extraction for public Instagram research:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper browser-act -Platforms ig -Parallel -MaxWorkers 4
+```
+
+Use browser-act with a logged-in persistent session:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper browser-act -Platforms ig -BrowserActMode session -BrowserActSessionName instagram-main
+```
+
+Use Playwright with a manually logged-in Instagram session:
+
+```powershell
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper playwright -Platforms ig -InstagramLoginMode manual
 ```
 
 Run storyboard:
@@ -463,7 +510,7 @@ Blender MCP needs Blender running with the MCP addon enabled. The repo config on
 
 ### A Different Harness Does Not Read `.mcp.json`
 
-Use `.mcp.json` as a copy source. The important pieces are the server name, `command`, `args`, and `env`. Keep real API keys out of committed files.
+Use `mcp/agents/*.json` as a copy source. The important pieces are the server name, `command`, `args`, and `env`. Keep real API keys out of committed files.
 
 ## Maintenance
 
@@ -478,4 +525,4 @@ npm view mcp-remote version
 npm view @apify/actors-mcp-server version
 ```
 
-Then update `.mcp.json`, `mcp/agents/*.json`, and this README together.
+Then update `mcp/agents/*.json` and this README together.

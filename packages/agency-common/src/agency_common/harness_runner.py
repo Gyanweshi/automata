@@ -9,6 +9,9 @@ from typing import Any, Callable
 from .obsidian_vector_index import search_second_brain
 from .obsidian_writer import log_agent_session_with_related_notes, update_brand_memory
 
+log_agent_session = log_agent_session_with_related_notes
+_DEFAULT_LOG_AGENT_SESSION = log_agent_session
+
 LOGGER = logging.getLogger(__name__)
 
 ToolFunction = Callable[..., str]
@@ -108,7 +111,7 @@ class HarnessRunner:
                     }
                 )
         else:
-            log_agent_session_with_related_notes(
+            _write_session_log(
                 agent_name=self.agent_name,
                 task_summary=user_task,
                 transcript=self.format_transcript(),
@@ -117,7 +120,7 @@ class HarnessRunner:
             raise HarnessRunnerError(f"{self.agent_name} exceeded {self.max_iterations} loop iterations")
 
         final_answer = self._last_assistant_content()
-        log_agent_session_with_related_notes(
+        _write_session_log(
             agent_name=self.agent_name,
             task_summary=user_task,
             transcript=self.format_transcript(),
@@ -206,3 +209,10 @@ def _get_value(item: Any, key: str) -> Any:
     if isinstance(item, dict):
         return item.get(key)
     return getattr(item, key, None)
+
+
+def _write_session_log(**kwargs: Any) -> Any:
+    """Write a session log while preserving both historical monkeypatch points."""
+    if log_agent_session is not _DEFAULT_LOG_AGENT_SESSION:
+        return log_agent_session(**kwargs)
+    return log_agent_session_with_related_notes(**kwargs)
