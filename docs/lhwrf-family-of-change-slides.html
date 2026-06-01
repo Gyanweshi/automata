@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LHWRF - The Family Of Change</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Work+Sans:wght@400;500;650&display=swap" rel="stylesheet">
+  <style>
+    /* === Theme === */
+    :root {
+      --bg-cream: #f5f1e8;
+      --bg-paper: #fffaf0;
+      --ink: #201c18;
+      --muted: #6d6258;
+      --line: rgba(32, 28, 24, 0.16);
+      --accent: #b9382d;
+      --accent-soft: #ead0c3;
+      --leaf: #657a56;
+      --soil: #a46f42;
+      --sun: #e0aa45;
+      --font-display: 'Fraunces', serif;
+      --font-body: 'Work Sans', sans-serif;
+      --subtitle-size: clamp(0.82rem, 1.35vw, 1.16rem);
+      --quote-size: clamp(1.25rem, 2.7vw, 2.35rem);
+      --kicker-size: clamp(0.66rem, 1vw, 0.82rem);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-normal: 0.68s;
+    }
+
+    /* === Reset === */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-cream);
+      color: var(--ink);
+      font-family: var(--font-body);
+    }
+
+    /* ===========================================
+       VIEWPORT FITTING: MANDATORY BASE STYLES
+       Include this ENTIRE file in every presentation.
+       These styles ensure slides fit exactly in the viewport.
+       =========================================== */
+
+    /* 1. Lock html/body to viewport */
+    html, body {
+        height: 100%;
+        overflow-x: hidden;
+    }
+
+    html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+    }
+
+    /* 2. Each slide = exact viewport height */
+    .slide {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile browsers */
+        overflow: hidden; /* CRITICAL: Prevent ANY overflow */
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* 3. Content container with flex for centering */
+    .slide-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-height: 100%;
+        overflow: hidden; /* Double-protection against overflow */
+        padding: var(--slide-padding);
+    }
+
+    /* 4. ALL typography uses clamp() for responsive scaling */
+    :root {
+        /* Titles scale from mobile to desktop */
+        --title-size: clamp(1.5rem, 5vw, 4rem);
+        --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+        --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+
+        /* Body text */
+        --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+        --small-size: clamp(0.65rem, 1vw, 0.875rem);
+
+        /* Spacing scales with viewport */
+        --slide-padding: clamp(1rem, 4vw, 4rem);
+        --content-gap: clamp(0.5rem, 2vw, 2rem);
+        --element-gap: clamp(0.25rem, 1vw, 1rem);
+    }
+
+    /* 5. Cards/containers use viewport-relative max sizes */
+    .card, .container, .content-box {
+        max-width: min(90vw, 1000px);
+        max-height: min(80vh, 700px);
+    }
+
+    /* 6. Lists auto-scale with viewport */
+    .feature-list, .bullet-list {
+        gap: clamp(0.4rem, 1vh, 1rem);
+    }
+
+    .feature-list li, .bullet-list li {
+        font-size: var(--body-size);
+        line-height: 1.4;
+    }
+
+    /* 7. Grids adapt to available space */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+        gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+
+    /* 8. Images constrained to viewport */
+    img, .image-container {
+        max-width: 100%;
+        max-height: min(50vh, 400px);
+        object-fit: contain;
+    }
+
+    /* ===========================================
+       RESPONSIVE BREAKPOINTS
+       Aggressive scaling for smaller viewports
+       =========================================== */
+
+    /* Short viewports (< 700px height) */
+    @media (max-height: 700px) {
+        :root {
+            --slide-padding: clamp(0.75rem, 3vw, 2rem);
+            --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+            --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+            --h2-size: clamp(1rem, 3vw, 1.75rem);
+        }
+    }
+
+    /* Very short viewports (< 600px height) */
+    @media (max-height: 600px) {
+        :root {
+            --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+            --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+            --title-size: clamp(1.1rem, 4vw, 2rem);
+            --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+        }
+
+        /* Hide non-essential elements */
+        .nav-dots, .keyboard-hint, .decorative {
+            display: none;
+        }
+    }
+
+    /* Extremely short (landscape phones, < 500px height) */
+    @media (max-height: 500px) {
+        :root {
+            --slide-padding: clamp(0.4rem, 2vw, 1rem);
+            --title-size: clamp(1rem, 3.5vw, 1.5rem);
+            --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+            --body-size: clamp(0.65rem, 1vw, 0.85rem);
+        }
+    }
+
+    /* Narrow viewports (< 600px width) */
+    @media (max-width: 600px) {
+        :root {
+            --title-size: clamp(1.25rem, 7vw, 2.5rem);
+        }
+
+        /* Stack grids vertically */
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===========================================
+       REDUCED MOTION
+       Respect user preferences
+       =========================================== */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.2s !important;
+        }
+
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    /* === Slide surface === */
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: clamp(0.55rem, 1.2vw, 1rem);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(32, 28, 24, 0.035) 1px, transparent 1px),
+        linear-gradient(rgba(32, 28, 24, 0.025) 1px, transparent 1px),
+        var(--bg-paper);
+      background-size: clamp(1.6rem, 3vw, 2.6rem) clamp(1.6rem, 3vw, 2.6rem);
+      box-shadow: 0 clamp(0.8rem, 2vw, 1.7rem) clamp(1.8rem, 4vw, 4rem) rgba(64, 41, 27, 0.12);
+    }
+
+    .slide-content {
+      position: relative;
+      z-index: 1;
+      gap: var(--content-gap);
+      width: min(100%, 1120px);
+      margin: 0 auto;
+    }
+
+    .narrow .slide-content {
+      width: min(100%, 880px);
+    }
+
+    .split .slide-content {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      align-items: center;
+      gap: clamp(1rem, 4vw, 4.5rem);
+    }
+
+    /* === Typography === */
+    .kicker {
+      color: var(--accent);
+      font-size: var(--kicker-size);
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2 {
+      font-family: var(--font-display);
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: 0.96;
+    }
+
+    h1 {
+      max-width: 11ch;
+      font-size: clamp(2.35rem, 8.3vw, 7.3rem);
+    }
+
+    h2 {
+      max-width: 14ch;
+      font-size: clamp(1.7rem, 5.1vw, 4.7rem);
+    }
+
+    p {
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: var(--body-size);
+      line-height: 1.45;
+    }
+
+    .lead {
+      color: var(--ink);
+      font-size: clamp(1rem, 2.05vw, 1.68rem);
+      line-height: 1.28;
+      max-width: 52ch;
+    }
+
+    .quote {
+      color: var(--ink);
+      font-family: var(--font-display);
+      font-size: var(--quote-size);
+      font-weight: 700;
+      line-height: 1.08;
+      max-width: 27ch;
+    }
+
+    .accent {
+      color: var(--accent);
+    }
+
+    /* === Reusable visual elements === */
+    .family-map {
+      aspect-ratio: 1 / 1;
+      width: min(40vw, 48vh, 470px);
+      max-width: 100%;
+      justify-self: center;
+      position: relative;
+      border-radius: 50%;
+      border: clamp(0.09rem, 0.18vw, 0.16rem) solid var(--line);
+      background:
+        radial-gradient(circle at center, var(--bg-paper) 0 22%, transparent 23%),
+        conic-gradient(from 18deg, rgba(185, 56, 45, 0.16), rgba(101, 122, 86, 0.18), rgba(224, 170, 69, 0.2), rgba(164, 111, 66, 0.18), rgba(185, 56, 45, 0.16));
+    }
+
+    .family-map::before {
+      content: "Lata";
+      position: absolute;
+      inset: 36%;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      color: var(--accent);
+      background: var(--bg-paper);
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2.2vw, 2rem);
+      font-weight: 900;
+    }
+
+    .map-label {
+      position: absolute;
+      color: var(--ink);
+      font-size: clamp(0.62rem, 1.1vw, 0.92rem);
+      font-weight: 650;
+      background: var(--bg-paper);
+      border: 1px solid var(--line);
+      padding: clamp(0.28rem, 0.7vw, 0.52rem) clamp(0.42rem, 1vw, 0.75rem);
+      border-radius: 999px;
+    }
+
+    .map-label:nth-child(1) { top: 6%; left: 35%; }
+    .map-label:nth-child(2) { top: 32%; right: 2%; }
+    .map-label:nth-child(3) { bottom: 14%; right: 10%; }
+    .map-label:nth-child(4) { bottom: 10%; left: 11%; }
+    .map-label:nth-child(5) { top: 32%; left: 0; }
+
+    .chain {
+      display: grid;
+      gap: clamp(0.35rem, 1vh, 0.82rem);
+      max-width: min(88vw, 760px);
+    }
+
+    .chain div {
+      color: var(--ink);
+      font-size: clamp(0.84rem, 1.6vw, 1.25rem);
+      line-height: 1.22;
+      padding: clamp(0.55rem, 1.2vw, 0.9rem) clamp(0.7rem, 1.6vw, 1.2rem);
+      border-left: clamp(0.14rem, 0.34vw, 0.25rem) solid var(--accent);
+      background: rgba(255, 250, 240, 0.78);
+    }
+
+    .two-lines {
+      display: grid;
+      gap: clamp(0.45rem, 1.2vh, 1rem);
+    }
+
+    .line-card {
+      width: min(100%, 780px);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      padding: clamp(0.72rem, 1.7vw, 1.25rem);
+      background: rgba(255, 255, 255, 0.38);
+      font-size: clamp(0.9rem, 1.6vw, 1.35rem);
+      line-height: 1.28;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(0.45rem, 1.2vw, 0.9rem);
+      max-width: min(94vw, 850px);
+    }
+
+    .mini-grid span {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.32);
+      color: var(--ink);
+      font-size: clamp(0.74rem, 1.25vw, 1rem);
+      padding: clamp(0.5rem, 1.1vw, 0.8rem);
+    }
+
+    .seal {
+      position: absolute;
+      right: clamp(1.5rem, 4vw, 4.8rem);
+      bottom: clamp(1.2rem, 3vw, 3.2rem);
+      z-index: 2;
+      width: clamp(4.7rem, 12vw, 8.5rem);
+      aspect-ratio: 1;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-family: var(--font-display);
+      font-size: clamp(0.72rem, 1.4vw, 1rem);
+      font-weight: 900;
+      text-align: center;
+      transform: rotate(-8deg);
+      background: rgba(255, 250, 240, 0.74);
+    }
+
+    .slide-number {
+      position: absolute;
+      top: clamp(1.2rem, 3vw, 3.2rem);
+      right: clamp(1.2rem, 3vw, 3.2rem);
+      z-index: 2;
+      color: rgba(32, 28, 24, 0.28);
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 2vw, 1.8rem);
+      font-weight: 900;
+    }
+
+    .decorative {
+      position: absolute;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .sun {
+      width: clamp(3.5rem, 11vw, 8rem);
+      aspect-ratio: 1;
+      right: clamp(2rem, 8vw, 8rem);
+      top: clamp(2rem, 6vw, 5rem);
+      border-radius: 50%;
+      background: var(--sun);
+      opacity: 0.22;
+    }
+
+    .field-lines {
+      left: clamp(1.5rem, 5vw, 5rem);
+      bottom: clamp(1.5rem, 5vw, 5rem);
+      width: clamp(9rem, 30vw, 26rem);
+      height: clamp(4rem, 12vw, 9rem);
+      border-bottom: 1px solid rgba(101, 122, 86, 0.5);
+      background:
+        repeating-linear-gradient(165deg, transparent 0 clamp(0.65rem, 1.3vw, 1rem), rgba(101, 122, 86, 0.22) clamp(0.7rem, 1.4vw, 1.05rem) clamp(0.76rem, 1.5vw, 1.12rem));
+      border-radius: 50% 50% 0 0;
+      opacity: 0.45;
+    }
+
+    /* === Animation === */
+    .reveal {
+      opacity: 0;
+      transform: translateY(clamp(1rem, 3vh, 2rem));
+      transition: opacity var(--duration-normal) var(--ease-out-expo),
+                  transform var(--duration-normal) var(--ease-out-expo);
+    }
+
+    .slide.visible .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal:nth-child(1) { transition-delay: 0.08s; }
+    .reveal:nth-child(2) { transition-delay: 0.16s; }
+    .reveal:nth-child(3) { transition-delay: 0.24s; }
+    .reveal:nth-child(4) { transition-delay: 0.32s; }
+    .reveal:nth-child(5) { transition-delay: 0.4s; }
+    .reveal:nth-child(6) { transition-delay: 0.48s; }
+
+    /* === Navigation === */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: clamp(0.16rem, 0.45vh, 0.28rem);
+      width: 0;
+      background: var(--accent);
+      z-index: 50;
+      transition: width 0.25s ease;
+    }
+
+    .nav-dots {
+      position: fixed;
+      right: clamp(0.55rem, 1.4vw, 1rem);
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 40;
+      display: grid;
+      gap: clamp(0.26rem, 0.8vh, 0.5rem);
+    }
+
+    .nav-dots button {
+      width: clamp(0.42rem, 0.9vw, 0.62rem);
+      height: clamp(0.42rem, 0.9vw, 0.62rem);
+      border-radius: 50%;
+      border: 1px solid rgba(32, 28, 24, 0.3);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .nav-dots button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      left: clamp(0.75rem, 2vw, 1.5rem);
+      bottom: clamp(0.6rem, 1.5vw, 1.2rem);
+      z-index: 40;
+      color: rgba(32, 28, 24, 0.45);
+      font-size: var(--small-size);
+    }
+
+    /* === Responsive slide-specific behavior === */
+    @media (max-width: 780px) {
+      .split .slide-content {
+        grid-template-columns: 1fr;
+      }
+
+      .family-map {
+        width: min(62vw, 34vh, 330px);
+      }
+
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .seal {
+        display: none;
+      }
+    }
+
+    @media (max-height: 650px) {
+      .lead {
+        font-size: clamp(0.88rem, 1.7vw, 1.25rem);
+      }
+
+      .chain div {
+        padding: clamp(0.38rem, 0.9vw, 0.65rem) clamp(0.5rem, 1.2vw, 0.9rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar" aria-hidden="true"></div>
+  <nav class="nav-dots" aria-label="Slide navigation"></nav>
+  <div class="keyboard-hint">Use arrow keys or space</div>
+
+  <main>
+    <section class="slide title-slide narrow">
+      <div class="slide-number">01</div>
+      <div class="decorative sun"></div>
+      <div class="decorative field-lines"></div>
+      <div class="slide-content">
+        <p class="kicker reveal">LHWRF social media strategy</p>
+        <h1 class="reveal">The Family Of Change</h1>
+        <p class="lead reveal">Following Lata's family to understand how rural transformation really happens.</p>
+      </div>
+      <div class="seal">Family<br>as the<br>unit</div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">02</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">Meet Lata</p>
+          <h2 class="reveal">Start with one home.</h2>
+        </div>
+        <div class="two-lines">
+          <p class="lead reveal">Lata lives in a village with her family. Her husband farms. Some months are steady, some are not.</p>
+          <p class="reveal">Her children's needs depend on what the household can manage that season. Her life does not fit into one neat category.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide narrow">
+      <div class="slide-number">03</div>
+      <div class="decorative sun"></div>
+      <div class="slide-content">
+        <p class="kicker reveal">One problem rarely stays as one problem</p>
+        <div class="chain">
+          <div class="reveal">A health expense can disturb the whole household.</div>
+          <div class="reveal">A weak crop can affect what the children need.</div>
+          <div class="reveal">If income slips, nutrition slips.</div>
+          <div class="reveal">If Lata is not part of decisions, many choices stay smaller than they need to be.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">04</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">This is rural life</p>
+          <h2 class="reveal">Everything touches everything.</h2>
+        </div>
+        <div class="chain">
+          <div class="reveal">A health problem affects income.</div>
+          <div class="reveal">Income affects food.</div>
+          <div class="reveal">Land affects education.</div>
+          <div class="reveal">Women's agency affects household decisions.</div>
+          <div class="reveal">Community support affects whether change survives the season.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide narrow">
+      <div class="slide-number">05</div>
+      <div class="decorative field-lines"></div>
+      <div class="slide-content">
+        <p class="kicker reveal">The LHWRF insight</p>
+        <p class="quote reveal">LHWRF works at the place where health, livelihoods, agriculture, and women's participation meet.</p>
+        <p class="lead reveal accent">The family.</p>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">06</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">The family is bigger than one home</p>
+          <h2 class="reveal">In a village, support has many faces.</h2>
+        </div>
+        <div class="mini-grid">
+          <span class="reveal">The women's group</span>
+          <span class="reveal">The farmer collective</span>
+          <span class="reveal">The field worker</span>
+          <span class="reveal">The neighbour who shares information</span>
+          <span class="reveal">The community that keeps showing up</span>
+          <span class="reveal">The systems around the home</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">07</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">Health protects the family</p>
+          <h2 class="reveal">Care protects more than health.</h2>
+        </div>
+        <div class="two-lines">
+          <p class="lead reveal">For Lata's family, healthcare access does not only mean treatment. It means less fear of sudden shocks.</p>
+          <p class="reveal">A screening, a diagnosis, a follow-up, or timely care can protect income, time, confidence, and household stability.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">08</div>
+      <div class="decorative field-lines"></div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">Livelihoods give the family room to plan</p>
+          <h2 class="reveal">Income changes the horizon.</h2>
+        </div>
+        <div class="two-lines">
+          <p class="lead reveal">For Lata's family, livelihood support does not only mean more income. It means more room to plan.</p>
+          <p class="reveal">When farming support, livestock, skills, or market access improve, the family can think beyond the next crisis.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">09</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">Women change the direction of the household</p>
+          <h2 class="reveal">When Lata has more say, the family has more ways forward.</h2>
+        </div>
+        <div class="two-lines">
+          <p class="lead reveal">Her participation can affect savings, nutrition, enterprise, health awareness, children's needs, and the confidence to try something new.</p>
+          <p class="reveal">Women's agency is not a side story. It is central to the family's progress.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">10</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">Community helps change last</p>
+          <h2 class="reveal">Progress becomes stronger when it is not carried alone.</h2>
+        </div>
+        <div class="chain">
+          <div class="reveal">SHGs</div>
+          <div class="reveal">Farmer groups</div>
+          <div class="reveal">Local institutions</div>
+          <div class="reveal">Field teams</div>
+          <div class="reveal">Village networks</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide narrow">
+      <div class="slide-number">11</div>
+      <div class="slide-content">
+        <p class="kicker reveal">This is The Family Of Change</p>
+        <p class="quote reveal">No single intervention creates rural transformation.</p>
+        <p class="lead reveal">Change lasts when many forms of support come together around a family. That is the story LHWRF is already living on the ground.</p>
+      </div>
+    </section>
+
+    <section class="slide narrow">
+      <div class="slide-number">12</div>
+      <div class="slide-content">
+        <p class="kicker reveal">The communication shift</p>
+        <div class="two-lines">
+          <div class="line-card reveal">From: "LHWRF conducted a program."</div>
+          <div class="line-card reveal">To: "Here is what became stronger around Lata's family."</div>
+        </div>
+        <p class="lead reveal">This moves LHWRF from activity updates to family-first impact storytelling.</p>
+      </div>
+    </section>
+
+    <section class="slide split">
+      <div class="slide-number">13</div>
+      <div class="slide-content">
+        <div>
+          <p class="kicker reveal">How this becomes social content</p>
+          <h2 class="reveal">Ask one question every time.</h2>
+        </div>
+        <div>
+          <p class="lead reveal">What changed around the family?</p>
+          <div class="mini-grid">
+            <span class="reveal">Health access</span>
+            <span class="reveal">Livelihood security</span>
+            <span class="reveal">Women's agency</span>
+            <span class="reveal">Farming resilience</span>
+            <span class="reveal">Youth opportunity</span>
+            <span class="reveal">Community support</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide narrow">
+      <div class="slide-number">14</div>
+      <div class="slide-content">
+        <p class="kicker reveal">Why this can hold the communication together</p>
+        <p class="lead reveal">LHWRF has many stories to tell: farmer progress, healthcare access, women's participation, field teams, community institutions, regional voices, and partnerships.</p>
+        <p class="quote reveal">The Family Of Change gives all of them one centre.</p>
+      </div>
+    </section>
+
+    <section class="slide title-slide narrow">
+      <div class="slide-number">15</div>
+      <div class="decorative sun"></div>
+      <div class="decorative field-lines"></div>
+      <div class="slide-content">
+        <p class="kicker reveal">Closing thought</p>
+        <p class="quote reveal">Lata's story is not about one intervention.</p>
+        <p class="lead reveal">It is about many forms of support coming together until a family can move forward. And when many families move forward, the village begins to change too.</p>
+        <p class="lead reveal accent">That is the role LHWRF can become known for.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* === Slide presentation controller === */
+    class SlidePresentation {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.currentSlide = 0;
+        this.dotsContainer = document.querySelector('.nav-dots');
+        this.progressBar = document.querySelector('.progress-bar');
+        this.touchStartY = 0;
+        this.setupDots();
+        this.setupObserver();
+        this.setupKeyboard();
+        this.setupTouch();
+        this.setupWheel();
+        this.goTo(0, false);
+      }
+
+      setupDots() {
+        this.slides.forEach((_, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.setAttribute('aria-label', `Go to slide ${index + 1}`);
+          button.addEventListener('click', () => this.goTo(index));
+          this.dotsContainer.appendChild(button);
+        });
+        this.dots = Array.from(this.dotsContainer.querySelectorAll('button'));
+      }
+
+      setupObserver() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const index = this.slides.indexOf(entry.target);
+              this.currentSlide = index;
+              entry.target.classList.add('visible');
+              this.updateNavigation();
+            }
+          });
+        }, { threshold: 0.62 });
+
+        this.slides.forEach((slide) => observer.observe(slide));
+      }
+
+      setupKeyboard() {
+        document.addEventListener('keydown', (event) => {
+          if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(event.key)) {
+            event.preventDefault();
+            this.next();
+          }
+          if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(event.key)) {
+            event.preventDefault();
+            this.previous();
+          }
+          if (event.key === 'Home') {
+            event.preventDefault();
+            this.goTo(0);
+          }
+          if (event.key === 'End') {
+            event.preventDefault();
+            this.goTo(this.slides.length - 1);
+          }
+        });
+      }
+
+      setupTouch() {
+        document.addEventListener('touchstart', (event) => {
+          this.touchStartY = event.changedTouches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (event) => {
+          const delta = this.touchStartY - event.changedTouches[0].clientY;
+          if (Math.abs(delta) > 45) {
+            delta > 0 ? this.next() : this.previous();
+          }
+        }, { passive: true });
+      }
+
+      setupWheel() {
+        let locked = false;
+        document.addEventListener('wheel', (event) => {
+          if (locked || Math.abs(event.deltaY) < 20) return;
+          locked = true;
+          event.deltaY > 0 ? this.next() : this.previous();
+          setTimeout(() => { locked = false; }, 620);
+        }, { passive: true });
+      }
+
+      next() {
+        this.goTo(Math.min(this.currentSlide + 1, this.slides.length - 1));
+      }
+
+      previous() {
+        this.goTo(Math.max(this.currentSlide - 1, 0));
+      }
+
+      goTo(index, smooth = true) {
+        this.currentSlide = index;
+        this.slides[index].scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        this.slides[index].classList.add('visible');
+        this.updateNavigation();
+      }
+
+      updateNavigation() {
+        const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+        this.progressBar.style.width = `${progress}%`;
+        this.dots.forEach((dot, index) => dot.classList.toggle('active', index === this.currentSlide));
+      }
+    }
+
+    new SlidePresentation();
+  </script>
+</body>
+</html>

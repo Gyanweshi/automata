@@ -1,0 +1,163 @@
+/* =====================================================================
+   Lupin Design System — color & type tokens
+   ===================================================================== */
+
+:root {
+  /* ---- Color: brand ---- */
+  --lupin-green:       #069c3c;   /* Primary Green */
+  --lupin-green-dark:  #08a240;   /* Hover / press */
+  --lupin-teal:        #1b6b59;   /* Deep Teal (secondary) */
+  --lupin-lime:        #e7ff00;   /* Lime Accent — sparingly */
+  --lupin-navy:        #033943;   /* Dark ground */
+
+  /* ---- Color: neutrals ---- */
+  --lupin-paper:       #f6f7f4;   /* Off-white page bg */
+  --lupin-paper-2:     #ecede8;   /* Subtle surface */
+  --lupin-ink:         #0e1a1f;   /* Body text on light */
+  --lupin-mute:        #6b7a7e;   /* Secondary text */
+  --lupin-line:        rgba(3,57,67,.10);
+  --lupin-line-dark:   rgba(255,255,255,.10);
+
+  /* ---- Semantic foreground ---- */
+  --fg-1: var(--lupin-ink);
+  --fg-2: var(--lupin-mute);
+  --fg-on-dark: #ffffff;
+  --fg-on-dark-2: rgba(255,255,255,.72);
+  --fg-link: var(--lupin-green);
+
+  /* ---- Semantic background ---- */
+  --bg-page: var(--lupin-paper);
+  --bg-surface: #ffffff;
+  --bg-dark: var(--lupin-navy);
+  --bg-brand: var(--lupin-green);
+
+  /* ---- Type: stack ---- */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, "JetBrains Mono", monospace;
+
+  /* ---- Type: scale ---- */
+  --fs-eyebrow: 0.75rem;     /* 12 */
+  --fs-body-sm: 0.875rem;    /* 14 */
+  --fs-body:    1rem;        /* 16 */
+  --fs-lead:    1.125rem;    /* 18 */
+  --fs-h3:      1.5rem;      /* 24 */
+  --fs-h2:      2.25rem;     /* 36 */
+  --fs-h1:      3.75rem;     /* 60 */
+
+  /* ---- Type: weight ---- */
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+  --fw-xbold:   800;
+
+  /* ---- Type: leading + tracking ---- */
+  --lh-tight: 1.05;
+  --lh-snug:  1.25;
+  --lh-body:  1.6;
+  --tr-tight: -0.02em;
+  --tr-eyebrow: 0.18em;
+
+  /* ---- Spacing (4-pt) ---- */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ---- Radii ---- */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-petal: 3rem;            /* the motif */
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 1px 2px rgba(3,57,67,.06), 0 12px 32px -12px rgba(3,57,67,.18);
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-ui:    200ms;
+  --dur-page:  400ms;
+}
+
+/* =====================================================================
+   Semantic element styles
+   ===================================================================== */
+
+.lupin-h1 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-xbold);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-tight);
+  color: var(--fg-1);
+}
+.lupin-h2 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-tight);
+  color: var(--fg-1);
+}
+.lupin-h3 {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+}
+.lupin-body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--fg-1);
+}
+.lupin-lead {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-lead);
+  line-height: var(--lh-body);
+  color: var(--fg-2);
+}
+.lupin-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--lupin-teal);
+}
+
+/* =====================================================================
+   The petal motif — single asymmetric radius
+   ===================================================================== */
+
+.petal      { border-radius: var(--r-xs) var(--r-petal) var(--r-xs) var(--r-xs); }
+.petal-lg   { border-radius: var(--r-xs) 6rem        var(--r-xs) var(--r-xs); }
+
+/* =====================================================================
+   Button atoms (mirrored in Tailwind in the artifact)
+   ===================================================================== */
+
+.btn { display: inline-flex; align-items: center; gap: 8px;
+       padding: 12px 20px; border-radius: var(--r-xs);
+       font-family: var(--font-sans); font-weight: var(--fw-medium);
+       font-size: var(--fs-body-sm); line-height: 1; cursor: pointer;
+       transition: background-color var(--dur-ui) var(--ease-out),
+                   color var(--dur-ui) var(--ease-out),
+                   border-color var(--dur-ui) var(--ease-out); }
+.btn-primary   { background: var(--lupin-green); color: #fff; border: 1px solid transparent; }
+.btn-primary:hover { background: var(--lupin-green-dark); }
+.btn-secondary { background: transparent; color: var(--lupin-ink);
+                 border: 1px solid var(--lupin-ink); }
+.btn-secondary:hover { background: var(--lupin-ink); color: #fff; }
+.btn-accent    { background: var(--lupin-lime); color: var(--lupin-navy);
+                 border: 1px solid transparent; font-weight: var(--fw-bold); }
+.btn-accent:hover { background: #d6ee00; }
