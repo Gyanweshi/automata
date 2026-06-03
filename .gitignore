@@ -46,3 +46,4 @@ Thumbs.db
 # Editor
 .vscode/
 *.swp
+node_modules/
