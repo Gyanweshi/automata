@@ -38,6 +38,7 @@ help:
 	@echo "  make research       Run research agent"
 	@echo "  make research PARALLEL=1 MAX_WORKERS=4  Run research with bounded concurrency"
 	@echo "  make research SCRAPER=browser-act PARALLEL=1  Run research with browser-act stealth extraction"
+	@echo "  make research SCRAPER=cdp PLATFORMS=ig  Run research against an open Chrome CDP Instagram session"
 	@echo "  make research SCRAPER=playwright INSTAGRAM_LOGIN_MODE=manual  Run research with a manual Instagram login session"
 	@echo "  make storyboard     Run storyboard agent"
 	@echo "  make content        Run content agent"
@@ -58,7 +59,7 @@ install:
 	$(PIP) install -e ./packages/agency-storyboard
 	$(PIP) install -e ./packages/agency-content
 	@echo ""
-	@echo "All packages installed. Run 'make install-skills' to set up Claude Code skills."
+	@echo "All packages installed. Run 'make install-skills' to set up repo skills for Claude Code."
 
 install-skills:
 	bash scripts/install-skills.sh

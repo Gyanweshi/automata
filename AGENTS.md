@@ -69,6 +69,15 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 .\scripts\run-agent.ps1 pipeline -Brand example-brand -Type carousel -Topic "5 tips"
 ```
 
+Instagram login/session helpers:
+
+```powershell
+.\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
+.\scripts\open-instagram-session.ps1 -Mode browser-act -BrowserActSessionName instagram-main -WaitForEnter
+```
+
+Use the CDP helper when rendered Instagram post pages hit a login wall. It opens a persistent Chrome profile under `%USERPROFILE%\.agency\chrome-instagram-cdp`; the user logs in once and keeps the browser open while CDP research runs. Use browser-act session mode with `-BrowserActMode session -BrowserActSessionName instagram-main` after its login helper has been completed.
+
 ## MCP Assignments
 
 Research agent:

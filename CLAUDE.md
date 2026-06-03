@@ -60,9 +60,9 @@ packages/freepik-fastmcp/   # Vendored Freepik MCP server (image/video)
 
 ## Brand Configs
 
-Brand profiles live in the **Obsidian vault** at `$OBSIDIAN_VAULT_PATH/Brands/<slug>.yaml` — not committed to the repo. The loader searches in this order: explicit `--brands-dir` arg → `AGENCY_BRANDS_DIR` env var → vault `Brands/` folder → local `brands/` directory.
+Brand profiles live in the **Obsidian vault** at `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` - not committed to the repo. The frontmatter is the structured config; the markdown body contains brand narrative and the `## Memory` section. The loader searches in this order: explicit `--brands-dir` arg, `AGENCY_BRANDS_DIR` env var, vault `Brands/` folder, then local `brands/` directory.
 
-Use `brands/_template.yaml` as the schema reference. When onboarding a new brand, write the YAML to the vault and create workspace directories (`workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`).
+Use `brands/_template.yaml` as the schema reference for frontmatter. When onboarding a new brand, write the `.md` brand note to the vault and create workspace directories (`workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`). Local YAML files are development fixtures only.
 
 **Obsidian linking rules** — only wikilink things that have actual notes:
 - Other managed brands → `[[Brands/slug|Name]]`

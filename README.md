@@ -284,10 +284,23 @@ Use browser-act with a logged-in persistent session:
 make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig BROWSER_ACT_MODE=session BROWSER_ACT_SESSION_NAME=instagram-main
 ```
 
+On Windows, create or refresh that logged-in browser-act session first:
+
+```powershell
+.\scripts\open-instagram-session.ps1 -Mode browser-act -BrowserActSessionName instagram-main -WaitForEnter
+```
+
 Use Playwright with a manually logged-in Instagram session:
 
 ```bash
 make research BRAND=example-brand SCRAPER=playwright PLATFORMS=ig INSTAGRAM_LOGIN_MODE=manual
+```
+
+For CDP-based Instagram checks on Windows, open a persistent Chrome profile once, log into Instagram, and leave the browser open while research runs:
+
+```powershell
+.\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper cdp -Platforms ig
 ```
 
 Run storyboard:
@@ -351,10 +364,23 @@ Use browser-act with a logged-in persistent session:
 .\scripts\run-agent.ps1 research -Brand example-brand -Scraper browser-act -Platforms ig -BrowserActMode session -BrowserActSessionName instagram-main
 ```
 
+Create or refresh that browser-act login session first:
+
+```powershell
+.\scripts\open-instagram-session.ps1 -Mode browser-act -BrowserActSessionName instagram-main -WaitForEnter
+```
+
 Use Playwright with a manually logged-in Instagram session:
 
 ```powershell
 .\scripts\run-agent.ps1 research -Brand example-brand -Scraper playwright -Platforms ig -InstagramLoginMode manual
+```
+
+Use CDP with a persistent Chrome profile:
+
+```powershell
+.\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
+.\scripts\run-agent.ps1 research -Brand example-brand -Scraper cdp -Platforms ig
 ```
 
 Run storyboard:
