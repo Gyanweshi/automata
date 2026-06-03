@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="altara-pitch-assets/animate.min.css">
   <style>
     /* === ALTARA FONTS === */
     @font-face{font-family:'Ivy Presto Display';font-weight:300;font-style:normal;font-display:swap;src:url('altara-pitch-assets/fonts/IvyPrestoDisplay-Light.otf') format('opentype');}
@@ -29,6 +30,7 @@
       --faint: #9a9087;
       --line: #cdc4b2;
       --line-strong: #b3a892;
+      --stone: #3d352f;
       --gold-1: #eece90;
       --gold-2: #cf9c55;
       --gold-3: #bb8648;
@@ -38,7 +40,7 @@
       --font-serif: 'Ivy Presto Text', Georgia, serif;
       --font-sans: 'Roboto', Arial, sans-serif;
       --title-size: clamp(2.2rem, 6vw, 6.1rem);
-      --h2-size: clamp(1.7rem, 4.1vw, 3.9rem);
+      --h2-size: clamp(2.6rem, 6vw, 6.2rem);
       --h3-size: clamp(1.05rem, 2.25vw, 1.85rem);
       --body-size: clamp(0.84rem, 1.25vw, 1.12rem);
       --small-size: clamp(0.62rem, 0.86vw, 0.78rem);
@@ -79,16 +81,44 @@
         var(--paper);
       background-size: 5px 5px, 7px 7px, auto, auto;
     }
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.38;
+      background:
+        radial-gradient(34rem 22rem at 84% 16%, rgba(238,206,144,0.16), transparent 62%),
+        radial-gradient(22rem 18rem at 14% 84%, rgba(187,134,72,0.10), transparent 64%),
+        linear-gradient(120deg, transparent 0 47%, rgba(238,206,144,0.13) 49%, rgba(152,97,37,0.12) 50%, transparent 53%),
+        linear-gradient(90deg, transparent, rgba(187,134,72,0.11), transparent);
+      background-size: auto, auto, 220% 220%, 100% 100%;
+    }
+    .warm::before,
+    .root::before {
+      opacity: 0.34;
+      background:
+        radial-gradient(32rem 22rem at 84% 16%, rgba(238,206,144,0.20), transparent 62%),
+        radial-gradient(24rem 20rem at 12% 86%, rgba(238,206,144,0.12), transparent 64%),
+        linear-gradient(120deg, transparent 0 47%, rgba(238,206,144,0.16) 49%, rgba(238,206,144,0.08) 50%, transparent 53%);
+      background-size: auto, auto, 220% 220%;
+    }
     .slide-content {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      width: min(100%, 1280px);
       max-height: 100%;
       overflow: hidden;
       padding: var(--slide-padding);
+      margin: 0 auto;
       position: relative;
       z-index: 3;
+    }
+    .slide:not(.center) .slide-content {
+      justify-content: center;
     }
     img, .image-container { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; }
 
@@ -108,7 +138,7 @@
       .nav-dots { display: none; }
     }
     @media (max-width: 760px) {
-      .split, .three, .two, .phase-row, .pillar-grid, .metric-row { grid-template-columns: 1fr !important; }
+      .split, .three, .two, .phase-row, .pillar-grid, .metric-row, .choice-map, .launch-board, .proof-table, .service-grid, .measure-grid { grid-template-columns: 1fr !important; }
       .vertical-rule { width: 100%; height: 1px; }
       .film-strip { grid-template-columns: repeat(3, 1fr); }
       .film-strip .still:nth-child(n+4) { display: none; }
@@ -125,16 +155,45 @@
       line-height: 1.02;
       color: var(--warm);
       letter-spacing: 0;
-      text-wrap: balance;
+      text-wrap: pretty;
     }
     h1 { font-size: var(--title-size); }
     h2 { font-size: var(--h2-size); }
     h3 { font-size: var(--h3-size); }
     p { color: var(--muted); max-width: 50ch; }
+    .slide-content > .overline,
+    .slide-content > h1,
+    .slide-content > h2,
+    .slide-content > .lead {
+      width: min(100%, 980px);
+    }
+    .slide-content > h1,
+    .slide-content > h2 {
+      max-width: 13.5ch;
+    }
+    .slide-content > h2 {
+      max-width: 15.5ch;
+    }
+    .slide-content > .lead {
+      max-width: 34em;
+      margin-top: clamp(0.75rem, 1.7vh, 1.2rem);
+    }
+    .center .slide-content > h1,
+    .center .slide-content > h2,
+    .center .slide-content > .lead {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .center .slide-content > h1 {
+      max-width: 16ch;
+    }
+    .center .slide-content > h2 {
+      max-width: 17ch;
+    }
     .overline {
       font-family: var(--font-sans);
-      font-size: var(--small-size);
-      letter-spacing: 0.42em;
+      font-size: clamp(0.78rem, 1.1vw, 1rem);
+      letter-spacing: 0.32em;
       text-transform: uppercase;
       color: var(--root);
       margin-bottom: clamp(0.75rem, 1.8vh, 1.35rem);
@@ -152,8 +211,8 @@
     }
     .sans-note {
       font-family: var(--font-sans);
-      font-size: clamp(0.68rem, 0.95vw, 0.86rem);
-      letter-spacing: 0.12em;
+      font-size: clamp(0.86rem, 1.15vw, 1.08rem);
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--faint);
       line-height: 1.45;
@@ -185,11 +244,21 @@
     .frame {
       position: absolute;
       inset: clamp(0.9rem, 2.5vw, 2.2rem);
-      border: 1px solid rgba(128,101,82,0.22);
+      border: 1px solid rgba(187,134,72,0.34);
       pointer-events: none;
       z-index: 4;
     }
-    .warm .frame, .root .frame { border-color: rgba(225,218,203,0.22); }
+    .frame::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: clamp(1.2rem, 5vw, 5rem);
+      width: clamp(6rem, 18vw, 18rem);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-1), var(--gold-3), transparent);
+      opacity: 0.74;
+    }
+    .warm .frame, .root .frame { border-color: rgba(238,206,144,0.28); }
     .rule {
       height: 1px;
       width: clamp(5rem, 14vw, 12rem);
@@ -203,12 +272,14 @@
     .monogram { width: clamp(4.8rem, 11vw, 8.2rem); max-height: min(22vh, 170px); margin-bottom: clamp(1rem, 3vh, 2rem); }
     .verve-mark {
       position: fixed;
-      top: clamp(2rem, 3.2vw, 2.8rem);
-      right: clamp(2.2rem, 3.8vw, 3.6rem);
-      width: clamp(4.6rem, 6.2vw, 6rem);
+      top: clamp(1.8rem, 2.5vw, 2.35rem);
+      right: clamp(2.4rem, 3.4vw, 3.3rem);
+      width: clamp(5.4rem, 6.6vw, 6.8rem);
       height: auto;
+      max-height: clamp(2.2rem, 2.8vw, 3rem);
+      object-fit: contain;
       z-index: 9997;
-      opacity: 0.78;
+      opacity: 0.86;
       pointer-events: none;
     }
 
@@ -239,20 +310,8 @@
       aspect-ratio: 1 / 1;
       opacity: 0.08;
       background: url('altara-pitch-assets/motifs/arch-motif.png') center / contain no-repeat;
-      animation: motifBreathe 12s var(--ease) infinite;
+      transform: none;
     }
-    .ornament-continuity .motion-field::before {
-      right: clamp(1rem, 9vw, 8rem);
-      top: 50%;
-      width: min(28vw, 340px);
-      aspect-ratio: 1 / 1;
-      opacity: 0.07;
-      transform: translateY(-50%);
-      background: url('altara-pitch-assets/motifs/continuity-device.png') center / contain no-repeat;
-      animation: motifBreathe 13s var(--ease) infinite;
-    }
-    .warm.ornament-continuity .motion-field::before,
-    .root.ornament-continuity .motion-field::before,
     .warm.ornament-arch .motion-field::before,
     .root.ornament-arch .motion-field::before {
       opacity: 0.15;
@@ -266,7 +325,6 @@
       aspect-ratio: 1 / 1;
       opacity: 0.06;
       background: url('altara-pitch-assets/monogram.png') center / contain no-repeat;
-      animation: monoBreathe 15s var(--ease) infinite;
     }
     .warm.ornament-mono .motion-field::before,
     .root.ornament-mono .motion-field::before {
@@ -281,7 +339,6 @@
       opacity: 0.48;
       background:
         linear-gradient(90deg, transparent, var(--gold-3), transparent);
-      animation: ruleDraw 8s var(--ease) infinite;
     }
     .ornament-star .motion-field::after {
       right: clamp(3rem, 13vw, 13rem);
@@ -291,7 +348,6 @@
       opacity: 0.78;
       background: var(--warm);
       clip-path: polygon(50% 0,58% 42%,100% 50%,58% 58%,50% 100%,42% 58%,0 50%,42% 42%);
-      animation: starPulse 6s var(--ease) infinite;
     }
     .warm.ornament-star .motion-field::after,
     .root.ornament-star .motion-field::after {
@@ -299,21 +355,10 @@
       opacity: 0.82;
     }
     .service-device .motion-field::before {
-      right: clamp(1rem, 6vw, 5rem);
-      top: 50%;
-      width: min(25vw, 280px);
-      aspect-ratio: 1 / 1;
-      opacity: 0.052;
-      background: url('altara-pitch-assets/icons/shower.png') center / contain no-repeat;
-      transform: translateY(-50%);
+      opacity: 0;
     }
     .service-device .motion-field::after {
-      right: auto;
-      left: clamp(2rem, 7vw, 7rem);
-      width: min(22vw, 240px);
-      aspect-ratio: 1 / 1;
-      opacity: 0.045;
-      background: url('altara-pitch-assets/icons/bar.png') center / contain no-repeat;
+      opacity: 0;
     }
     .guide-line {
       position: absolute;
@@ -325,7 +370,7 @@
       background: linear-gradient(90deg, transparent, rgba(187,134,72,0.74), transparent);
       opacity: 0.24;
       transform-origin: left center;
-      animation: ruleDraw 7s var(--ease) infinite;
+      display: none;
       pointer-events: none;
     }
     .guide-line.second {
@@ -333,47 +378,17 @@
       right: clamp(3rem, 14vw, 17rem);
       top: 56%;
       width: clamp(9rem, 26vw, 29rem);
-      animation-delay: -3.1s;
     }
     .warm .guide-line, .root .guide-line { opacity: 0.42; }
-    @keyframes motifBreathe {
-      0%, 100% { transform: translateY(-50%) scale(0.992); }
-      50% { transform: translateY(-50%) scale(1.015); }
-    }
-    .ornament-arch .motion-field::before {
-      animation-name: archBreathe;
-    }
-    @keyframes archBreathe {
-      0%, 100% { transform: translateY(0) scale(0.992); }
-      50% { transform: translateY(-10px) scale(1.012); }
-    }
-    @keyframes starPulse {
-      0%, 100% { transform: scale(0.86); opacity: 0.42; }
-      45% { transform: scale(1.08); opacity: 0.88; }
-    }
-    @keyframes monoBreathe {
-      0%, 100% { transform: scale(0.985); }
-      50% { transform: scale(1.012); }
-    }
-    @keyframes ruleDraw {
-      0%, 100% { opacity: 0.12; clip-path: inset(0 100% 0 0); }
-      42% { opacity: 0.46; clip-path: inset(0 0 0 0); }
-      72% { opacity: 0.22; clip-path: inset(0 16% 0 0); }
-    }
 
     /* === ANIMATION === */
     .reveal {
-      opacity: 0;
-      transform: translateY(20px);
-      filter: blur(4px);
-      transition: opacity 760ms var(--ease-out), transform 760ms var(--ease-out), filter 760ms var(--ease-out);
+      opacity: 1;
     }
-    .slide.visible .reveal { opacity: 1; transform: translateY(0); filter: blur(0); }
-    .reveal:nth-child(1) { transition-delay: 0.08s; }
-    .reveal:nth-child(2) { transition-delay: 0.16s; }
-    .reveal:nth-child(3) { transition-delay: 0.24s; }
-    .reveal:nth-child(4) { transition-delay: 0.32s; }
-    .reveal:nth-child(5) { transition-delay: 0.40s; }
+    .reveal.animate__animated {
+      opacity: 1;
+      --animate-duration: 780ms;
+    }
 
     /* === LAYOUTS === */
     .center .slide-content { align-items: center; text-align: center; }
@@ -383,21 +398,40 @@
       gap: clamp(1.4rem, 5vw, 5.4rem);
       align-items: center;
       width: min(100%, 1160px);
-      margin: 0 auto;
+      margin: 0;
     }
+    .split h1, .split h2 { max-width: 13ch; }
+    .split .lead { max-width: 32em; margin: 0; }
     .two {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: clamp(0.9rem, 2vw, 1.6rem);
       width: min(100%, 1000px);
-      margin: clamp(1rem, 4vh, 2.4rem) auto 0;
+      margin: clamp(1rem, 4vh, 2.4rem) 0 0;
     }
     .three {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: clamp(0.9rem, 2vw, 1.5rem);
       width: min(100%, 1050px);
-      margin: clamp(1rem, 4vh, 2.4rem) auto 0;
+      margin: clamp(1rem, 4vh, 2.4rem) 0 0;
+    }
+    .sentence-stack {
+      display: grid;
+      gap: clamp(0.55rem, 1.3vh, 0.9rem);
+      width: min(100%, 720px);
+      margin-top: clamp(1.35rem, 4vh, 2.4rem);
+    }
+    .sentence-stack p {
+      margin: 0;
+      max-width: none;
+      font-family: var(--font-display);
+      font-size: clamp(1.45rem, 3.1vw, 3rem);
+      line-height: 1.02;
+      color: var(--warm);
+    }
+    .sentence-stack .quiet {
+      color: var(--root);
     }
     .vertical-rule {
       width: 1px;
@@ -439,11 +473,13 @@
     .word-cloud span:nth-child(5) { left: 52%; bottom: 8%; }
     .word-cloud span:nth-child(6) { right: 8%; bottom: 28%; }
     .panel {
-      border-top: 1px solid var(--line-strong);
-      border-bottom: 1px solid var(--line);
-      background: rgba(250,247,240,0.56);
-      padding: clamp(1rem, 2.4vw, 1.8rem);
-      min-height: clamp(8rem, 24vh, 14rem);
+      border-top: 1px solid rgba(187,134,72,0.58);
+      border-bottom: 1px solid rgba(205,196,178,0.68);
+      background:
+        linear-gradient(150deg, rgba(250,247,240,0.74), rgba(225,218,203,0.34)),
+        linear-gradient(90deg, rgba(238,206,144,0.10), transparent 34%);
+      padding: clamp(1.05rem, 2.2vw, 1.65rem);
+      min-height: clamp(7.4rem, 20vh, 12rem);
     }
     .panel h3 {
       font-family: var(--font-sans);
@@ -453,17 +489,21 @@
       color: var(--root);
       margin-bottom: clamp(0.7rem, 1.4vh, 1rem);
     }
-    .panel p, .panel li { color: var(--muted); font-size: clamp(0.84rem, 1.1vw, 1rem); }
+    .panel p, .panel li {
+      color: var(--muted);
+      font-size: clamp(0.96rem, 1.28vw, 1.14rem);
+      line-height: 1.44;
+    }
     .panel ul { list-style: none; display: grid; gap: clamp(0.4rem, 1vh, 0.65rem); }
     .phase-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: clamp(0.8rem, 2vw, 1.4rem);
       width: min(100%, 1080px);
-      margin: clamp(1rem, 4vh, 2.4rem) auto 0;
+      margin: clamp(1rem, 4vh, 2.4rem) 0 0;
     }
     .phase {
-      min-height: clamp(13rem, 42vh, 22rem);
+      min-height: clamp(11rem, 33vh, 18rem);
       border: 1px solid var(--line);
       border-radius: 999px 999px 6px 6px;
       padding: clamp(1rem, 2vw, 1.6rem);
@@ -478,10 +518,10 @@
       grid-template-columns: repeat(5, 1fr);
       gap: clamp(0.45rem, 1vw, 0.8rem);
       width: min(100%, 1060px);
-      margin: clamp(1rem, 4vh, 2.2rem) auto 0;
+      margin: clamp(1rem, 4vh, 2.2rem) 0 0;
     }
     .still {
-      min-height: clamp(9rem, 32vh, 18rem);
+      min-height: clamp(8rem, 25vh, 14rem);
       border: 1px solid var(--line);
       background:
         radial-gradient(80% 65% at 50% 115%, rgba(207,156,85,0.22), transparent 62%),
@@ -496,29 +536,37 @@
       text-transform: uppercase;
     }
     .still.light {
-      background: linear-gradient(145deg, var(--surface), var(--calm));
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(145deg, rgba(250,247,240,0.94), rgba(225,218,203,0.66)),
+        radial-gradient(120% 90% at 50% 100%, rgba(238,206,144,0.14), transparent 62%);
       color: var(--root);
+      font-size: clamp(0.7rem, 1vw, 0.92rem);
+      letter-spacing: 0.2em;
     }
     .pillar-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: clamp(0.75rem, 1.6vw, 1.2rem);
+      gap: clamp(0.65rem, 1.35vw, 1rem);
       width: min(100%, 1060px);
-      margin: clamp(1rem, 4vh, 2rem) auto 0;
+      margin: clamp(1rem, 4vh, 2rem) 0 0;
     }
     .pillar {
-      padding: clamp(0.9rem, 2vw, 1.4rem);
-      border-left: 1px solid var(--gold-3);
-      background: rgba(250,247,240,0.58);
+      padding: clamp(0.8rem, 1.65vw, 1.2rem);
+      border-left: 1px solid rgba(187,134,72,0.72);
+      background:
+        linear-gradient(145deg, rgba(250,247,240,0.76), rgba(225,218,203,0.32)),
+        linear-gradient(90deg, rgba(238,206,144,0.10), transparent 48%);
     }
     .pillar h3 { font-size: clamp(1.15rem, 2.4vw, 2.1rem); margin-bottom: clamp(0.45rem, 1vh, 0.7rem); }
-    .pillar p { font-size: clamp(0.78rem, 1vw, 0.94rem); }
+    .pillar p { font-size: clamp(0.84rem, 1.04vw, 0.98rem); line-height: 1.42; }
     .metric-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: clamp(0.7rem, 1.5vw, 1.1rem);
       width: min(100%, 880px);
-      margin: clamp(1rem, 4vh, 2rem) auto 0;
+      margin: clamp(1rem, 4vh, 2rem) 0 0;
     }
     .metric {
       border-top: 1px solid var(--gold-3);
@@ -536,14 +584,14 @@
       display: grid;
       grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
       gap: clamp(1rem, 3.2vw, 3rem);
-      align-items: end;
+      align-items: center;
       width: min(100%, 1180px);
-      margin-top: clamp(1rem, 5vh, 3rem);
+      margin: clamp(1rem, 5vh, 3rem) 0 0;
     }
     .media-system .lead {
       max-width: 12.5em;
       margin: 0;
-      font-size: clamp(1.28rem, 2.55vw, 2.6rem);
+      font-size: clamp(1.15rem, 2.25vw, 2.25rem);
       line-height: 1.06;
     }
     .channel-stack {
@@ -570,21 +618,19 @@
     .channel p {
       max-width: 34em;
       margin: 0;
-      font-family: var(--font-display);
+      font-family: var(--font-serif);
       font-weight: 600;
-      font-size: clamp(1rem, 1.55vw, 1.55rem);
+      font-size: clamp(1.08rem, 1.62vw, 1.62rem);
       line-height: 1.24;
       color: var(--stone);
     }
     .media-note {
-      justify-self: end;
       max-width: 37em;
       margin-top: clamp(0.8rem, 2.5vh, 1.5rem);
       padding-top: clamp(0.65rem, 1.5vh, 0.9rem);
       border-top: 1px solid rgba(187,134,72,0.32);
       color: var(--root);
       opacity: 0.74;
-      text-align: right;
     }
     @media (max-width: 760px) {
       .media-system {
@@ -604,6 +650,9 @@
       }
     }
     @media (max-height: 620px) {
+      .slide:not(.center) .slide-content {
+        padding-top: clamp(3rem, 7vh, 4.4rem);
+      }
       .media-system {
         margin-top: clamp(0.6rem, 2.2vh, 1.1rem);
       }
@@ -619,6 +668,273 @@
       .media-note {
         margin-top: clamp(0.45rem, 1.5vh, 0.8rem);
       }
+    }
+
+    /* === EDITORIAL SYSTEMS === */
+    .cover-kicker {
+      margin-top: clamp(0.9rem, 2vh, 1.45rem);
+      max-width: 34em;
+      color: rgba(225,218,203,0.72);
+      font-size: clamp(0.96rem, 1.35vw, 1.2rem);
+      line-height: 1.42;
+    }
+    .chapter-number {
+      font-family: var(--font-display);
+      font-size: clamp(7rem, 23vw, 20rem);
+      line-height: 0.72;
+      color: rgba(106,22,17,0.08);
+      position: absolute;
+      right: clamp(1.2rem, 6vw, 5rem);
+      bottom: clamp(0.8rem, 5vh, 4rem);
+      z-index: 0;
+    }
+    .warm .chapter-number, .root .chapter-number { color: rgba(238,206,144,0.12); }
+    .choice-map {
+      display: grid;
+      grid-template-columns: minmax(0, 0.86fr) auto minmax(0, 1fr);
+      gap: clamp(1.1rem, 3vw, 3rem);
+      align-items: center;
+      width: min(100%, 1080px);
+      margin: clamp(1rem, 5vh, 2.8rem) 0 0;
+    }
+    .map-column {
+      display: grid;
+      gap: clamp(0.55rem, 1.2vh, 0.85rem);
+    }
+    .map-label {
+      font-family: var(--font-sans);
+      font-size: var(--small-size);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--root);
+      padding-bottom: clamp(0.45rem, 1vh, 0.75rem);
+      border-bottom: 1px solid var(--line);
+    }
+    .map-item {
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 2.6vw, 2.45rem);
+      line-height: 1.05;
+      color: var(--warm);
+    }
+    .map-arrow {
+      width: clamp(4rem, 9vw, 8rem);
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold-3), transparent);
+      position: relative;
+    }
+    .map-arrow::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-top: 1px solid var(--gold-3);
+      border-right: 1px solid var(--gold-3);
+      transform: translateY(-50%) rotate(45deg);
+    }
+    .proof-table {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: clamp(1rem, 3vw, 3rem);
+      width: min(100%, 1080px);
+      margin: clamp(1.2rem, 5vh, 3rem) 0 0;
+    }
+    .proof-list {
+      display: grid;
+      gap: clamp(0.55rem, 1.25vh, 0.85rem);
+      border-top: 1px solid rgba(187,134,72,0.68);
+      padding-top: clamp(0.75rem, 1.8vh, 1.2rem);
+    }
+    .proof-list span {
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 2.7vw, 2.55rem);
+      line-height: 1.08;
+      color: var(--warm);
+    }
+    .proof-list.quiet span {
+      color: var(--root);
+    }
+    .launch-board {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: clamp(1rem, 2.5vw, 2.2rem);
+      width: min(100%, 1080px);
+      margin: clamp(1rem, 4vh, 2.2rem) 0 0;
+    }
+    .process-card {
+      min-height: clamp(8rem, 22vh, 13rem);
+      border: 1px solid var(--line);
+      padding: clamp(1rem, 2vw, 1.5rem);
+      background:
+        linear-gradient(145deg, rgba(250,247,240,0.9), rgba(225,218,203,0.52)),
+        radial-gradient(120% 90% at 100% 0, rgba(238,206,144,0.18), transparent 60%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .process-card.dark {
+      background: linear-gradient(150deg, rgba(106,22,17,0.96), rgba(93,86,80,0.9));
+      color: var(--calm);
+    }
+    .process-card strong {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(1.45rem, 3vw, 3rem);
+      line-height: 1;
+      color: inherit;
+    }
+    .process-card span {
+      font-family: var(--font-sans);
+      font-size: var(--small-size);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: currentColor;
+      opacity: 0.72;
+      line-height: 1.5;
+    }
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(0.75rem, 1.5vw, 1.15rem);
+      width: min(100%, 1050px);
+      margin: clamp(1rem, 4vh, 2.2rem) 0 0;
+    }
+    .service-tile {
+      border-top: 1px solid rgba(187,134,72,0.7);
+      padding-top: clamp(0.7rem, 1.4vh, 1rem);
+      min-height: clamp(13rem, 28vh, 19rem);
+      display: grid;
+      grid-template-rows: clamp(3rem, 5.5vw, 5rem) clamp(1.8rem, 2.6vw, 2.6rem) auto;
+      gap: clamp(0.7rem, 1.8vh, 1.2rem);
+      align-items: start;
+    }
+    .service-tile img {
+      width: clamp(3rem, 5.5vw, 5rem);
+      height: clamp(3rem, 5.5vw, 5rem);
+      object-fit: contain;
+      opacity: 0.68;
+    }
+    .service-tile svg {
+      width: clamp(2rem, 4vw, 3.5rem);
+      height: clamp(2rem, 4vw, 3.5rem);
+      color: var(--warm);
+      opacity: 0.72;
+      flex-shrink: 0;
+    }
+    .service-tile h3 {
+      font-size: clamp(1.05rem, 2vw, 1.85rem);
+      color: var(--warm);
+    }
+    .service-tile p {
+      font-size: clamp(0.84rem, 1.08vw, 1rem);
+      max-width: 20em;
+    }
+    .measure-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(0.65rem, 1.4vw, 1rem);
+      width: min(100%, 980px);
+      margin: clamp(1rem, 4vh, 2.1rem) auto 0;
+    }
+    .measure {
+      min-height: clamp(6rem, 18vh, 10rem);
+      border: 1px solid rgba(238,206,144,0.28);
+      padding: clamp(0.85rem, 1.8vw, 1.2rem);
+      background: linear-gradient(145deg, rgba(238,206,144,0.08), rgba(225,218,203,0.03));
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .measure strong {
+      font-family: var(--font-display);
+      font-weight: 300;
+      color: var(--calm);
+      font-size: clamp(1.35rem, 2.6vw, 2.4rem);
+      line-height: 1.05;
+    }
+    .measure span {
+      font-family: var(--font-sans);
+      color: rgba(225,218,203,0.62);
+      font-size: var(--small-size);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .phase-title .slide-content {
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .phase-title h2 {
+      font-size: clamp(3.8rem, 9vw, 8.2rem);
+      max-width: 8ch;
+      line-height: 0.9;
+    }
+    .phase-title .lead {
+      max-width: 42em;
+      font-size: clamp(1.05rem, 1.45vw, 1.26rem);
+      margin-top: clamp(1.8rem, 3.5vh, 3rem);
+    }
+    .phase-title .chapter-number {
+      opacity: 0.85;
+    }
+    .campaign-slide h2 {
+      max-width: none;
+      font-size: clamp(1.5rem, 3.2vw, 3.4rem);
+    }
+    .starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      opacity: 0.82;
+      transition: opacity 240ms var(--ease);
+    }
+    .north-star {
+      position: fixed;
+      top: clamp(2rem, 3.2vw, 3rem);
+      left: clamp(2rem, 3.2vw, 3rem);
+      z-index: 9996;
+      width: clamp(0.86rem, 1.2vw, 1.1rem);
+      height: clamp(0.86rem, 1.2vw, 1.1rem);
+      pointer-events: none;
+      color: var(--gold-1);
+      opacity: 0.88;
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 0 7px rgba(238,206,144,0.54));
+      animation: northStarPulse 4.8s ease-in-out infinite;
+      transition: color 240ms var(--ease), opacity 240ms var(--ease), filter 240ms var(--ease), transform 240ms var(--ease);
+    }
+    .north-star::before,
+    .north-star::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      background: currentColor;
+      clip-path: polygon(50% 0,58% 42%,100% 50%,58% 58%,50% 100%,42% 58%,0 50%,42% 42%);
+    }
+    .north-star::after {
+      transform: rotate(45deg) scale(0.58);
+      opacity: 0.72;
+    }
+    .north-star.light-mode {
+      color: rgba(125, 84, 38, 0.74);
+      opacity: 0.62;
+      mix-blend-mode: normal;
+      filter: drop-shadow(0 0 3px rgba(187,134,72,0.18));
+      transform: scale(0.92);
+    }
+    .north-star.light-mode::before,
+    .north-star.light-mode::after {
+      background: currentColor;
+      opacity: 0.9;
+    }
+    @keyframes northStarPulse {
+      0%, 100% { opacity: 0.58; transform: scale(0.95); }
+      35% { opacity: 0.82; transform: scale(1.01); }
+      60% { opacity: 0.93; transform: scale(1.05); }
     }
 
     /* === NAV === */
@@ -638,7 +954,7 @@
       top: 50%;
       transform: translateY(-50%);
       z-index: 9998;
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 6px;
     }
@@ -652,10 +968,13 @@
       cursor: pointer;
     }
     .nav-dots button.active { background: var(--warm); border-color: var(--warm); }
+
   </style>
 </head>
 <body>
   <div class="progress-bar" aria-hidden="true"></div>
+  <canvas class="starfield" aria-hidden="true"></canvas>
+  <div class="north-star" aria-hidden="true"></div>
   <nav class="nav-dots" aria-label="Slide navigation"></nav>
   <img class="verve-mark" src="altara-pitch-assets/verve-media-white.png" alt="Verve Media">
 
@@ -670,33 +989,35 @@
       </div>
     </section>
 
-    <section class="slide center ornament-star">
+    <section class="slide center ornament-star ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
+        <div class="chapter-number">01</div>
         <div class="overline reveal">The human element</div>
-        <h1 class="reveal">Every guest is looking for somewhere they can belong.</h1>
-        <p class="lead reveal">Not in a sentimental way. In a way that tells them: this place understands the choice they made.</p>
+        <h1 class="reveal">Every guest seeks an experience that offers a sense of belonging.</h1>
       </div>
     </section>
 
-    <section class="slide ornament-arch">
+    <section class="slide ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">The modern guest</div>
-        <h2 class="reveal">For this guest, belonging is rare.</h2>
-        <div class="three reveal">
-          <div class="panel"><h3>Design</h3><p>They know when a space has been thought through.</p></div>
-          <div class="panel"><h3>Travel</h3><p>They have seen enough hotels to know the difference.</p></div>
-          <div class="panel"><h3>Culture</h3><p>They can tell when a place has a real point of view.</p></div>
+        <h2 class="reveal">But for the modern guest, that is rare.</h2>
+        <div class="sentence-stack reveal">
+          <p>They know design.</p>
+          <p>They travel often.</p>
+          <p>They understand culture.</p>
+          <p>They are not short on options.</p>
         </div>
       </div>
     </section>
 
-    <section class="slide root center ornament-continuity">
+    <section class="slide root center ornament-arch">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">The weight of choice</div>
-        <h1 class="reveal">When every decision reflects your taste, choosing well becomes work.</h1>
+        <h1 class="reveal">The luxury of choice carries its own weight.</h1>
+        <p class="lead reveal">When every decision reflects your taste, choosing well becomes work.</p>
       </div>
     </section>
 
@@ -704,7 +1025,7 @@
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">What they are asking</div>
-        <h2 class="reveal">The questions are simple. The feeling behind them is not.</h2>
+        <h2 class="reveal">Ultimately, they are asking:</h2>
         <div class="question-stack reveal">
           <div>Will this space reflect me?</div>
           <div>Is it worth my time and trust?</div>
@@ -713,32 +1034,44 @@
       </div>
     </section>
 
-    <section class="slide center ornament-mono">
+    <section class="slide center ornament-mono ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <h1 class="reveal">They are not just planning a stay.</h1>
         <div class="rule center reveal"></div>
-        <p class="lead reveal">They are looking for certainty.</p>
+        <p class="lead reveal">They are looking for the feeling of absolute certainty.</p>
       </div>
     </section>
 
-    <section class="slide ornament-continuity">
+    <section class="slide ornament-arch ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">Altara's answer</div>
         <h2 class="reveal">Altara provides that certainty.</h2>
-        <div class="word-cloud reveal">
-          <span>Care</span><span>Intuition</span><span>Culture</span><span>Warmth</span><span>Craft</span><span>Recognition</span>
+        <div class="choice-map reveal">
+          <div class="map-column">
+            <div class="map-label">Luxury shaped by</div>
+            <div class="map-item">Care</div>
+            <div class="map-item">Intuition</div>
+            <div class="map-item">Culture</div>
+          </div>
+          <div class="map-arrow" aria-hidden="true"></div>
+          <div class="map-column">
+            <div class="map-label">Delivered with</div>
+            <div class="map-item">Warmth</div>
+            <div class="map-item">Craft</div>
+            <div class="map-item">Genuine recognition</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="slide ornament-arch">
+    <section class="slide ornament-arch ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="split">
           <h2 class="reveal">Hospitality here carries the calm grace of a matriarch.</h2>
-          <p class="lead reveal">Not loud attention. Instinctive care. The feeling that something has been made with you in mind.</p>
+          <p class="lead reveal">A relationship designed around the instinctive feeling that this was made for you.</p>
         </div>
       </div>
     </section>
@@ -746,70 +1079,81 @@
     <section class="slide warm center ornament-star ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
+        <div class="chapter-number">02</div>
         <div class="overline reveal">The new expression</div>
         <h1 class="reveal">This is the new expression of Indian luxury.</h1>
       </div>
     </section>
 
-    <section class="slide ornament-mono">
+    <section class="slide ornament-mono ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
-        <div class="split">
-          <div>
-            <div class="overline reveal">The brand voice</div>
-            <h2 class="reveal">Luxury is moving away from flashy aesthetics.</h2>
+        <div class="overline reveal">The brand voice</div>
+        <h2 class="reveal">The shift in how luxury is now expressed.</h2>
+        <div class="proof-table reveal">
+          <div class="proof-list quiet">
+            <div class="map-label">Away from</div>
+            <span>Property-heavy visuals</span>
+            <span>Performative persona</span>
+            <span>Aspirational distance</span>
           </div>
-          <p class="lead reveal">Altara should speak through intuitive, human substance. Clean sentences. Warm restraint. No performance.</p>
+          <div class="proof-list">
+            <div class="map-label">Toward</div>
+            <span>Genuine depth</span>
+            <span>Human warmth</span>
+            <span>Quiet authority</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="slide root center ornament-continuity ornament-gold">
+    <section class="slide root center ornament-arch ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">The communication plan</div>
         <h1 class="reveal">Stop selling real estate.</h1>
         <div class="rule center reveal"></div>
-        <p class="lead reveal">Start introducing the feeling of belonging before anyone steps through the door.</p>
+        <p class="lead reveal">Start introducing the feeling of belonging before anyone ever steps through the door.</p>
       </div>
     </section>
 
-    <section class="slide ornament-star">
+    <section class="slide ornament-star ornament-gold phase-title">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
+        <div class="chapter-number">03</div>
         <div class="overline reveal">Phase 1</div>
         <h2 class="reveal">Intention</h2>
-        <p class="lead reveal">Establish the voice first. Share stories of care and heritage so the audience enters the feeling before seeing the finished space.</p>
+        <p class="lead reveal">Establish the brand voice first. Share stories of care and heritage to anchor the audience in the feeling of belonging.</p>
       </div>
     </section>
 
-    <section class="slide ornament-arch">
+    <section class="slide ornament-arch ornament-gold phase-title">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">Phase 2</div>
         <h2 class="reveal">Reveal</h2>
-        <p class="lead reveal">Show the spaces through artistry and quiet authority, not standard real estate imagery.</p>
+        <p class="lead reveal">Show the spaces through the lens of artistry and quiet authority, bypassing standard real estate imagery.</p>
       </div>
     </section>
 
-    <section class="slide ornament-continuity">
+    <section class="slide ornament-arch ornament-gold phase-title">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">Phase 3</div>
         <h2 class="reveal">Experience</h2>
-        <p class="lead reveal">Move from physical design to the living experience of the guest. Let the human substance speak.</p>
+        <p class="lead reveal">Let the human substance speak for itself. Pivot from the physical design to the living, breathing experience of the guest.</p>
       </div>
     </section>
 
-    <section class="slide ornament-gold">
+    <section class="slide ornament-gold campaign-slide">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">Pre-launch strategy</div>
-        <h2 class="reveal">A 9 to 12-part documentary series.</h2>
+        <h2 class="reveal">The campaign.<br>5 to 6 part interview&#8209;style<br>documentary.</h2>
         <div class="three reveal">
-          <div class="panel"><h3>Cast</h3><p>Architects, designers, painters, and the people who shaped the project.</p></div>
-          <div class="panel"><h3>Execution</h3><p>Interview-style films built around process, not final reveal.</p></div>
-          <div class="panel"><h3>Hook</h3><p>The finished space is intentionally withheld.</p></div>
+          <div class="panel"><h3>The cast</h3><p>Direct features with the architects, designers, and painters who built the project.</p></div>
+          <div class="panel"><h3>The execution</h3><p>Content designed to make people deeply inquisitive about what the page and posts are actually about.</p></div>
+          <div class="panel"><h3>The hook</h3><p>Focus on the creator's raw process, intentionally withholding the final space.</p></div>
         </div>
         <div class="film-strip reveal">
           <div class="still">Painter</div><div class="still">Architect</div><div class="still">Designer</div><div class="still">Craft</div><div class="still">Withheld</div>
@@ -817,39 +1161,43 @@
       </div>
     </section>
 
-    <section class="slide ornament-arch">
+    <section class="slide ornament-arch ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">The launch</div>
-        <h2 class="reveal">The realization.</h2>
-        <div class="two reveal">
-          <div class="panel"><h3>Closure</h3><p>The final physical result appears beside the raw reactions of the people who imagined it.</p></div>
-          <div class="panel"><h3>Payoff</h3><p>The audience finally matches the faces, the process, and the finished sanctuary.</p></div>
+        <h2 class="reveal">The realization: providing closure.</h2>
+        <div class="three reveal">
+          <div class="panel"><h3>The compilation</h3><p>Final physical results shown alongside the genuine, raw reactions of the interviewed creators.</p></div>
+          <div class="panel"><h3>The delivery</h3><p>Individual teasers transition into one cohesive show for the audience to fully view and enjoy.</p></div>
+          <div class="panel"><h3>The objective</h3><p>Resolve the pre-launch curiosity by matching the faces to the finished sanctuary.</p></div>
         </div>
       </div>
     </section>
 
-    <section class="slide ornament-continuity">
+    <section class="slide ornament-arch ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">Post-launch strategy</div>
         <h2 class="reveal">The creator relay.</h2>
-        <p class="lead reveal">One continuous tour across creator pages. Each reel begins where the last one leaves off.</p>
+        <p class="lead reveal">One distinct vlog/POV reel lives on each influencer's page, forming a continuous property tour where each video starts exactly where the previous creator left off.</p>
         <div class="film-strip reveal">
           <div class="still light">Arrival</div><div class="still light">Lobby</div><div class="still light">Room</div><div class="still light">Dining</div><div class="still light">Memory</div>
         </div>
       </div>
     </section>
 
-    <section class="slide service-device ornament-star">
+    <section class="slide service-device ornament-star ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
+        <div class="chapter-number">04</div>
         <div class="overline reveal">Sustenance strategy</div>
-        <h2 class="reveal">Retaining attention through immersive POV.</h2>
-        <div class="three reveal">
-          <div class="panel"><h3>Room service</h3><p>The care behind the door.</p></div>
-          <div class="panel"><h3>Chef</h3><p>The dish before it becomes presentation.</p></div>
-          <div class="panel"><h3>Bar</h3><p>The movement, sound, and theatre of service.</p></div>
+        <h2 class="reveal">Retaining attention: immersive POV.</h2>
+        <p class="lead reveal">A dedicated series of POV videos capturing the team behind the scenes, pulling the viewer into the hotel's daily motion.</p>
+        <div class="service-grid reveal">
+          <div class="service-tile"><img src="altara-pitch-assets/icons/shower.png" alt=""><h3>Room service</h3><p>Authentic, first-person action shots of staff execution.</p></div>
+          <div class="service-tile"><img src="altara-pitch-assets/icons/chef.png" alt=""><h3>Chef</h3><p>The chef cooking, preparing, and moving through the daily rhythm.</p></div>
+          <div class="service-tile"><img src="altara-pitch-assets/icons/bar.png" alt=""><h3>Bartender</h3><p>The bartender shaking glasses and giving the service its motion.</p></div>
+          <div class="service-tile"><img src="altara-pitch-assets/icons/direction.png" alt=""><h3>Daily motion</h3><p>Behind-the-scenes hotel life that continuously fascinates the audience.</p></div>
         </div>
       </div>
     </section>
@@ -858,25 +1206,26 @@
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
         <div class="overline reveal">The pillars of sustenance</div>
-        <h2 class="reveal">Four ways the feeling stays alive.</h2>
+        <h2 class="reveal">The 4 core pillars.</h2>
         <div class="pillar-grid reveal">
-          <div class="pillar"><h3>Space as character</h3><p>Light shifting in the lobby. Rooms and corridors treated like living presences.</p></div>
-          <div class="pillar"><h3>The new luxury</h3><p>Genuine service over performative luxury. Short, deliberate copy.</p></div>
-          <div class="pillar"><h3>The guest beyond hotel</h3><p>Visuals that mirror the audience's lifestyle, pace, and choices.</p></div>
-          <div class="pillar"><h3>Good friction</h3><p>Rain, water, fire, soil, flowers, towels, handles. Physical things that create abstract feeling.</p></div>
+          <div class="pillar"><h3>The space as character</h3><p>Treat physical spaces as living, breathing presences — not backdrops. Every frame should communicate feeling, not footage.</p></div>
+          <div class="pillar"><h3>The new luxury</h3><p>Reject performative luxury. Focus on genuine service and the quiet confidence of a property that does not need to announce itself.</p></div>
+          <div class="pillar"><h3>The guest beyond hotel</h3><p>Mirror the audience's actual lives and choices. The visuals should feel like a natural extension of how they already move through the world.</p></div>
+          <div class="pillar"><h3>The good friction</h3><p>Lean into the analog and the tactile — the elements that technology cannot replicate, and that remind the audience what it means to be present.</p></div>
         </div>
       </div>
     </section>
 
-    <section class="slide ornament-mono">
+    <section class="slide ornament-mono ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
+        <div class="chapter-number">05</div>
         <div class="overline reveal">Influencer marketing</div>
-        <h2 class="reveal">Alignment guardrails.</h2>
+        <h2 class="reveal">The alignment guardrails.</h2>
         <div class="three reveal">
-          <div class="panel"><h3>Persona</h3><p>Culturally significant travel and lifestyle creators who resemble the target audience.</p></div>
-          <div class="panel"><h3>Filter</h3><p>A clear yes/no matrix for creator archetypes and audience profiles.</p></div>
-          <div class="panel"><h3>Mandate</h3><p>Every collaboration should feel like an organic endorsement, not a transaction.</p></div>
+          <div class="panel"><h3>The persona</h3><p>Culturally significant travel and lifestyle influencers who naturally embody our actual target audience.</p></div>
+          <div class="panel"><h3>The filter</h3><p>A strict matrix of yeses and noes around creator archetypes and existing audience profiles.</p></div>
+          <div class="panel"><h3>The mandate</h3><p>Every collaboration must feel like a genuine, organic endorsement, entirely non-transactional in tone.</p></div>
         </div>
       </div>
     </section>
@@ -886,51 +1235,193 @@
       <div class="slide-content">
         <div class="overline reveal">Performance marketing</div>
         <h2 class="reveal">The paid media engine.</h2>
-        <div class="media-system reveal">
-          <p class="lead">Paid media should not make Altara louder. It should make Altara easier to choose.</p>
-          <div>
-            <div class="channel-stack">
-              <div class="channel">
-                <h3>Meta</h3>
-                <p>Build the emotional memory: audience logic, creator fit, launch energy, and post-launch recall.</p>
-              </div>
-              <div class="channel">
-                <h3>Google</h3>
-                <p>Capture the moment of decision: brand protection, category intent, and competitor conquest.</p>
-              </div>
-            </div>
-            <p class="sans-note media-note">The fuel is creator content from people who mirror the guest Altara wants.</p>
+        <p class="lead reveal">Directly amplify the content generated by influencers who mirror the exact target audience.</p>
+        <div class="two reveal">
+          <div class="panel">
+            <h3>Meta</h3>
+            <p>Precise audience targeting and a distinct creative approach across launch and post-launch phases.</p>
           </div>
+          <div class="panel">
+            <h3>Google Ads</h3>
+            <p>Intent-driven search campaigns built around brand protection, category targeting, and competitor conquest.</p>
+          </div>
+        </div>
+        <p class="sans-note media-note reveal">The creative fuel is influencer content that maximizes authenticity.</p>
+      </div>
+    </section>
+
+    <section class="slide center warm ornament-arch ornament-star">
+      <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
+      <div class="slide-content">
+        <div class="overline reveal">Key performance indicators</div>
+        <h1 class="reveal">Measuring true luxury resonance.</h1>
+        <div class="measure-grid reveal">
+          <div class="measure"><strong>Saves</strong><span>Primary high-intent metric</span></div>
+          <div class="measure"><strong>Shares</strong><span>Primary community metric</span></div>
+          <div class="measure"><strong>Reach</strong><span>Top-funnel scale</span></div>
+          <div class="measure"><strong>Views</strong><span>Top-funnel engine</span></div>
+          <div class="measure"><strong>Consideration</strong><span>Digital channel philosophy</span></div>
+          <div class="measure"><strong>Engagement</strong><span>The exact demographic actively engaging with us</span></div>
         </div>
       </div>
     </section>
 
-    <section class="slide center warm ornament-continuity ornament-star">
+    <section class="slide warm center ornament-gold">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
       <div class="slide-content">
-        <div class="overline reveal">Key performance indicators</div>
-        <h1 class="reveal">Measure true luxury resonance.</h1>
-        <div class="metric-row reveal">
-          <div class="metric">Saves</div>
-          <div class="metric">Shares</div>
-          <div class="metric">Reach</div>
-          <div class="metric">Views</div>
-          <div class="metric">Consideration</div>
-          <div class="metric">Engaged audience</div>
-        </div>
+        <img class="monogram reveal" src="altara-pitch-assets/monogram-cream.png" alt="Altara monogram">
+        <img class="wordmark reveal" src="altara-pitch-assets/wordmark-cream.png" alt="Altara">
+        <div class="rule center reveal"></div>
+        <p class="sans-note reveal">Presented by Verve Media</p>
       </div>
     </section>
   </main>
 
   <script>
+    class StarField {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.stars = [];
+        this.shots = [];
+        this.motes = [];
+        this.dark = true;
+        this.lastTime = 0;
+        this.nextShot = this._newInterval();
+        this.resize = this.resize.bind(this);
+        this.draw = this.draw.bind(this);
+        window.addEventListener('resize', this.resize, { passive: true });
+        this.resize();
+        this.draw();
+      }
+      _newInterval() { return Math.random() * 7 + 6; }
+      resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.w = window.innerWidth;
+        this.h = window.innerHeight;
+        this.canvas.width = Math.floor(this.w * dpr);
+        this.canvas.height = Math.floor(this.h * dpr);
+        this.canvas.style.width = `${this.w}px`;
+        this.canvas.style.height = `${this.h}px`;
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = Math.round((this.w * this.h) / 5500);
+        this.stars = Array.from({ length: count }, (_, i) => ({
+          x: Math.random() * this.w, y: Math.random() * this.h,
+          r: i % 7 === 0 ? 2.1 : Math.random() * 1.2 + 0.5,
+          phase: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.0012 + 0.00055,
+          drift: Math.random() * 0.09 + 0.02,
+        }));
+        const mc = Math.round((this.w * this.h) / 7800);
+        this.motes = Array.from({ length: mc }, () => ({
+          x: Math.random() * this.w, y: Math.random() * this.h,
+          r: Math.random() * 1.3 + 0.28,
+          phase: Math.random() * Math.PI * 2,
+          sp: Math.random() * 0.0007 + 0.0003,
+          dx: Math.random() * 24 + 8, dy: Math.random() * 14 + 4,
+          peak: Math.random() * 0.21 + 0.08,
+        }));
+      }
+      setMode(isDark) {
+        this.dark = isDark;
+        this.canvas.style.opacity = isDark ? '0.94' : '1';
+      }
+      queueShot(delayMs) {
+        window.setTimeout(() => { if (this.shots.length < 2) this._spawnShot(); }, delayMs);
+      }
+      _spawnShot() {
+        const fromTop = Math.random() < 0.62;
+        const sx = fromTop ? Math.random() * this.w * 0.78 : -6;
+        const sy = fromTop ? -6 : Math.random() * this.h * 0.52;
+        const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.4;
+        const spd = Math.random() * 340 + 270;
+        this.shots.push({
+          x: sx, y: sy, vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
+          len: Math.random() * 110 + 65, life: 0, max: Math.random() * 0.46 + 0.38,
+        });
+      }
+      _drawShots(dt) {
+        const ctx = this.ctx;
+        const [r, g, b] = this.dark ? [255, 244, 218] : [207, 156, 85];
+        const cap = this.dark ? 0.92 : 0.52;
+        for (let i = this.shots.length - 1; i >= 0; i--) {
+          const s = this.shots[i];
+          s.life += dt; s.x += s.vx * dt; s.y += s.vy * dt;
+          const t = s.life / s.max;
+          if (t >= 1) { this.shots.splice(i, 1); continue; }
+          const alpha = t < 0.09 ? t / 0.09 : t > 0.58 ? Math.max(0, 1 - (t - 0.58) / 0.42) : 1;
+          const d = Math.hypot(s.vx, s.vy);
+          const nx = s.vx / d, ny = s.vy / d;
+          const trailLen = s.len * Math.min(1, t * 9);
+          const tx = s.x - nx * trailLen, ty = s.y - ny * trailLen;
+          const grad = ctx.createLinearGradient(tx, ty, s.x, s.y);
+          grad.addColorStop(0, `rgba(${r},${g},${b},0)`);
+          grad.addColorStop(0.65, `rgba(${r},${g},${b},${alpha * cap * 0.36})`);
+          grad.addColorStop(1, `rgba(${r},${g},${b},${alpha * cap})`);
+          ctx.save();
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(s.x, s.y);
+          ctx.strokeStyle = grad; ctx.lineWidth = this.dark ? 1.5 : 1.1;
+          ctx.lineCap = 'round'; ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, this.dark ? 1.9 : 1.3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha * cap})`;
+          ctx.fill(); ctx.restore();
+        }
+      }
+      draw(time = 0) {
+        const dt = Math.min((time - this.lastTime) / 1000, 0.1);
+        this.lastTime = time;
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.w, this.h);
+        if (this.dark) {
+          const base = [255, 244, 218], acc = [238, 206, 144];
+          for (const s of this.stars) {
+            const st = time * 0.001;
+            const wave = Math.sin(st * (s.speed * 1000) + s.phase);
+            const shimmer = Math.sin(st * (s.speed * 420) + s.phase * 1.7) * 0.07;
+            const pulse = 0.58 + wave * 0.22 + shimmer;
+            const x = s.x + Math.sin(st * 0.45 + s.phase) * s.drift;
+            const y = s.y + Math.cos(st * 0.38 + s.phase) * s.drift;
+            const c = s.r > 1.6 ? acc : base;
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0.06, Math.min(0.72, pulse * 0.68))})`;
+            ctx.arc(x, y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else {
+          const t = time * 0.001;
+          for (const m of this.motes) {
+            const wave = Math.sin(t * m.sp * 1000 + m.phase);
+            const x = m.x + Math.sin(t * 0.31 + m.phase) * m.dx;
+            const y = m.y + Math.cos(t * 0.22 + m.phase) * m.dy;
+            const alpha = m.peak * (0.52 + wave * 0.48);
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(187,134,72,${Math.max(0, alpha)})`;
+            ctx.arc(x, y, m.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        this.nextShot -= dt;
+        if (this.nextShot <= 0 && this.shots.length < 2) {
+          this._spawnShot();
+          this.nextShot = this._newInterval();
+        }
+        this._drawShots(dt);
+        requestAnimationFrame(this.draw);
+      }
+    }
+
     /* === SLIDE CONTROLLER === */
     class SlidePresentation {
       constructor() {
         this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.slides.forEach((slide, index) => { slide.id = `slide-${String(index + 1).padStart(2, '0')}`; });
         this.currentSlide = 0;
         this.progressBar = document.querySelector('.progress-bar');
         this.navDots = document.querySelector('.nav-dots');
         this.verveMark = document.querySelector('.verve-mark');
+        this.northStar = document.querySelector('.north-star');
+        this.starField = new StarField(document.querySelector('.starfield'));
         this.isScrolling = false;
         this.touchStartY = 0;
         this.setupIntersectionObserver();
@@ -938,7 +1429,13 @@
         this.setupWheelNav();
         this.setupTouchNav();
         this.setupNavDots();
-        this.goToSlide(0, false);
+        const hashIndex = this.getHashIndex();
+        this.goToSlide(hashIndex >= 0 ? hashIndex : 0, false);
+      }
+      getHashIndex() {
+        const match = window.location.hash.match(/^#slide-(\d+)$/);
+        if (!match) return -1;
+        return Math.max(0, Math.min(Number(match[1]) - 1, this.slides.length - 1));
       }
       setupIntersectionObserver() {
         const observer = new IntersectionObserver((entries) => {
@@ -946,13 +1443,27 @@
             if (entry.isIntersecting) {
               entry.target.classList.add('visible');
               this.currentSlide = this.slides.indexOf(entry.target);
+              this.animateSlide(entry.target);
               this.updateProgress();
               this.updateDots();
               this.updateVerve();
+              if (Math.random() < 0.42) {
+                this.starField.queueShot(Math.floor(Math.random() * 1800 + 500));
+              }
             }
           });
         }, { threshold: 0.58 });
         this.slides.forEach((slide) => observer.observe(slide));
+      }
+      animateSlide(slide) {
+        const items = Array.from(slide.querySelectorAll('.reveal'));
+        items.forEach((item, index) => {
+          item.classList.remove('animate__animated', 'animate__fadeInUp', 'animate__fadeIn');
+          item.style.animationDelay = `${Math.min(index * 90, 360)}ms`;
+          void item.offsetWidth;
+          const soft = item.matches('img, .rule, .sans-note');
+          item.classList.add('animate__animated', soft ? 'animate__fadeIn' : 'animate__fadeInUp');
+        });
       }
       setupKeyboardNav() {
         document.addEventListener('keydown', (event) => {
@@ -992,7 +1503,11 @@
       goToSlide(index, smooth = true) {
         const next = Math.max(0, Math.min(index, this.slides.length - 1));
         this.currentSlide = next;
+        if (window.location.hash !== `#${this.slides[next].id}`) {
+          history.replaceState(null, '', `#${this.slides[next].id}`);
+        }
         this.slides[next].scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        this.animateSlide(this.slides[next]);
         this.updateProgress();
         this.updateDots();
         this.updateVerve();
@@ -1011,7 +1526,9 @@
         const active = this.slides[this.currentSlide];
         const dark = active.classList.contains('warm') || active.classList.contains('root');
         this.verveMark.src = dark ? 'altara-pitch-assets/verve-media-white.png' : 'altara-pitch-assets/verve-media-black.png';
-        this.verveMark.style.opacity = dark ? '0.78' : '0.66';
+        this.verveMark.style.opacity = dark ? '0.9' : '0.72';
+        if (this.northStar) this.northStar.classList.toggle('light-mode', !dark);
+        this.starField.setMode(dark);
       }
     }
     new SlidePresentation();
