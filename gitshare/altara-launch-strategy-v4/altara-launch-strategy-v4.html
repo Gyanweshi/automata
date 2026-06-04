@@ -142,6 +142,14 @@
       .vertical-rule { width: 100%; height: 1px; }
       .film-strip { grid-template-columns: repeat(3, 1fr); }
       .film-strip .still:nth-child(n+4) { display: none; }
+      .relay-slide .slide-content { justify-content: flex-end; }
+      .relay-collage { inset: 30vh 0 0; opacity: 0.36; }
+      .relay-frame { width: 27vw; min-width: 8rem; }
+      .relay-frame:nth-child(1) { left: -6%; }
+      .relay-frame:nth-child(2) { left: 15%; }
+      .relay-frame:nth-child(3) { left: 36%; }
+      .relay-frame:nth-child(4) { left: 57%; }
+      .relay-frame:nth-child(5) { left: 78%; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
@@ -520,9 +528,14 @@
       width: min(100%, 1060px);
       margin: clamp(1rem, 4vh, 2.2rem) 0 0;
     }
+    .film-strip.documentary-strip {
+      grid-template-columns: repeat(4, 1fr);
+    }
     .still {
       min-height: clamp(8rem, 25vh, 14rem);
       border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
       background:
         radial-gradient(80% 65% at 50% 115%, rgba(207,156,85,0.22), transparent 62%),
         linear-gradient(150deg, rgba(106,22,17,0.94), rgba(93,86,80,0.86));
@@ -535,6 +548,30 @@
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
+    .still img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.02);
+      filter: saturate(0.86) contrast(1.06);
+    }
+    .still::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, transparent 38%, rgba(29,25,22,0.82)),
+        linear-gradient(90deg, rgba(29,25,22,0.28), transparent 45%, rgba(29,25,22,0.16));
+      pointer-events: none;
+    }
+    .still span {
+      position: relative;
+      z-index: 1;
+      color: rgba(250,247,240,0.9);
+      text-shadow: 0 1px 12px rgba(29,25,22,0.72);
+    }
     .still.light {
       align-items: center;
       justify-content: center;
@@ -544,6 +581,90 @@
       color: var(--root);
       font-size: clamp(0.7rem, 1vw, 0.92rem);
       letter-spacing: 0.2em;
+    }
+    .still.light::after {
+      display: none;
+    }
+    .relay-slide {
+      background:
+        linear-gradient(90deg, rgba(250,247,240,0.98) 0 40%, rgba(250,247,240,0.64) 60%, rgba(250,247,240,0.86)),
+        var(--paper);
+    }
+    .relay-slide .slide-content {
+      justify-content: center;
+      max-width: min(100%, 1280px);
+    }
+    .relay-slide .slide-content > h2 {
+      color: var(--root);
+    }
+    .relay-slide .lead {
+      color: var(--stone);
+      opacity: 0.88;
+    }
+    .relay-collage {
+      position: absolute;
+      inset: 10vh 0 8vh;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.72;
+      overflow: hidden;
+    }
+    .relay-collage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(250,247,240,0.98) 0 34%, rgba(250,247,240,0.30) 52%, rgba(250,247,240,0.84) 100%),
+        linear-gradient(180deg, rgba(250,247,240,0.9), transparent 22%, transparent 74%, rgba(250,247,240,0.96));
+    }
+    .relay-frame {
+      position: absolute;
+      top: 50%;
+      width: clamp(10rem, 15.5vw, 16.5rem);
+      aspect-ratio: 9 / 16;
+      border: 1px solid rgba(187,134,72,0.38);
+      border-radius: 0.95rem;
+      overflow: hidden;
+      transform: translateY(-50%) rotate(var(--tilt, 0deg));
+      box-shadow: 0 1.4rem 3rem rgba(29,25,22,0.18);
+      background: var(--stone);
+    }
+    .relay-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(0.9) contrast(1.08);
+    }
+    .relay-frame:nth-child(1) { left: 38%; --tilt: -5deg; }
+    .relay-frame:nth-child(2) { left: 51%; --tilt: 3deg; top: 46%; }
+    .relay-frame:nth-child(3) { left: 64%; --tilt: -2deg; top: 54%; }
+    .relay-frame:nth-child(4) { left: 77%; --tilt: 4deg; top: 48%; }
+    .relay-frame:nth-child(5) { left: 90%; --tilt: -4deg; top: 55%; }
+    .relay-path {
+      display: flex;
+      flex-wrap: wrap;
+      gap: clamp(0.45rem, 1vw, 0.75rem);
+      align-items: center;
+      width: min(100%, 720px);
+      margin-top: clamp(1.4rem, 4vh, 2.5rem);
+      color: var(--root);
+      font-family: var(--font-sans);
+      font-size: clamp(0.72rem, 1vw, 0.9rem);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.88;
+    }
+    .relay-path span {
+      white-space: nowrap;
+    }
+    .relay-path span:not(:last-child)::after {
+      content: "";
+      display: inline-block;
+      width: clamp(1.1rem, 2vw, 1.8rem);
+      height: 1px;
+      margin-left: clamp(0.45rem, 1vw, 0.75rem);
+      vertical-align: middle;
+      background: linear-gradient(90deg, var(--gold-3), transparent);
     }
     .pillar-grid {
       display: grid;
@@ -1153,10 +1274,13 @@
         <div class="three reveal">
           <div class="panel"><h3>The cast</h3><p>Direct features with the architects, designers, and painters who built the project.</p></div>
           <div class="panel"><h3>The execution</h3><p>Content designed to make people deeply inquisitive about what the page and posts are actually about.</p></div>
-          <div class="panel"><h3>The hook</h3><p>Focus on the creator's raw process, intentionally withholding the final space.</p></div>
+          <div class="panel"><h3>The hook</h3><p>Focus on the creator's raw process. The finished space is deliberately held back so the audience first meets the makers, the craft, and the intention behind it.</p></div>
         </div>
-        <div class="film-strip reveal">
-          <div class="still">Painter</div><div class="still">Architect</div><div class="still">Designer</div><div class="still">Craft</div><div class="still">Withheld</div>
+        <div class="film-strip documentary-strip reveal">
+          <div class="still"><img src="altara-pitch-assets/documentary/painter-interview.png" alt="Documentary interview still of a painter"><span>Painter</span></div>
+          <div class="still"><img src="altara-pitch-assets/documentary/architect-interview.png" alt="Documentary interview still of an architect"><span>Architect</span></div>
+          <div class="still"><img src="altara-pitch-assets/documentary/designer-interview.png" alt="Documentary interview still of a designer"><span>Designer</span></div>
+          <div class="still"><img src="altara-pitch-assets/documentary/craft-process.png" alt="Documentary process still of craft work"><span>Craft</span></div>
         </div>
       </div>
     </section>
@@ -1174,15 +1298,20 @@
       </div>
     </section>
 
-    <section class="slide ornament-arch ornament-gold">
+    <section class="slide ornament-arch ornament-gold relay-slide">
       <div class="motion-field"></div><div class="guide-line"></div><div class="guide-line second"></div><div class="frame"></div>
+      <div class="relay-collage" aria-hidden="true">
+        <div class="relay-frame"><img src="altara-pitch-assets/creator-relay/01-arrival.png" alt=""></div>
+        <div class="relay-frame"><img src="altara-pitch-assets/creator-relay/02-lobby.png" alt=""></div>
+        <div class="relay-frame"><img src="altara-pitch-assets/creator-relay/03-room.png" alt=""></div>
+        <div class="relay-frame"><img src="altara-pitch-assets/creator-relay/04-dining.png" alt=""></div>
+        <div class="relay-frame"><img src="altara-pitch-assets/creator-relay/05-memory.png" alt=""></div>
+      </div>
       <div class="slide-content">
         <div class="overline reveal">Post-launch strategy</div>
         <h2 class="reveal">The creator relay.</h2>
         <p class="lead reveal">One distinct vlog/POV reel lives on each influencer's page, forming a continuous property tour where each video starts exactly where the previous creator left off.</p>
-        <div class="film-strip reveal">
-          <div class="still light">Arrival</div><div class="still light">Lobby</div><div class="still light">Room</div><div class="still light">Dining</div><div class="still light">Memory</div>
-        </div>
+        <div class="relay-path reveal"><span>Arrival</span><span>Lobby</span><span>Room</span><span>Dining</span><span>Memory</span></div>
       </div>
     </section>
 
