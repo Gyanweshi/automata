@@ -2,8 +2,6 @@ agency-swarm[fastapi,jupyter,litellm]>=1.9.7
 questionary>=2.0.0
 fastapi
 uvicorn
-composio==0.8.0
-composio-openai-agents==0.8.0
 pytz
 
 # Data analysis and manipulation
@@ -43,10 +41,8 @@ beautifulsoup4
 cairosvg
 weasyprint
 html2text
-google-genai
 opencv-python-headless
 moviepy<2
-fal-client
 httpx
 imageio-ffmpeg
 
