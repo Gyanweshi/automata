@@ -9,7 +9,6 @@ description = "Research agent — social media scraping and competitive analysis
 requires-python = ">=3.11"
 dependencies = [
     "agency-common",
-    "apify-client>=2.5",
     "requests>=2.31",
     "beautifulsoup4>=4.12",
     "scrapling[ai]>=0.4.9,<0.5",
