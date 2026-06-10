@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: agency-content
+Version: 0.1.0
+Summary: Content writing agent — multi-brand social media content for Instagram and LinkedIn
+Requires-Python: >=3.11
+Requires-Dist: agency-common
+Requires-Dist: jinja2>=3.1

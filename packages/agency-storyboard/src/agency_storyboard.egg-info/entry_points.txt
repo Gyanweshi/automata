@@ -1,0 +1,2 @@
+[console_scripts]
+agency-storyboard = agency_storyboard.cli:main

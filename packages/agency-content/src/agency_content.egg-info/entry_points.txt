@@ -1,0 +1,2 @@
+[console_scripts]
+agency-content = agency_content.cli:main

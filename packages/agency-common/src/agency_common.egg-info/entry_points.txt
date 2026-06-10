@@ -1,0 +1,3 @@
+[console_scripts]
+agency-autonomous = agency_common.autonomous_cli:main
+agency-session-watchdog = agency_common.obsidian_vector_index:run_session_watchdog

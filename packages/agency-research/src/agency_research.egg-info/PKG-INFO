@@ -4,11 +4,12 @@ Version: 0.1.0
 Summary: Research agent — social media scraping and competitive analysis
 Requires-Python: >=3.11
 Requires-Dist: agency-common
-Requires-Dist: instaloader>=4.13
 Requires-Dist: apify-client>=2.5
 Requires-Dist: requests>=2.31
 Requires-Dist: beautifulsoup4>=4.12
+Requires-Dist: scrapling[ai]<0.5,>=0.4.9
 Requires-Dist: tenacity>=8.2.0
+Requires-Dist: anthropic>=0.40
 Provides-Extra: test
 Requires-Dist: pytest>=7.0.0; extra == "test"
 Requires-Dist: pytest-mock>=3.10.0; extra == "test"

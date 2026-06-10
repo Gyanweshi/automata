@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: agency-storyboard
+Version: 0.1.0
+Summary: Storyboard agent — AI prompt writing and visual scene planning for brand content
+Requires-Python: >=3.11
+Requires-Dist: agency-common
+Requires-Dist: jinja2>=3.1

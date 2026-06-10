@@ -18,6 +18,7 @@ src/agency_common.egg-info/entry_points.txt
 src/agency_common.egg-info/requires.txt
 src/agency_common.egg-info/top_level.txt
 tests/test_autonomous_cli.py
+tests/test_brand_loader.py
 tests/test_harness_runner.py
 tests/test_knowledge_reader.py
 tests/test_models.py
