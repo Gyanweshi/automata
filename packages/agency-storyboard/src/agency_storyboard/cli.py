@@ -21,19 +21,55 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--brand", "-b", required=True, help="Brand slug")
     p.add_argument(
         "--type", "-t", dest="content_type",
-        choices=["carousel", "reel", "post", "mood_board"],
+        choices=["carousel", "reel", "post", "mood_board", "image"],
         default="carousel",
     )
-    p.add_argument("--topic", default="", help="Content topic or campaign name")
+    p.add_argument("--topic", default="", help="Content topic or campaign name (subject, for --type image)")
     p.add_argument("--slides", type=int, default=7, help="Slide count for carousels (default: 7)")
     p.add_argument("--duration", type=int, default=30, help="Duration in seconds for reels (default: 30)")
     p.add_argument(
         "--tool",
-        choices=["freepik_image", "freepik_video", "blender", "generic"],
+        choices=[
+            "freepik_image", "freepik_video", "blender", "generic",
+            "nano_banana_2", "nano_banana_pro", "gpt_image_2",
+            "seedance", "kling_3", "veo",
+        ],
         default="freepik_image",
         help="AI generation tool to format prompts for",
     )
-    p.add_argument("--aspect-ratio", default=None, help="Override aspect ratio (e.g. 4:5, 9:16, 1:1)")
+    p.add_argument(
+        "--aspect-ratio", default=None,
+        help=(
+            "Override aspect ratio (e.g. 4:5, 9:16, 1:1). If omitted for --type image, "
+            "it's derived from --use-case (e.g. 'Instagram static post' -> 4:5, "
+            "'Instagram story'/'reel' -> 9:16, 'LinkedIn post' -> 1.91:1)."
+        ),
+    )
+    p.add_argument("--setting", default="", help="(--type image) Location/environment for the shot")
+    p.add_argument("--action", default="", help="(--type image) What the subject is doing")
+    p.add_argument("--composition", default="", help="(--type image) Camera angle/framing/composition notes")
+    p.add_argument(
+        "--use-case", default="",
+        help=(
+            "(--type image) e.g. 'Instagram static post', 'Instagram story', "
+            "'LinkedIn post', 'product listing'. Also drives the default aspect "
+            "ratio unless --aspect-ratio is set."
+        ),
+    )
+    p.add_argument(
+        "--detail-mode",
+        choices=["concise", "standard", "verbose", "cinematic_verbose"],
+        default="standard",
+        help="(--type image) cinematic_verbose adds ultrarealism micro-detail layer",
+    )
+    p.add_argument(
+        "--copy", default="",
+        help="(--type image) Exact text/tagline to render on the image, in the brand's font",
+    )
+    p.add_argument(
+        "--copy-position", default="lower third",
+        help="(--type image) Where to place --copy on the image (default: 'lower third')",
+    )
     p.add_argument("--workspace", "-w", default=None)
     p.add_argument("--brands-dir", default=None)
     p.add_argument("--no-markdown", action="store_true")
@@ -44,6 +80,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = build_parser()
     args = parser.parse_args()
 
@@ -81,6 +120,9 @@ def main():
         print("Error: --topic is required", file=sys.stderr)
         sys.exit(1)
 
+    if args.content_type == "image" and args.tool in ("freepik_image", "freepik_video", "blender", "generic"):
+        args.tool = "nano_banana_2"
+
     # Load research if available
     research = None
     research_data = workspace.read_latest("research", args.brand)
@@ -104,6 +146,13 @@ def main():
         duration_seconds=args.duration,
         aspect_ratio=args.aspect_ratio,
         research=research,
+        setting=args.setting,
+        action=args.action,
+        composition=args.composition,
+        use_case=args.use_case,
+        copy=args.copy,
+        copy_position=args.copy_position,
+        detail_mode=args.detail_mode,
     )
 
     md_dir = None if args.no_markdown else workspace.root / "storyboards" / args.brand
