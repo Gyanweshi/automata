@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# Generated outputs (regenerable by running the agents)
+data/outputs/
+data/assets/brands/
+workspace/
+
+# Local scratch / temp
+.tmp/
+*.stackdump
+
+# Local vector index / memory state
+memory/automata_db/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
