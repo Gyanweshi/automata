@@ -1,0 +1,196 @@
+#!/usr/bin/env node
+'use strict'
+
+const { spawnSync } = require('child_process')
+const fs = require('fs')
+const http = require('http')
+const https = require('https')
+const os = require('os')
+const path = require('path')
+
+const scriptPath = fs.realpathSync(__filename)
+const packageDir = path.dirname(path.dirname(scriptPath))
+
+function resolveAgentswarm(startDir) {
+  let current = startDir
+  for (;;) {
+    const candidates = [
+      path.join(current, 'node_modules', '@vrsen', 'agentswarm', 'bin', 'agentswarm'),
+      path.join(current, 'node_modules', 'agentswarm-cli', 'bin', 'agentswarm'),
+      path.join(current, 'node_modules', '@vrsen', 'agentswarm', 'node_modules', 'agentswarm-cli', 'bin', 'agentswarm'),
+    ]
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) return candidate
+    }
+    const parent = path.dirname(current)
+    if (parent === current) return null
+    current = parent
+  }
+}
+
+function getBinaryName() {
+  return process.platform === 'win32' ? `agentswarm-windows-${os.arch() === 'arm64' ? 'arm64' : 'x64'}.exe` : `agentswarm-${process.platform === 'darwin' ? 'darwin' : 'linux'}-${os.arch() === 'arm64' ? 'arm64' : 'x64'}`
+}
+
+function getDownloadUrl(binaryName) {
+  const explicit = process.env.OPENSWARM_TUI_URL && process.env.OPENSWARM_TUI_URL.trim()
+  if (explicit) return explicit
+  return `https://github.com/VRSEN/OpenSwarm/releases/latest/download/${binaryName}`
+}
+
+function resolveCustomBinary(binaryPath) {
+  try {
+    const stat = fs.statSync(binaryPath)
+    if (!stat.isFile() || stat.size <= 0) return null
+    if (process.platform !== 'win32' && (stat.mode & 0o111) === 0) {
+      fs.chmodSync(binaryPath, 0o755)
+    }
+    if (!validateBinary(binaryPath)) return null
+    return binaryPath
+  } catch {
+    return null
+  }
+}
+
+function validateBinary(binaryPath) {
+  const result = spawnSync(binaryPath, ['--version'], {
+    env: {
+      ...process.env,
+      AGENTSWARM_LAUNCHER: '0',
+    },
+    encoding: 'utf8',
+    timeout: 15000,
+  })
+  if (result.error) return false
+  if (typeof result.status !== 'number' || result.status !== 0) return false
+  const output = `${result.stdout || ''}\n${result.stderr || ''}`
+  return /\d+\.\d+\.\d+/.test(output)
+}
+
+function request(url, redirects = 0) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https:') ? https : url.startsWith('http:') ? http : null
+    if (!client) {
+      reject(new Error(`Unsupported protocol for ${url}`))
+      return
+    }
+
+    const req = client.get(
+      url,
+      {
+        headers: {
+          'User-Agent': '@vrsen/openswarm',
+        },
+      },
+      (res) => {
+        if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+          res.resume()
+          if (redirects >= 5) {
+            reject(new Error('Too many redirects'))
+            return
+          }
+          resolve(request(new URL(res.headers.location, url).toString(), redirects + 1))
+          return
+        }
+        if (res.statusCode !== 200) {
+          res.resume()
+          reject(new Error(`HTTP ${res.statusCode}`))
+          return
+        }
+        resolve(res)
+      },
+    )
+
+    req.setTimeout(30000, () => req.destroy(new Error('Request timed out')))
+    req.on('error', reject)
+  })
+}
+
+async function download(url, destination) {
+  const tempPath = `${destination}.part-${process.pid}-${Date.now()}`
+  let finished = false
+  try {
+    const response = await request(url)
+    await new Promise((resolve, reject) => {
+      const file = fs.createWriteStream(tempPath)
+      response.on('error', reject)
+      file.on('error', reject)
+      file.on('close', resolve)
+      response.pipe(file)
+    })
+    const stat = fs.statSync(tempPath)
+    if (!stat.isFile() || stat.size <= 0) {
+      throw new Error('Empty download')
+    }
+    if (process.platform !== 'win32') {
+      fs.chmodSync(tempPath, 0o755)
+    }
+    fs.rmSync(destination, { force: true })
+    fs.renameSync(tempPath, destination)
+    finished = true
+  } finally {
+    if (!finished) {
+      fs.rmSync(tempPath, { force: true })
+    }
+  }
+}
+
+async function ensureCustomBinary() {
+  const binaryName = getBinaryName()
+  const binaryPath = path.join(packageDir, binaryName)
+  const existing = resolveCustomBinary(binaryPath)
+  if (existing) return existing
+
+  fs.rmSync(binaryPath, { force: true })
+
+  const url = getDownloadUrl(binaryName)
+  process.stdout.write('Downloading OpenSwarm TUI...\n')
+  try {
+    await download(url, binaryPath)
+    const resolved = resolveCustomBinary(binaryPath)
+    if (!resolved) {
+      fs.rmSync(binaryPath, { force: true })
+      throw new Error('Downloaded custom TUI binary failed validation')
+    }
+    return resolved
+  } catch (error) {
+    fs.rmSync(binaryPath, { force: true })
+    process.stderr.write(
+      `openswarm: custom OpenSwarm TUI unavailable (${error instanceof Error ? error.message : String(error)}); falling back to packaged AgentSwarm UI.\n`,
+    )
+    return null
+  }
+}
+
+const agentswarmBin = resolveAgentswarm(packageDir)
+if (!agentswarmBin) {
+  process.stderr.write('openswarm: could not resolve @vrsen/agentswarm. Reinstall @vrsen/openswarm or run npm install in this checkout.\n')
+  process.exit(1)
+}
+
+async function main() {
+  const customBinary = await ensureCustomBinary()
+  const env = {
+    ...process.env,
+    AGENTSWARM_LAUNCHER: process.env.AGENTSWARM_LAUNCHER || '1',
+    PYTHONUTF8: process.env.PYTHONUTF8 || '1',
+    PYTHONIOENCODING: process.env.PYTHONIOENCODING || 'utf-8',
+  }
+  if (customBinary) env.AGENTSWARM_BIN_PATH = customBinary
+
+  const result = spawnSync(process.execPath, [agentswarmBin, ...process.argv.slice(2)], {
+    stdio: 'inherit',
+    env,
+  })
+
+  if (result.error) {
+    process.stderr.write(`openswarm: ${result.error.message}\n`)
+    process.exit(1)
+  }
+  process.exit(result.status ?? 1)
+}
+
+main().catch((error) => {
+  process.stderr.write(`openswarm: ${error instanceof Error ? error.message : String(error)}\n`)
+  process.exit(1)
+})

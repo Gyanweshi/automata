@@ -44,8 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--scraper",
         choices=["playwright", "apify", "browser-act", "cdp"],
-        default="apify",
-        help="Instagram scraper backend (default: apify)",
+        default="cdp",
+        help="Instagram scraper backend (default: cdp)",
     )
     p.add_argument(
         "--browser-act-proxy-region",

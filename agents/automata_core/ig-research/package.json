@@ -1,0 +1,13 @@
+{
+  "name": "ig-research",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CDP-based Instagram scraper used by agency-research's CDPInstagramScraper.",
+  "main": "scripts/scrape.js",
+  "scripts": {
+    "scrape": "node scripts/scrape.js"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.0.0"
+  }
+}

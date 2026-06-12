@@ -214,3 +214,22 @@ workspace/pdf-extracts/Altara Brand Guide_compressed/renders/page-06.png
 gitshare/altara-launch-strategy-v4/Screenshot 2026-06-04 at 01-30-17 Altara Launch Direction & Social Strategy.png
 .gitignore
 gitshare/altara-launch-strategy-v4/Screenshot 2026-06-04 at 01-30-32 Altara Launch Direction & Social Strategy.png
+*.egg-info/
+.venv/
+venv/
+
+# Generated outputs (regenerable by running the agents)
+data/outputs/
+data/assets/brands/
+workspace/
+
+# Local scratch / temp
+.tmp/
+*.stackdump
+
+# Local vector index / memory state
+memory/automata_db/
+
+# Editor / OS
+.DS_Store
+Thumbs.db

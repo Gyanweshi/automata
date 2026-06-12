@@ -79,7 +79,7 @@ def load_brand(slug: str, brands_dir: str | Path | None = None) -> BrandProfile:
             brand_path = dir_path / f"{slug}{ext}"
             if not brand_path.exists():
                 continue
-            with open(brand_path, "r") as f:
+            with open(brand_path, "r", encoding="utf-8") as f:
                 raw = f.read()
             if ext == ".md":
                 post = frontmatter.loads(raw)

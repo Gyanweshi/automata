@@ -30,6 +30,13 @@ class StoryboardAgent:
         duration_seconds: int = 30,
         aspect_ratio: str | None = None,
         research: ResearchOutput | None = None,
+        setting: str = "",
+        action: str = "",
+        composition: str = "",
+        use_case: str = "",
+        copy: str = "",
+        copy_position: str = "lower third",
+        detail_mode: str = "standard",
     ) -> StoryboardOutput:
         """
         Generate a storyboard for a content piece.
@@ -42,6 +49,20 @@ class StoryboardAgent:
             slide_count:    For carousels — number of slides
             duration_seconds: For reels — length in seconds
             aspect_ratio:   Override default aspect ratio for the tool
+            content_type:   carousel | reel | post | mood_board | image
+            topic:          Content topic/campaign name (for "image", the subject)
+            tool:           AI gen tool: freepik_image | freepik_video | blender | generic |
+                            nano_banana_2 | nano_banana_pro | gpt_image_2 |
+                            seedance | kling_3 | veo
+            slide_count:    For carousels — number of slides
+            duration_seconds: For reels — length in seconds
+            aspect_ratio:   Override default aspect ratio for the tool
+            setting, action, composition, use_case, detail_mode:
+                            Additional context for "image" (standalone) prompts.
+                            detail_mode: concise | standard | verbose | cinematic_verbose
+            copy, copy_position:
+                            Optional exact text to render on the image (e.g. a
+                            tagline), and where to place it (default "lower third").
         """
         if brand.memory:
             LOGGER.info("Brand memory loaded for %s (%d entries)", brand.slug, len(brand.memory))
@@ -62,6 +83,21 @@ class StoryboardAgent:
         elif content_type == "mood_board":
             scenes = []
             prompts = []
+        elif content_type == "image":
+            scenes = []
+            prompts = [prompt_writer.standalone_image_prompt(
+                topic,
+                setting=setting,
+                action=action,
+                composition=composition,
+                use_case=use_case,
+                copy=copy,
+                copy_position=copy_position,
+                tool=tool or "nano_banana_2",
+                aspect_ratio=aspect_ratio,
+                detail_mode=detail_mode,
+                visual_dna=research.visual_dna if research else None,
+            )]
         else:
             scenes = scene_builder.breakdown_carousel(topic, slide_count=slide_count)
             prompts = prompt_writer.storyboard_prompts(scenes, tool=tool)

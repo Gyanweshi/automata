@@ -5,6 +5,12 @@ pipeline and its output feeds directly into PostData / CompetitorAnalysis
 objects — the same interface as every other scraper.
 
 The Node tool requires Chrome running with --remote-debugging-port=9222.
+Wraps agents/automata_core/ig-research/scripts/scrape.js so the scrape runs
+inside the agency pipeline and its output feeds directly into PostData /
+CompetitorAnalysis objects — the same interface as every other scraper.
+
+The Node tool requires Chrome running with --remote-debugging-port=9222
+(see agents/automata_core/scripts/open-instagram-session.ps1 -Mode cdp).
 If Chrome is not reachable, this scraper logs a warning and returns empty
 results rather than crashing the whole research run.
 """
@@ -12,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import tempfile
 from collections import Counter
@@ -25,6 +32,10 @@ logger = logging.getLogger(__name__)
 
 # Location of the ig-research tool
 IG_RESEARCH_DIR = Path.home() / "ig-research"
+# Location of the ig-research tool. Ships in-repo; override with IG_RESEARCH_DIR
+# for a custom install.
+_REPO_IG_RESEARCH_DIR = Path(__file__).resolve().parents[5] / "agents" / "automata_core" / "ig-research"
+IG_RESEARCH_DIR = Path(os.environ.get("IG_RESEARCH_DIR", str(_REPO_IG_RESEARCH_DIR)))
 SCRAPE_SCRIPT = IG_RESEARCH_DIR / "scripts" / "scrape.js"
 
 
@@ -183,6 +194,20 @@ class CDPInstagramScraper:
                     return [], []
             finally:
                 link.unlink(missing_ok=True)
+            result = subprocess.run(
+                ["node", str(SCRAPE_SCRIPT), str(project_dir)],
+                cwd=str(IG_RESEARCH_DIR),
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+            if result.returncode != 0:
+                logger.warning(
+                    "[CDPInstagramScraper] scrape.js exited %d: %s",
+                    result.returncode,
+                    result.stderr[:500],
+                )
+                return [], []
 
             raw_posts_file = project_dir / "raw-posts.json"
             if not raw_posts_file.exists():

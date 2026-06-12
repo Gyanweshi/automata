@@ -84,6 +84,9 @@ def test_apify_research_brand_dry_run_returns_competitor_shells():
     ]
 
 
+from agency_research.scrapers.browser_act_instagram import BrowserActInstagramScraper
+
+
 def test_browser_act_stealth_extract_uses_markdown_content_type(monkeypatch):
     calls = []
 

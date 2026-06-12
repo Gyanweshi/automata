@@ -66,7 +66,7 @@ class ResearchAgent:
         self,
         config: AgencyConfig | None = None,
         dry_run: bool = False,
-        scraper: str = "apify",
+        scraper: str = "cdp",
         browser_act_proxy_region: str | None = None,
         instagram_login_mode: str = "auto",
         browser_act_mode: str = "stealth",
@@ -79,7 +79,7 @@ class ResearchAgent:
         self.browser_act_mode = browser_act_mode or self.config.browser_act_mode or "stealth"
         self.browser_act_session_name = browser_act_session_name or self.config.browser_act_session_name or ""
 
-        ig_cls = INSTAGRAM_SCRAPERS.get(scraper, ApifyInstagramScraper)
+        ig_cls = INSTAGRAM_SCRAPERS.get(scraper, CDPInstagramScraper)
         if ig_cls is ApifyInstagramScraper:
             self.ig = ig_cls(dry_run=dry_run, api_token=self.config.apify_token)
         elif ig_cls is BrowserActInstagramScraper:
