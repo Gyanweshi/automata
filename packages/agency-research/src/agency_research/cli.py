@@ -43,9 +43,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
     p.add_argument(
         "--scraper",
-        choices=["playwright", "apify", "browser-act", "cdp"],
-        default="apify",
-        help="Instagram scraper backend (default: apify)",
+        choices=["cdp", "playwright", "browser-act"],
+        default="cdp",
+        help="Instagram scraper backend (default: cdp)",
     )
     p.add_argument(
         "--browser-act-proxy-region",

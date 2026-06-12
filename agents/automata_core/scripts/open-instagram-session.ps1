@@ -3,7 +3,7 @@ param(
     [string]$Mode = "cdp",
 
     [string]$BrowserActSessionName = "instagram-main",
-    [int]$CdpPort = 9224,
+    [int]$CdpPort = 9222,
     [string]$CdpProfileDir = "$env:USERPROFILE\.agency\chrome-instagram-cdp",
     [switch]$WaitForEnter
 )

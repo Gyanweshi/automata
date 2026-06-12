@@ -20,15 +20,15 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 4. **Run the scraper**:
    ```bash
-   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper playwright|apify|browser-act|cdp] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
+   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper cdp|playwright|browser-act] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
    ```
 
-   Default scraper is `apify` (managed scraping; requires `APIFY_API_TOKEN`). Use `playwright` for local browser-based scraping, `browser-act` for browser-act extraction, or `cdp` for a logged-in Chrome DevTools session. When using `browser-act`, set `--browser-act-proxy-region` or `BROWSER_ACT_PROXY_REGION` to try a dynamic proxy region on gated pages, or use `--browser-act-mode session` with a reusable session name. When using `playwright`, `--instagram-login-mode manual` opens a visible browser for a one-time manual login and then reuses the saved session.
+   Default scraper is `cdp` (drives a logged-in Chrome DevTools session via the in-repo `agents/automata_core/ig-research` tool — see `scripts/open-instagram-session.ps1 -Mode cdp`). Use `playwright` for local browser-based scraping, or `browser-act` for browser-act extraction. When using `browser-act`, set `--browser-act-proxy-region` or `BROWSER_ACT_PROXY_REGION` to try a dynamic proxy region on gated pages, or use `--browser-act-mode session` with a reusable session name. When using `playwright`, `--instagram-login-mode manual` opens a visible browser for a one-time manual login and then reuses the saved session.
 
    If Instagram rendered pages hit a login wall, do not keep retrying public extraction. Ask the user to complete the one-time login helper, then rerun with the matching scraper:
 
    ```powershell
-   .\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
+   .\scripts\open-instagram-session.ps1 -Mode cdp -WaitForEnter
    .\scripts\run-agent.ps1 research -Brand <brand-slug> -Scraper cdp -Platforms ig
    .\scripts\open-instagram-session.ps1 -Mode browser-act -BrowserActSessionName instagram-main -WaitForEnter
    .\scripts\run-agent.ps1 research -Brand <brand-slug> -Scraper browser-act -Platforms ig -BrowserActMode session -BrowserActSessionName instagram-main
@@ -51,7 +51,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 ## Platform Notes
 
-- **Instagram**: use `apify` by default for managed scraping with `APIFY_API_TOKEN`, `playwright` for local browser-based scraping, `browser-act` for stealth/session extraction, or `cdp` for a user-logged-in Chrome profile opened by `scripts/open-instagram-session.ps1`.
+- **Instagram**: use `cdp` by default (a user-logged-in Chrome profile opened by `scripts/open-instagram-session.ps1`), `playwright` for local browser-based scraping, or `browser-act` for stealth/session extraction.
 - **LinkedIn** (Apify): requires `APIFY_API_TOKEN` env var. If missing, skip with a note.
 - **Facebook** (Graph API + Apify): owned pages need `FB_PAGE_ACCESS_TOKEN`; competitor pages need `APIFY_API_TOKEN`.
 
@@ -76,10 +76,9 @@ Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use thes
 - `--list` - show past research runs for the brand
 - `--latest` - print the most recent research output
 - `--platforms ig` - scrape only Instagram
-- `--scraper apify` - use Apify's managed Instagram scraper (default); requires `APIFY_API_TOKEN`
+- `--scraper cdp` - use a Chrome DevTools Protocol session opened by `scripts/open-instagram-session.ps1` (default)
 - `--scraper playwright` - use local browser-based scraping
 - `--scraper browser-act` - use browser-act extraction for public or session-backed Instagram pages; best combined with `--parallel`
-- `--scraper cdp` - use a Chrome DevTools Protocol session opened by `scripts/open-instagram-session.ps1`
 - `--browser-act-proxy-region US` - pass a dynamic proxy region to browser-act for Instagram discovery pages that are more aggressively gated
 - `--browser-act-mode session` - reuse a named browser-act browser session that you log into manually once
 - `--browser-act-session-name instagram-main` - the browser-act session name to reuse in session mode

@@ -9,8 +9,8 @@ param(
     [string]$Workspace = "./workspace",
     [string]$BrandsDir = "./brands",
     [string]$Platforms = "",
-    [ValidateSet("apify", "playwright", "browser-act", "cdp")]
-    [string]$Scraper = "apify",
+    [ValidateSet("cdp", "playwright", "browser-act")]
+    [string]$Scraper = "cdp",
     [ValidateSet("auto", "manual")]
     [string]$InstagramLoginMode = "auto",
     [ValidateSet("stealth", "session")]

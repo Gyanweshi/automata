@@ -7,7 +7,7 @@ WORKSPACE ?= ./workspace
 BRANDS_DIR ?= ./brands
 PARALLEL ?= 0
 MAX_WORKERS ?= 4
-SCRAPER ?= browser-act
+SCRAPER ?= cdp
 INSTAGRAM_LOGIN_MODE ?= auto
 BROWSER_ACT_MODE ?= stealth
 BROWSER_ACT_SESSION_NAME ?=
@@ -37,8 +37,8 @@ help:
 	@echo "Run agents (set BRAND=my-client TOPIC='...' TYPE=carousel):"
 	@echo "  make research       Run research agent"
 	@echo "  make research PARALLEL=1 MAX_WORKERS=4  Run research with bounded concurrency"
+	@echo "  make research PLATFORMS=ig  Run research against an open Chrome CDP Instagram session (default scraper)"
 	@echo "  make research SCRAPER=browser-act PARALLEL=1  Run research with browser-act stealth extraction"
-	@echo "  make research SCRAPER=cdp PLATFORMS=ig  Run research against an open Chrome CDP Instagram session"
 	@echo "  make research SCRAPER=playwright INSTAGRAM_LOGIN_MODE=manual  Run research with a manual Instagram login session"
 	@echo "  make storyboard     Run storyboard agent"
 	@echo "  make content        Run content agent"

@@ -38,7 +38,6 @@ from .analyzers import (
     VisualAnalyzer,
 )
 from .scrapers import (
-    ApifyInstagramScraper,
     BrowserActInstagramScraper,
     CDPInstagramScraper,
     CommunityListener,
@@ -52,7 +51,6 @@ LOGGER = logging.getLogger(__name__)
 T = TypeVar("T")
 
 INSTAGRAM_SCRAPERS = {
-    "apify": ApifyInstagramScraper,
     "playwright": PlaywrightInstagramScraper,
     "browser-act": BrowserActInstagramScraper,
     "cdp": CDPInstagramScraper,
@@ -66,7 +64,7 @@ class ResearchAgent:
         self,
         config: AgencyConfig | None = None,
         dry_run: bool = False,
-        scraper: str = "apify",
+        scraper: str = "cdp",
         browser_act_proxy_region: str | None = None,
         instagram_login_mode: str = "auto",
         browser_act_mode: str = "stealth",
@@ -79,10 +77,8 @@ class ResearchAgent:
         self.browser_act_mode = browser_act_mode or self.config.browser_act_mode or "stealth"
         self.browser_act_session_name = browser_act_session_name or self.config.browser_act_session_name or ""
 
-        ig_cls = INSTAGRAM_SCRAPERS.get(scraper, ApifyInstagramScraper)
-        if ig_cls is ApifyInstagramScraper:
-            self.ig = ig_cls(dry_run=dry_run, api_token=self.config.apify_token)
-        elif ig_cls is BrowserActInstagramScraper:
+        ig_cls = INSTAGRAM_SCRAPERS.get(scraper, CDPInstagramScraper)
+        if ig_cls is BrowserActInstagramScraper:
             self.ig = ig_cls(
                 dry_run=dry_run,
                 proxy_region=self.browser_act_proxy_region or None,
