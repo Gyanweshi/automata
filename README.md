@@ -5,7 +5,7 @@ This repo contains a small multi-agent system for brand research, storyboard pla
 ## What Is Inside
 <div align="center">
 
-![Automata](docs/banner.png)
+![Automata](docs/assets/banner.png)
 
 # Automata
 
