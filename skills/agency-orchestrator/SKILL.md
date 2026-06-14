@@ -13,7 +13,7 @@ You are the master orchestrator for the agency multi-agent system. Route command
 3. If they provide a website URL, run `/market brand <url>` to auto-detect voice dimensions.
 4. Write the brand profile as `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`. Frontmatter contains the structured config; markdown body contains human-readable brand narrative and memory. Never write real brand files to the repo.
 5. The `.md` body must include these sections in order: `## Audience`, `## Platforms` (external links, not wikilinks), `## Competitors` (external links), `## Strategy Notes` (initial decisions from onboarding), `## Memory` (empty block with comment `<!-- Maintained automatically by agents. Max 10 bullets. -->` - do not populate manually).
-6. Create workspace folders: `workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`.
+6. Create workspace folders: `workspace/<slug>/research/`, `workspace/<slug>/storyboards/`, `workspace/<slug>/content/`.
 7. Confirm success and show next steps.
 
 ### Run research

@@ -268,19 +268,23 @@ def main() -> int:
 
     session_id = payload.get("session_id", "")
     if not session_id:
-        return 0
+        print("Vault Logger: No session_id found in payload", file=sys.stderr)
+        return 1
 
     vault = get_vault()
     if not vault:
-        return 0
+        print("Vault Logger: Could not find Obsidian Vault path from OBSIDIAN_VAULT_PATH", file=sys.stderr)
+        return 1
 
     jsonl_path = find_codex_jsonl(session_id) if mode == "codex" else find_jsonl(session_id)
     if not jsonl_path:
-        return 0
+        print(f"Vault Logger: Could not find JSONL transcript for session {session_id}", file=sys.stderr)
+        return 1
 
     messages = extract_codex_conversation(jsonl_path) if mode == "codex" else extract_conversation(jsonl_path)
     if not messages:
-        return 0
+        print(f"Vault Logger: No messages extracted from session {session_id}", file=sys.stderr)
+        return 1
 
     project_path = extract_codex_project_path(jsonl_path) if mode == "codex" else str(jsonl_path.parent.name)
     entities = detect_entities(messages, vault)

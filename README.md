@@ -508,9 +508,9 @@ Run the full pipeline:
 Outputs are written to:
 
 ```text
-workspace/research/<brand-slug>/
-workspace/storyboards/<brand-slug>/
-workspace/content/<brand-slug>/
+workspace/<brand-slug>/research/
+workspace/<brand-slug>/storyboards/
+workspace/<brand-slug>/content/
 ```
 
 ## Adding A New Brand

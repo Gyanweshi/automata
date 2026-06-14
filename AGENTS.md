@@ -18,7 +18,7 @@ This is an agency multi-agent monorepo for:
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
 - Agent behavior docs: `skills/agency-*/SKILL.md`
 - Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter is the agent config, body is the brand narrative and memory (not committed to repo)
-- Generated outputs: `workspace/research/`, `workspace/storyboards/`, `workspace/content/`
+- Generated outputs: `workspace/<brand-slug>/research/`, `workspace/<brand-slug>/storyboards/`, `workspace/<brand-slug>/content/`
 
 Do not duplicate full README content in context files. Keep context operational and concise.
 
@@ -96,7 +96,7 @@ Storyboard agent:
 Content agent:
 
 - primarily Python CLI output and brand voice files
-- may use research outputs from `workspace/research/<brand-slug>/`
+- may use research outputs from `workspace/<brand-slug>/research/`
 
 MCP package versions are pinned in `mcp/agents/*.json`. Keep README and agent manifests synchronized if updated.
 

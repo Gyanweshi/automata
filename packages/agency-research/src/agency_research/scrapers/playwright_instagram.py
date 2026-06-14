@@ -73,8 +73,10 @@ class PlaywrightInstagramScraper:
             try:
                 SESSION_PATH.parent.mkdir(parents=True, exist_ok=True)
                 self._context.storage_state(path=str(SESSION_PATH))
-            except Exception:
-                pass
+            except Exception as e:
+                import os
+                if os.environ.get("AGENCY_DEBUG") == "1":
+                    logger.error(f"Session save failed: {e}", exc_info=True)
         if self._browser:
             self._browser.close()
         if hasattr(self, "_pw"):
@@ -152,16 +154,20 @@ class PlaywrightInstagramScraper:
         try:
             page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded", timeout=30000)
             time.sleep(2)
-        except Exception:
-            pass
+        except Exception as e:
+            import os, logging
+            if os.environ.get("AGENCY_DEBUG") == "1":
+                logging.getLogger(__name__).error(e, exc_info=True)
 
         while time.time() < deadline:
             try:
                 if self._is_logged_in(page):
                     logger.info("Instagram manual login detected; saving session state.")
                     return True
-            except Exception:
-                pass
+            except Exception as e:
+                import os, logging
+                if os.environ.get("AGENCY_DEBUG") == "1":
+                    logging.getLogger(__name__).error(e, exc_info=True)
             time.sleep(2)
         return False
 
@@ -400,8 +406,10 @@ class PlaywrightInstagramScraper:
                         post_count = node.get("edge_owner_to_timeline_media", {}).get("count", 0)
                         bio = node.get("biography", "")
                         break
-        except Exception:
-            pass
+        except Exception as e:
+            import os, logging
+            if os.environ.get("AGENCY_DEBUG") == "1":
+                logging.getLogger(__name__).error(e, exc_info=True)
 
         # Fallback: meta description often has "X Followers, Y Following, Z Posts"
         if followers == 0:
@@ -419,8 +427,10 @@ class PlaywrightInstagramScraper:
                 m3 = re.search(r"([\d,]+)\s+Posts", desc or "")
                 if m3:
                     post_count = int(m3.group(1).replace(",", ""))
-            except Exception:
-                pass
+            except Exception as e:
+                import os, logging
+                if os.environ.get("AGENCY_DEBUG") == "1":
+                    logging.getLogger(__name__).error(e, exc_info=True)
 
         return CompetitorAnalysis(
             handle=handle,

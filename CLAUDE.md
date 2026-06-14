@@ -44,7 +44,7 @@ packages/agency-content/    # Multi-platform social copy generation
 packages/freepik-fastmcp/   # Vendored Freepik MCP server (image/video)
 ```
 
-**Data flow**: Brand YAML → agent CLI → JSON written to `workspace/{agent}/{brand}/{timestamp}.json`. Downstream agents call `workspace.read_latest(agent, brand)` to consume upstream outputs. Agents are decoupled — they share state through the filesystem only, no direct cross-package imports.
+**Data flow**: Brand YAML → agent CLI → JSON written to `workspace/{brand}/{agent}/{timestamp}.json`. Downstream agents call `workspace.read_latest(agent, brand)` to consume upstream outputs. Agents are decoupled — they share state through the filesystem only, no direct cross-package imports.
 
 **Key files in `agency-common`**:
 - `models.py` — Pydantic schemas: `BrandProfile`, `ResearchOutput`, `StoryboardOutput`, `ContentOutput`
@@ -62,7 +62,7 @@ packages/freepik-fastmcp/   # Vendored Freepik MCP server (image/video)
 
 Brand profiles live in the **Obsidian vault** at `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` - not committed to the repo. The frontmatter is the structured config; the markdown body contains brand narrative and the `## Memory` section. The loader searches in this order: explicit `--brands-dir` arg, `AGENCY_BRANDS_DIR` env var, vault `Brands/` folder, then local `brands/` directory.
 
-Use `brands/_template.yaml` as the schema reference for frontmatter. When onboarding a new brand, write the `.md` brand note to the vault and create workspace directories (`workspace/research/<slug>/`, `workspace/storyboards/<slug>/`, `workspace/content/<slug>/`). Local YAML files are development fixtures only.
+Use `brands/_template.yaml` as the schema reference for frontmatter. When onboarding a new brand, write the `.md` brand note to the vault and create workspace directories (`workspace/<slug>/research/`, `workspace/<slug>/storyboards/`, `workspace/<slug>/content/`). Local YAML files are development fixtures only.
 
 **Obsidian linking rules** — only wikilink things that have actual notes:
 - Other managed brands → `[[Brands/slug|Name]]`

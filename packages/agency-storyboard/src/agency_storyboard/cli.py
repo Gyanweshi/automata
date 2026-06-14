@@ -130,8 +130,10 @@ def main():
         try:
             from agency_common.models import ResearchOutput
             research = ResearchOutput.model_validate(research_data)
-        except Exception:
-            pass
+        except Exception as e:
+            import os, logging
+            if os.environ.get("AGENCY_DEBUG") == "1":
+                logging.getLogger(__name__).error(e, exc_info=True)
 
     from .agent import StoryboardAgent
     from .outputs import write_storyboard_output

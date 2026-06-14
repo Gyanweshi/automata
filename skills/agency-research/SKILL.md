@@ -52,7 +52,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
    - Audience sentiment breakdown
    - Recommendations for the brand based on findings
 
-6. **Output**: The raw JSON is in `workspace/research/<brand-slug>/`. A markdown report is in the same directory. Mention both paths.
+6. **Output**: The raw JSON is in `workspace/<brand-slug>/research/`. A markdown report is in the same directory. Mention both paths.
 
 ## Platform Notes
 

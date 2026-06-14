@@ -105,7 +105,6 @@ test:
 	$(PYTHON) -m pytest packages/*/tests -v
 
 clean:
-	rm -rf $(WORKSPACE)/research/ $(WORKSPACE)/storyboards/ $(WORKSPACE)/content/
-	mkdir -p $(WORKSPACE)/research $(WORKSPACE)/storyboards $(WORKSPACE)/content
-	touch $(WORKSPACE)/research/.gitkeep $(WORKSPACE)/storyboards/.gitkeep $(WORKSPACE)/content/.gitkeep
+	rm -rf $(WORKSPACE)/*
+	touch $(WORKSPACE)/.gitkeep
 	@echo "Workspace cleaned."

@@ -116,8 +116,10 @@ class AdjacencyMapper:
                     continue
                 try:
                     insights.append(AdjacencyInsight(**item))
-                except Exception:
-                    pass
+                except Exception as e:
+                    import os, logging
+                    if os.environ.get("AGENCY_DEBUG") == "1":
+                        logging.getLogger(__name__).error(e, exc_info=True)
 
             return AdjacencyReport(
                 analyzed_at=datetime.utcnow().isoformat(),

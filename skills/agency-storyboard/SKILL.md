@@ -91,7 +91,7 @@ Instead:
    - Read `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>.md`. This is the single source of truth for brand-specific visual direction, mood, photography style, and prior decisions.
    - Read the `## Memory` section carefully and build on what has already worked or been rejected.
    - Do not call `search_second_brain` for brand-specific context. Use vault search only for broad topic or reference research that is not already covered in the brand note.
-   - If prior research or content exists in `workspace/research/<brand-slug>/` or `workspace/content/<brand-slug>/`, skim the latest relevant output before storyboarding.
+   - If prior research or content exists in `workspace/<brand-slug>/research/` or `workspace/<brand-slug>/content/`, skim the latest relevant output before storyboarding.
 
 3. **Generate the storyboard**:
    ```bash

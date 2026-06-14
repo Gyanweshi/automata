@@ -112,8 +112,10 @@ class MetaAdsLibraryScraper:
             try:
                 started = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
                 days_running = (datetime.now(tz=started.tzinfo) - started).days
-            except Exception:
-                pass
+            except Exception as e:
+                import os, logging
+                if os.environ.get("AGENCY_DEBUG") == "1":
+                    logging.getLogger(__name__).error(e, exc_info=True)
 
         bodies = item.get("ad_creative_bodies") or []
         titles = item.get("ad_creative_link_titles") or []
@@ -176,8 +178,10 @@ class MetaAdsLibraryScraper:
             try:
                 started = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
                 days_running = (datetime.now(tz=started.tzinfo) - started).days
-            except Exception:
-                pass
+            except Exception as e:
+                import os, logging
+                if os.environ.get("AGENCY_DEBUG") == "1":
+                    logging.getLogger(__name__).error(e, exc_info=True)
 
         return AdLibraryAd(
             ad_id=str(item.get("id", "") or item.get("adId", "")),

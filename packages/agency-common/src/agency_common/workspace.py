@@ -14,7 +14,7 @@ class WorkspaceManager:
     """Manages reading and writing agent outputs to a shared workspace directory.
 
     Directory layout:
-        workspace/{agent}/{brand}/{YYYY-MM-DD_NNN}.json
+        workspace/{brand}/{agent}/{YYYY-MM-DD_NNN}.json
 
     Usage:
         wm = WorkspaceManager()
@@ -40,7 +40,7 @@ class WorkspaceManager:
                     self.root = cwd / "workspace"
 
     def _agent_brand_dir(self, agent: str, brand: str) -> Path:
-        path = self.root / agent / brand
+        path = self.root / brand / agent
         path.mkdir(parents=True, exist_ok=True)
         return path
 
