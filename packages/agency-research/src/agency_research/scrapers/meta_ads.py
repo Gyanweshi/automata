@@ -113,7 +113,8 @@ class MetaAdsLibraryScraper:
                 started = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
                 days_running = (datetime.now(tz=started.tzinfo) - started).days
             except Exception as e:
-                import os, logging
+                import os
+                import logging
                 if os.environ.get("AGENCY_DEBUG") == "1":
                     logging.getLogger(__name__).error(e, exc_info=True)
 
@@ -179,7 +180,8 @@ class MetaAdsLibraryScraper:
                 started = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
                 days_running = (datetime.now(tz=started.tzinfo) - started).days
             except Exception as e:
-                import os, logging
+                import os
+                import logging
                 if os.environ.get("AGENCY_DEBUG") == "1":
                     logging.getLogger(__name__).error(e, exc_info=True)
 

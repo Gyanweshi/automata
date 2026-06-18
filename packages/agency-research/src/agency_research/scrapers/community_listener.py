@@ -9,7 +9,6 @@ import logging
 import xml.etree.ElementTree as ET
 from collections import Counter
 from datetime import datetime
-from typing import Optional
 
 import requests
 

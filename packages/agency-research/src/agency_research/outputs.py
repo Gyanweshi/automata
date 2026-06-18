@@ -119,8 +119,8 @@ def _render_markdown(output: ResearchOutput) -> str:
     vd = output.visual_dna
     if vd and vd.dominant_aesthetic:
         lines.append("## Visual DNA\n")
-        lines.append(f"| Dimension | Analysis |")
-        lines.append(f"|-----------|----------|")
+        lines.append("| Dimension | Analysis |")
+        lines.append("|-----------|----------|")
         lines.append(f"| Dominant aesthetic | {vd.dominant_aesthetic} |")
         if vd.color_palette_trend:
             lines.append(f"| Color direction | {vd.color_palette_trend} |")
