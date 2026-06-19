@@ -46,6 +46,10 @@ packages/freepik-fastmcp/   # Vendored Freepik MCP server (image/video)
 
 **Data flow**: Brand YAML → agent CLI → JSON written to `workspace/{brand}/{agent}/{timestamp}.json`. Downstream agents call `workspace.read_latest(agent, brand)` to consume upstream outputs. Agents are decoupled — they share state through the filesystem only, no direct cross-package imports.
 
+## HTML → PPTX export
+
+`tools/pdf_utils/html_to_pptx.js` is the **only** HTML-slide-deck-to-pptx tool — it is generic (`--input`, `--output`, `--scale`, `--format`, `--quality` flags), has no hardcoded brand names, usernames, or absolute paths, and uses Playwright's bundled Chromium. If a conversion produces a bad-looking deck, fix this script's selector/wait/scale args — do not write a new brand-specific export script. Defaults are `--scale 1.5 --format jpeg --quality 90`, which keeps output decks in the low tens of MB; raising scale to 2 or format to png will blow up file size (a prior version produced a 76MB pptx from full PNG screenshots at 2x scale) without a visible quality gain for screen/projector use.
+
 **Key files in `agency-common`**:
 - `models.py` — Pydantic schemas: `BrandProfile`, `ResearchOutput`, `StoryboardOutput`, `ContentOutput`
 - `workspace.py` — `WorkspaceManager`: reads/writes inter-agent JSON

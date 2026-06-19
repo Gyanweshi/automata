@@ -51,6 +51,10 @@ secrets.yaml
 data/outputs/
 data/assets/brands/
 
+# pptx export tool — generated output and intermediate screenshots, not source
+tools/pdf_utils/*.pptx
+tools/pdf_utils/.*-shots/
+
 # OS / Editor
 .DS_Store
 Thumbs.db

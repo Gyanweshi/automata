@@ -80,11 +80,8 @@ fi
 echo ""
 echo "==> Installing agency packages into .venv"
 .venv/bin/python -m pip install --upgrade pip
-.venv/bin/pip install -e ./packages/agency-common
-.venv/bin/pip install -e ./packages/agency-research
-.venv/bin/pip install -e ./packages/agency-storyboard
-.venv/bin/pip install -e ./packages/agency-content
-ok "agency CLIs installed"
+.venv/bin/pip install -r requirements.txt
+ok "agency CLIs and dependencies installed"
 
 echo ""
 echo "==> Preparing vendored MCP dependencies"

@@ -13,11 +13,22 @@ BROWSER_ACT_MODE ?= stealth
 BROWSER_ACT_SESSION_NAME ?=
 PLATFORMS ?=
 VENV ?= .venv
-PYTHON ?= .venv/bin/python
-PIP ?= .venv/bin/pip
-AGENCY_RESEARCH ?= .venv/bin/agency-research
-AGENCY_STORYBOARD ?= .venv/bin/agency-storyboard
-AGENCY_CONTENT ?= .venv/bin/agency-content
+
+ifeq ($(OS),Windows_NT)
+PYTHON ?= $(VENV)/Scripts/python.exe
+PIP ?= $(VENV)/Scripts/pip.exe
+AGENCY_RESEARCH ?= $(VENV)/Scripts/agency-research.exe
+AGENCY_STORYBOARD ?= $(VENV)/Scripts/agency-storyboard.exe
+AGENCY_CONTENT ?= $(VENV)/Scripts/agency-content.exe
+PYTHON_CMD ?= python
+else
+PYTHON ?= $(VENV)/bin/python
+PIP ?= $(VENV)/bin/pip
+AGENCY_RESEARCH ?= $(VENV)/bin/agency-research
+AGENCY_STORYBOARD ?= $(VENV)/bin/agency-storyboard
+AGENCY_CONTENT ?= $(VENV)/bin/agency-content
+PYTHON_CMD ?= python3
+endif
 
 ifeq ($(PARALLEL),1)
 RESEARCH_PARALLEL_FLAGS := --parallel --max-workers $(MAX_WORKERS)
@@ -52,7 +63,7 @@ help:
 	@echo "  make status         Show installed packages"
 
 install:
-	python3 -m venv $(VENV)
+	$(PYTHON_CMD) -m venv $(VENV)
 	$(PYTHON) -m pip install --upgrade pip
 	$(PIP) install -e ./packages/agency-common[test]
 	$(PIP) install -e ./packages/agency-research[test]

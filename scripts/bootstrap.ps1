@@ -71,11 +71,8 @@ $PipExe = Join-Path $RootDir ".venv\Scripts\pip.exe"
 Write-Host ""
 Write-Host "==> Installing agency packages into .venv"
 & $PythonExe -m pip install --upgrade pip
-& $PipExe install -e .\packages\agency-common
-& $PipExe install -e .\packages\agency-research
-& $PipExe install -e .\packages\agency-storyboard
-& $PipExe install -e .\packages\agency-content
-Ok "agency CLIs installed"
+& $PipExe install -r requirements.txt
+Ok "agency CLIs and dependencies installed"
 
 Write-Host ""
 Write-Host "==> Preparing vendored MCP dependencies"
