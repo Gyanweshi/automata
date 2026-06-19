@@ -1,15 +1,11 @@
-"""Environment-based configuration for agency agents."""
-from __future__ import annotations
-
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 @dataclass
 class AgencyConfig:
     """All configuration sourced from environment variables with sensible defaults.
-
+    
     Environment variables:
         AGENCY_WORKSPACE      — path to shared workspace directory
         AGENCY_BRANDS_DIR     — path to brands YAML directory
@@ -24,6 +20,7 @@ class AgencyConfig:
         META_AD_LIBRARY_TOKEN — Facebook/Meta access token for Ad Library API
         BROWSER_ACT_MODE      — browser-act Instagram mode: stealth or session
         BROWSER_ACT_SESSION_NAME — named browser-act session to reuse in session mode
+        HERMES_AGENT_PATH     — path to Hermes agent executable
     """
 
     workspace: Path = field(default_factory=lambda: Path(
@@ -57,6 +54,7 @@ class AgencyConfig:
             "perplexity_api_key": self.perplexity_api_key,
             "firecrawl_api_key": self.firecrawl_api_key,
             "capsulehub_api_key": self.capsulehub_api_key,
+            "hermes_agent_path": self.hermes_agent_path,  # New validation key
         }
         if required is None:
             return []
@@ -67,7 +65,6 @@ class AgencyConfig:
         """Load config from environment, auto-loading .env if present."""
         _load_dotenv()
         return cls()
-
 
 def _load_dotenv():
     """Load .env from cwd or repo root if present. Skips if already loaded."""
