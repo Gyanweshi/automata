@@ -218,7 +218,7 @@ def update_brand_memory(
             if _MEMORY_HEADING in content:
                 lines = content.splitlines()
                 mem_start = next(
-                    (i for i, l in enumerate(lines) if l.strip() == _MEMORY_HEADING), None
+                    (i for i, line in enumerate(lines) if line.strip() == _MEMORY_HEADING), None
                 )
                 if mem_start is not None:
                     mem_end = len(lines)
@@ -226,7 +226,7 @@ def update_brand_memory(
                         if lines[i].startswith("## "):
                             mem_end = i
                             break
-                    bullets = [l for l in lines[mem_start + 1:mem_end] if l.strip().startswith("-")]
+                    bullets = [line for line in lines[mem_start + 1:mem_end] if line.strip().startswith("-")]
                     bullets.append(new_bullet)
                     if len(bullets) > _MEMORY_MAX_BULLETS:
                         bullets = bullets[-_MEMORY_MAX_BULLETS:]

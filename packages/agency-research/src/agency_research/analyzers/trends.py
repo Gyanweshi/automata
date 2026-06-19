@@ -35,7 +35,8 @@ class TrendAnalyzer:
                         if (now - ts).days <= 7:
                             recent_count += 1
             except Exception as e:
-                import os, logging
+                import os
+                import logging
                 if os.environ.get("AGENCY_DEBUG") == "1":
                     logging.getLogger(__name__).error(e, exc_info=True)
             trend_score = len(tagged_posts) * (1 + recent_count * 0.5)

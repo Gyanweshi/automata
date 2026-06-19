@@ -167,7 +167,7 @@ def test_update_brand_memory_trims_to_ten_bullets(tmp_path):
     update_brand_memory("maple", "newest insight.", vault_path=tmp_path)
 
     content = brand_md.read_text(encoding="utf-8")
-    bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
+    bullets = [line for line in content.splitlines() if line.strip().startswith("-")]
     assert len(bullets) == 10
     assert "newest insight." in content
     assert "insight 0." not in content  # oldest was dropped
@@ -190,7 +190,7 @@ def test_update_brand_memory_ignores_html_comments_in_memory_section(tmp_path):
     update_brand_memory("maple", "real insight.", vault_path=tmp_path)
 
     content = brand_md.read_text(encoding="utf-8")
-    bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
+    bullets = [line for line in content.splitlines() if line.strip().startswith("-")]
     assert len(bullets) == 1
     assert "real insight." in bullets[0]
 
@@ -210,7 +210,7 @@ def test_update_brand_memory_handles_concurrent_writes(tmp_path):
         )
 
     content = brand_md.read_text(encoding="utf-8")
-    bullets = [l for l in content.splitlines() if l.strip().startswith("-")]
+    bullets = [line for line in content.splitlines() if line.strip().startswith("-")]
     assert all(results)
     assert len(bullets) == 10
     assert all("parallel insight" in bullet for bullet in bullets)

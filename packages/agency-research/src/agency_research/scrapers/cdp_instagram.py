@@ -263,8 +263,6 @@ class CDPInstagramScraper:
             return CompetitorAnalysis(handle=handle, platform="instagram")
 
         top_posts = sorted(posts, key=lambda p: p.likes + p.comments * 3, reverse=True)[:20]
-        total_eng = sum(p.likes + p.comments for p in posts)
-        avg_eng = total_eng / len(posts) if posts else 0
 
         format_counter: Counter = Counter(p.media_type for p in posts if p.media_type)
         content_types = dict(format_counter.most_common())

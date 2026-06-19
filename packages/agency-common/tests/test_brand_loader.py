@@ -1,5 +1,4 @@
 """Tests for brand_loader — including memory section parsing."""
-from pathlib import Path
 
 import pytest
 

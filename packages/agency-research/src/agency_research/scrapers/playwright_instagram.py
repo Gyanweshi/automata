@@ -155,7 +155,8 @@ class PlaywrightInstagramScraper:
             page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded", timeout=30000)
             time.sleep(2)
         except Exception as e:
-            import os, logging
+            import os
+            import logging
             if os.environ.get("AGENCY_DEBUG") == "1":
                 logging.getLogger(__name__).error(e, exc_info=True)
 
@@ -165,7 +166,8 @@ class PlaywrightInstagramScraper:
                     logger.info("Instagram manual login detected; saving session state.")
                     return True
             except Exception as e:
-                import os, logging
+                import os
+                import logging
                 if os.environ.get("AGENCY_DEBUG") == "1":
                     logging.getLogger(__name__).error(e, exc_info=True)
             time.sleep(2)
@@ -407,7 +409,8 @@ class PlaywrightInstagramScraper:
                         bio = node.get("biography", "")
                         break
         except Exception as e:
-            import os, logging
+            import os
+            import logging
             if os.environ.get("AGENCY_DEBUG") == "1":
                 logging.getLogger(__name__).error(e, exc_info=True)
 
@@ -428,7 +431,8 @@ class PlaywrightInstagramScraper:
                 if m3:
                     post_count = int(m3.group(1).replace(",", ""))
             except Exception as e:
-                import os, logging
+                import os
+                import logging
                 if os.environ.get("AGENCY_DEBUG") == "1":
                     logging.getLogger(__name__).error(e, exc_info=True)
 

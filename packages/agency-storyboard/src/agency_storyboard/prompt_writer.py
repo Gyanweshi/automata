@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from agency_common.models import BrandProfile, GenerationPrompt, Scene
-from agency_common.models import BrandProfile, GenerationPrompt, Scene, VisualDNA
+from agency_common.models import VisualDNA
 
 
 # Supported tool schemas
