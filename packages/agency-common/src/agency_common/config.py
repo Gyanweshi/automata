@@ -33,6 +33,8 @@ class AgencyConfig:
         Path(v).expanduser().resolve() if (v := os.environ.get("OBSIDIAN_VAULT_PATH")) else None
     ))
     anthropic_api_key: str = field(default_factory=lambda: os.environ.get("ANTHROPIC_API_KEY", ""))
+    openai_api_base: str = field(default_factory=lambda: os.environ.get("OPENAI_API_BASE", ""))
+    openai_api_key: str = field(default_factory=lambda: os.environ.get("OPENAI_API_KEY", ""))
     perplexity_api_key: str = field(default_factory=lambda: os.environ.get("PERPLEXITY_API_KEY", ""))
     firecrawl_api_key: str = field(default_factory=lambda: os.environ.get("FIRECRAWL_API_KEY", ""))
     apify_token: str = field(default_factory=lambda: os.environ.get("APIFY_API_TOKEN", ""))
@@ -43,6 +45,8 @@ class AgencyConfig:
     browser_act_proxy_region: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_PROXY_REGION", ""))
     browser_act_mode: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_MODE", "stealth"))
     browser_act_session_name: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_SESSION_NAME", ""))
+    hermes_agent_path: str = field(default_factory=lambda: os.environ.get("HERMES_AGENT_PATH", ""))
+
 
     def validate(self, required: list[str] | None = None) -> list[str]:
         """Return a list of missing required config keys. Empty list = all good."""

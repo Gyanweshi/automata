@@ -53,8 +53,10 @@ Rules:
 class CommentAnalyzer:
     """Feed top post captions into Claude to extract audience intelligence."""
 
-    def __init__(self, anthropic_api_key: str = "", dry_run: bool = False):
+    def __init__(self, anthropic_api_key: str = "", openai_api_base: str = "", openai_api_key: str = "", dry_run: bool = False):
         self.anthropic_api_key = anthropic_api_key
+        self.openai_api_base = openai_api_base
+        self.openai_api_key = openai_api_key
         self.dry_run = dry_run
 
     def analyze(
@@ -70,8 +72,8 @@ class CommentAnalyzer:
         if not posts:
             return CommentAnalysis(analyzed_at=datetime.utcnow().isoformat())
 
-        if not self.anthropic_api_key:
-            LOGGER.warning("No ANTHROPIC_API_KEY — skipping comment analysis")
+        if not self.anthropic_api_key and not self.openai_api_base:
+            LOGGER.warning("No ANTHROPIC_API_KEY or OPENAI_API_BASE — skipping comment analysis")
             return CommentAnalysis(analyzed_at=datetime.utcnow().isoformat())
 
         # Rank by engagement weight (comments signal intent more than likes)
@@ -93,14 +95,24 @@ class CommentAnalyzer:
         )
 
         try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=self.anthropic_api_key)
-            response = client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=1800,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            raw = response.content[0].text.strip()
+            if self.anthropic_api_key:
+                import anthropic
+                client = anthropic.Anthropic(api_key=self.anthropic_api_key)
+                response = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=1800,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                raw = response.content[0].text.strip()
+            else:
+                from openai import OpenAI
+                client = OpenAI(base_url=self.openai_api_base, api_key=self.openai_api_key or "sk-local")
+                response = client.chat.completions.create(
+                    model="qwen2.5-7b-instruct",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1800,
+                )
+                raw = response.choices[0].message.content.strip()
 
             # Strip markdown code fences if present
             if raw.startswith("```"):

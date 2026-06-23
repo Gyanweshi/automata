@@ -53,8 +53,10 @@ readiness_to_cross guide:
 class AdjacencyMapper:
     """Map cross-industry trend pollination from adjacent premium sectors."""
 
-    def __init__(self, anthropic_api_key: str = "", dry_run: bool = False):
+    def __init__(self, anthropic_api_key: str = "", openai_api_base: str = "", openai_api_key: str = "", dry_run: bool = False):
         self.anthropic_api_key = anthropic_api_key
+        self.openai_api_base = openai_api_base
+        self.openai_api_key = openai_api_key
         self.dry_run = dry_run
 
     def map(
@@ -80,8 +82,8 @@ class AdjacencyMapper:
                 adjacent_industries=adjacent_industries,
             )
 
-        if not self.anthropic_api_key:
-            LOGGER.warning("No ANTHROPIC_API_KEY — skipping adjacency mapping")
+        if not self.anthropic_api_key and not self.openai_api_base:
+            LOGGER.warning("No ANTHROPIC_API_KEY or OPENAI_API_BASE — skipping adjacency mapping")
             return AdjacencyReport(
                 analyzed_at=datetime.utcnow().isoformat(),
                 adjacent_industries=adjacent_industries,
@@ -93,14 +95,24 @@ class AdjacencyMapper:
         )
 
         try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=self.anthropic_api_key)
-            response = client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=2500,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            raw = response.content[0].text.strip()
+            if self.anthropic_api_key:
+                import anthropic
+                client = anthropic.Anthropic(api_key=self.anthropic_api_key)
+                response = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=2500,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                raw = response.content[0].text.strip()
+            else:
+                from openai import OpenAI
+                client = OpenAI(base_url=self.openai_api_base, api_key=self.openai_api_key or "sk-local")
+                response = client.chat.completions.create(
+                    model="qwen2.5-7b-instruct",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=2500,
+                )
+                raw = response.choices[0].message.content.strip()
 
             if raw.startswith("```"):
                 raw = raw.split("```", 2)[1]

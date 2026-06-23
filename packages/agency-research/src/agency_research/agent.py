@@ -125,14 +125,20 @@ class ResearchAgent:
         # Steps 3–5 analyzers
         self.visual_analyzer = VisualAnalyzer(
             anthropic_api_key=self.config.anthropic_api_key,
+            openai_api_base=self.config.openai_api_base,
+            openai_api_key=self.config.openai_api_key,
             dry_run=dry_run,
         )
         self.comment_analyzer = CommentAnalyzer(
             anthropic_api_key=self.config.anthropic_api_key,
+            openai_api_base=self.config.openai_api_base,
+            openai_api_key=self.config.openai_api_key,
             dry_run=dry_run,
         )
         self.adjacency_mapper = AdjacencyMapper(
             anthropic_api_key=self.config.anthropic_api_key,
+            openai_api_base=self.config.openai_api_base,
+            openai_api_key=self.config.openai_api_key,
             dry_run=dry_run,
         )
 
