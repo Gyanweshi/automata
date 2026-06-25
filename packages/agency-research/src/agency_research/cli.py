@@ -64,6 +64,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Named browser-act session to reuse when --browser-act-mode session is selected.",
     )
     p.add_argument(
+        "--playwright-post-dwell-seconds",
+        type=float,
+        default=1.5,
+        help="Seconds to wait on each post/reel page before reading its caption/likes/comments "
+        "(Playwright scraper only). Increase if captions come back empty on a slow connection.",
+    )
+    p.add_argument(
         "--instagram-login-mode",
         choices=["auto", "manual"],
         default="auto",
@@ -238,6 +245,7 @@ def main():
         instagram_login_mode=args.instagram_login_mode,
         browser_act_mode=browser_act_mode or "stealth",
         browser_act_session_name=browser_act_session_name or None,
+        playwright_post_dwell_seconds=args.playwright_post_dwell_seconds,
     )
     parallel_note = f", parallel: {args.max_workers} workers" if args.parallel else ""
     print(f"Running research for '{brand.name}' (scraper: {args.scraper}{parallel_note})...")

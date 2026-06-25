@@ -20,23 +20,19 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 4. **Run the scraper**:
    ```bash
-   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper playwright|apify|browser-act|cdp] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
+   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper playwright|cdp|apify|browser-act] [--playwright-post-dwell-seconds 1.5] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
    ```
 
-   Default scraper is `apify` (managed scraping; requires `APIFY_API_TOKEN`). Use `playwright` for local browser-based scraping, `browser-act` for browser-act extraction, or `cdp` for a logged-in Chrome DevTools session. When using `browser-act`, set `--browser-act-proxy-region` or `BROWSER_ACT_PROXY_REGION` to try a dynamic proxy region on gated pages, or use `--browser-act-mode session` with a reusable session name. When using `playwright`, `--instagram-login-mode manual` opens a visible browser for a one-time manual login and then reuses the saved session.
-   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper cdp|playwright|browser-act] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
-   ```
+   The CLI's hardcoded default is `cdp` (drives a logged-in Chrome DevTools session via the in-repo `agents/automata_core/ig-research` tool — see `scripts/open-instagram-session.ps1 -Mode cdp`), but `playwright` is the recommended choice for Instagram: it is the only scraper that reads the real caption, like count, comment count, and date off each post's `og:description` meta tag (CDP only gets engagement counts, no captions). No Apify token needed for either. On a one-time first run, do `--instagram-login-mode manual` to open a visible browser and log in once — it's saved to `~/.agency/ig_session.json` and reused after that. If captions/likes come back empty on a slow connection, raise `--playwright-post-dwell-seconds` (default 1.5s) to give each post page more time to settle before reading it.
 
-   Default scraper is `cdp` (drives a logged-in Chrome DevTools session via the in-repo `agents/automata_core/ig-research` tool — see `scripts/open-instagram-session.ps1 -Mode cdp`). Use `playwright` for local browser-based scraping, or `browser-act` for browser-act extraction. When using `browser-act`, set `--browser-act-proxy-region` or `BROWSER_ACT_PROXY_REGION` to try a dynamic proxy region on gated pages, or use `--browser-act-mode session` with a reusable session name. When using `playwright`, `--instagram-login-mode manual` opens a visible browser for a one-time manual login and then reuses the saved session.
+   Use `browser-act` for stealth/session extraction, or `apify` for managed scraping (requires `APIFY_API_TOKEN`) — neither is needed for normal Instagram research.
 
    If Instagram rendered pages hit a login wall, do not keep retrying public extraction. Ask the user to complete the one-time login helper, then rerun with the matching scraper:
 
    ```powershell
-   .\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
-   .\scripts\open-instagram-session.ps1 -Mode cdp -WaitForEnter
+   .\scripts\run-agent.ps1 research -Brand <brand-slug> -Scraper playwright -InstagramLoginMode manual -Platforms ig
+   .\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9222 -WaitForEnter
    .\scripts\run-agent.ps1 research -Brand <brand-slug> -Scraper cdp -Platforms ig
-   .\scripts\open-instagram-session.ps1 -Mode browser-act -BrowserActSessionName instagram-main -WaitForEnter
-   .\scripts\run-agent.ps1 research -Brand <brand-slug> -Scraper browser-act -Platforms ig -BrowserActMode session -BrowserActSessionName instagram-main
    ```
 
    Use `--parallel --max-workers 4` when the brand has multiple independent sources or competitors to research. Add `--notebooklm` to feed the markdown report into a NotebookLM notebook for AI synthesis. Use `--dry-run` first if the user just wants to verify config.
@@ -56,8 +52,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 ## Platform Notes
 
-- **Instagram**: use `apify` by default for managed scraping with `APIFY_API_TOKEN`, `playwright` for local browser-based scraping, `browser-act` for stealth/session extraction, or `cdp` for a user-logged-in Chrome profile opened by `scripts/open-instagram-session.ps1`.
-- **Instagram**: use `cdp` by default (a user-logged-in Chrome profile opened by `scripts/open-instagram-session.ps1`), `playwright` for local browser-based scraping, or `browser-act` for stealth/session extraction.
+- **Instagram**: use `playwright` — local browser-based scraping that captures real captions/likes/comments via `og:description`, one-time manual login. `cdp` (CLI default) works off a user-logged-in Chrome profile via `scripts/open-instagram-session.ps1` but only gets engagement counts, no captions. `browser-act` for stealth/session extraction or `apify` for managed scraping are available but unnecessary for normal use.
 - **LinkedIn** (Apify): requires `APIFY_API_TOKEN` env var. If missing, skip with a note.
 - **Facebook** (Graph API + Apify): owned pages need `FB_PAGE_ACCESS_TOKEN`; competitor pages need `APIFY_API_TOKEN`.
 

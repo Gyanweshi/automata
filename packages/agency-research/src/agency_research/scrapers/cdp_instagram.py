@@ -170,30 +170,6 @@ class CDPInstagramScraper:
                 len(competitor_handles),
             )
 
-            # Symlink projects/<slug> into ig-research so the script can find it
-            projects_dir = IG_RESEARCH_DIR / "projects"
-            slug = "agency-research-tmp"
-            link = projects_dir / slug
-            link.unlink(missing_ok=True)
-            link.symlink_to(project_dir)
-
-            try:
-                result = subprocess.run(
-                    ["node", str(SCRAPE_SCRIPT), slug],
-                    cwd=str(IG_RESEARCH_DIR),
-                    capture_output=True,
-                    text=True,
-                    timeout=600,
-                )
-                if result.returncode != 0:
-                    logger.warning(
-                        "[CDPInstagramScraper] scrape.js exited %d: %s",
-                        result.returncode,
-                        result.stderr[:500],
-                    )
-                    return [], []
-            finally:
-                link.unlink(missing_ok=True)
             result = subprocess.run(
                 ["node", str(SCRAPE_SCRIPT), str(project_dir)],
                 cwd=str(IG_RESEARCH_DIR),

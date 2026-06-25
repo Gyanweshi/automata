@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from pathlib import Path
 from collections import Counter, defaultdict
@@ -18,6 +19,47 @@ from agency_common.models import CompetitorAnalysis, PostData
 logger = logging.getLogger(__name__)
 
 SESSION_PATH = Path.home() / ".agency" / "ig_session.json"
+
+# Instagram's og:description / meta description on every post and reel page
+# follows this exact shape, e.g.:
+#   '12 likes, 3 comments - someuser on June 24, 2026: "caption text here". '
+# This works for any public post/reel — no brand- or account-specific assumptions.
+_OG_DESCRIPTION_RE = re.compile(
+    r"^([\d,\.]+[KkMm]?)\s+(?:likes?|views?)"
+    r"(?:,\s+([\d,\.]+[KkMm]?)\s+comments?)?"
+    r"\s+-\s+\S+\s+on\s+(.+?):\s+\"(.*)\"\.\s*$",
+    re.DOTALL,
+)
+
+
+def _parse_count(raw: str | None) -> int:
+    if not raw:
+        return 0
+    s = raw.replace(",", "").strip()
+    try:
+        if s.upper().endswith("K"):
+            return int(float(s[:-1]) * 1_000)
+        if s.upper().endswith("M"):
+            return int(float(s[:-1]) * 1_000_000)
+        return int(float(s))
+    except (ValueError, TypeError):
+        return 0
+
+
+def parse_og_description(text: str) -> dict:
+    """Parse Instagram's og:description meta content into likes/comments/date/caption."""
+    if not text:
+        return {"likes": 0, "comments": 0, "timestamp": "", "caption": ""}
+    m = _OG_DESCRIPTION_RE.match(text.strip())
+    if not m:
+        return {"likes": 0, "comments": 0, "timestamp": "", "caption": ""}
+    likes_raw, comments_raw, date_raw, caption = m.groups()
+    return {
+        "likes": _parse_count(likes_raw),
+        "comments": _parse_count(comments_raw),
+        "timestamp": date_raw.strip(),
+        "caption": caption.strip(),
+    }
 
 
 class PlaywrightInstagramScraper:
@@ -34,12 +76,17 @@ class PlaywrightInstagramScraper:
         dry_run: bool = False,
         headless: bool = True,
         manual_login: bool = False,
+        post_dwell_seconds: float = 1.5,
     ):
         self.username = username
         self.password = password
         self.dry_run = dry_run
         self.manual_login = manual_login
         self.headless = False if manual_login else headless
+        # Time to let each individual post page settle before reading its
+        # og:description meta tag. Bump this if captions/likes come back
+        # empty on a slow connection.
+        self.post_dwell_seconds = post_dwell_seconds
         self._browser = None
         self._context = None
         self._page = None
@@ -462,14 +509,16 @@ class PlaywrightInstagramScraper:
         return None
 
     def _extract_posts_from_page(self, handle: str, count: int) -> list[PostData]:
-        """Extract visible post links from a profile page."""
+        """Collect post links from a profile grid, then visit each one to read
+        its real caption/likes/comments off the og:description meta tag.
+        """
         page = self._page
         posts: list[PostData] = []
         try:
-            # Collect post links
-            page.wait_for_selector("a[href*='/p/']", timeout=10000)
+            # Collect post + reel links from the grid
+            page.wait_for_selector("a[href*='/p/'], a[href*='/reel/']", timeout=10000)
             links = page.eval_on_selector_all(
-                "a[href*='/p/']",
+                "a[href*='/p/'], a[href*='/reel/']",
                 "els => els.map(e => e.href)"
             )
             seen = set()
@@ -478,20 +527,45 @@ class PlaywrightInstagramScraper:
                 if link not in seen:
                     seen.add(link)
                     unique_links.append(link)
-
-            for link in unique_links[:count]:
-                shortcode = link.rstrip("/").split("/")[-1]
-                posts.append(PostData(
-                    platform="instagram",
-                    post_id=shortcode,
-                    url=link,
-                    caption="",
-                    likes=0,
-                    comments=0,
-                    media_type="GraphImage",
-                ))
         except Exception as exc:
-            logger.debug(f"Post extraction from profile page failed: {exc}")
+            logger.debug(f"Post link collection from profile page failed: {exc}")
+            return posts
+
+        for link in unique_links[:count]:
+            shortcode = link.rstrip("/").split("/")[-1]
+            media_type = "Reel" if "/reel/" in link else "Image"
+            post = PostData(
+                platform="instagram",
+                post_id=shortcode,
+                url=link,
+                caption="",
+                likes=0,
+                comments=0,
+                media_type=media_type,
+            )
+            try:
+                page.goto(link, wait_until="domcontentloaded", timeout=30000)
+                time.sleep(self.post_dwell_seconds)
+                og_content = page.evaluate(
+                    "() => document.querySelector('meta[property=\"og:description\"]')?.content"
+                    " || document.querySelector('meta[name=\"description\"]')?.content || ''"
+                )
+                parsed = parse_og_description(og_content)
+                post.caption = parsed["caption"]
+                post.likes = parsed["likes"]
+                post.comments = parsed["comments"]
+                post.timestamp = parsed["timestamp"]
+                post.hashtags = [w.lstrip("#") for w in parsed["caption"].split() if w.startswith("#")]
+            except Exception as exc:
+                logger.debug(f"Failed to read post detail for {link}: {exc}")
+            posts.append(post)
+
+        # Return to the profile page so any subsequent grid reads stay valid.
+        try:
+            page.goto(f"https://www.instagram.com/{handle}/", wait_until="domcontentloaded", timeout=30000)
+        except Exception as exc:
+            logger.debug(f"Failed to return to profile page for @{handle}: {exc}")
+
         return posts
 
     def _extract_hashtag_posts(self, tag: str, count: int) -> list[PostData]:

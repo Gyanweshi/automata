@@ -71,6 +71,7 @@ class ResearchAgent:
         instagram_login_mode: str = "auto",
         browser_act_mode: str = "stealth",
         browser_act_session_name: str | None = None,
+        playwright_post_dwell_seconds: float = 1.5,
     ):
         self.config = config or AgencyConfig.from_env()
         self.dry_run = dry_run
@@ -95,6 +96,7 @@ class ResearchAgent:
             self.ig = ig_cls(
                 dry_run=dry_run,
                 manual_login=self.instagram_login_mode == "manual",
+                post_dwell_seconds=playwright_post_dwell_seconds,
             )
         else:
             self.ig = ig_cls(dry_run=dry_run)
