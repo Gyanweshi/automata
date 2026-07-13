@@ -11,7 +11,7 @@
     },
     "playwright": {
       "command": "bash",
-      "args": ["scripts/mcp-npx.sh", "-y", "@playwright/mcp@0.0.73"],
+      "args": ["scripts/mcp-npx.sh", "-y", "@playwright/mcp@0.0.73", "--output-dir", "C:\\Users\\Admin\\.agency\\playwright-mcp-output"],
       "purpose": "Browser automation for public pages, accessibility snapshots, forms, screenshots, and data extraction."
     },
     "firecrawl": {

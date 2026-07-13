@@ -10,7 +10,9 @@
         "-y",
         "@playwright/mcp@0.0.73",
         "--user-data-dir",
-        "C:\\Users\\Admin\\.agency\\chrome-instagram-cdp"
+        "C:\\Users\\Admin\\.agency\\chrome-instagram-cdp",
+        "--output-dir",
+        "C:\\Users\\Admin\\.agency\\playwright-mcp-output"
       ]
     },
     "blender": {
