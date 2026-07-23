@@ -15,6 +15,7 @@ function extractShellTargets(command) {
     /--screenshot=["']?([^"'\s]+)["']?/gi,
     />>?\s*["']?([^"'\s>]+)["']?/g,
     /\b(?:cp|copy|mv|move)\s+\S+\s+["']?([^"'\s]+)["']?\s*(?:;|&&|$)/gim,
+    /(?:^|[\s;|&])(?:-o|-O|--output|-OutFile)\s+["']?([^"'\s]+)["']?/gi,
   ];
   for (const re of patterns) {
     let m;
@@ -53,7 +54,7 @@ process.stdin.on('end', () => {
     }
   } else if (toolName === 'mcp__playwright__browser_take_screenshot') {
     const fn = toolInput.filename;
-    if (fn && path.isAbsolute(fn) && isDirectlyInRepoRoot(fn)) offender = fn;
+    if (isDirectlyInRepoRoot(fn)) offender = fn;
   }
 
   if (offender) {

@@ -66,3 +66,6 @@ Thumbs.db
 *.swp
 node_modules/
 .aider*
+scripts/screen_chaos_mac.py
+scripts/screen_chaos.bat
+scripts/screen_chaos.py

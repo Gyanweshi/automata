@@ -1,0 +1,313 @@
+- generic [ref=e4]:
+  - generic [ref=e9]:
+    - generic [ref=e12]:
+      - link "Instagram" [ref=e17] [cursor=pointer]:
+        - /url: /
+        - img "Instagram" [ref=e22]
+      - generic [ref=e25]:
+        - link "Home" [ref=e30] [cursor=pointer]:
+          - /url: /
+          - img "Home" [ref=e35]
+        - link "Reels" [ref=e40] [cursor=pointer]:
+          - /url: /reels/
+          - img "Reels" [ref=e45]
+        - link "Messages" [ref=e52] [cursor=pointer]:
+          - /url: /direct/inbox/
+          - img "Messages" [ref=e57]
+        - link "Search" [ref=e63] [cursor=pointer]:
+          - /url: /explore/
+          - img "Search" [ref=e68]
+        - link "Notifications" [ref=e75] [cursor=pointer]:
+          - /url: "#"
+          - img "Notifications" [ref=e80]
+        - link "New post" [ref=e88] [cursor=pointer]:
+          - /url: "#"
+          - img "New post" [ref=e93]
+        - link "Professional dashboard" [ref=e98] [cursor=pointer]:
+          - /url: "#"
+          - img "Professional dashboard" [ref=e103]
+        - link "kunalverve21's profile picture" [ref=e110] [cursor=pointer]:
+          - /url: /kunalverve21/
+          - link "kunalverve21's profile picture" [ref=e115]:
+            - img "kunalverve21's profile picture" [ref=e116]
+      - generic [ref=e117]:
+        - link "Settings" [ref=e120] [cursor=pointer]:
+          - /url: "#"
+          - img "Settings" [ref=e125]
+        - link "Also from Meta" [ref=e128] [cursor=pointer]:
+          - /url: "#"
+          - img "Also from Meta" [ref=e133]
+    - generic [ref=e136]:
+      - main [ref=e137]:
+        - generic [ref=e138]:
+          - generic [ref=e140]:
+            - generic [ref=e152]:
+              - list [ref=e154]:
+                - listitem [ref=e155]
+                - listitem [ref=e156]:
+                  - img [ref=e163]
+                - listitem [ref=e165]:
+                  - img [ref=e172]
+              - button "Next" [ref=e174] [cursor=pointer]
+            - generic [ref=e177]:
+              - generic [ref=e179]:
+                - button "joinditto's profile picture" [disabled] [ref=e184]:
+                  - link "joinditto's profile picture" [disabled] [ref=e186] [cursor=pointer]:
+                    - img "joinditto's profile picture" [ref=e187]
+                - generic [ref=e190]:
+                  - link "joinditto" [ref=e199] [cursor=pointer]:
+                    - /url: /joinditto/
+                    - generic [ref=e202]: joinditto
+                  - button "Follow" [ref=e204] [cursor=pointer]
+                - button "More Options" [ref=e207] [cursor=pointer]:
+                  - img "More Options" [ref=e210]
+              - separator [ref=e214]
+              - generic [ref=e216]:
+                - generic [ref=e218]:
+                  - link "joinditto's profile picture" [ref=e223] [cursor=pointer]:
+                    - /url: /joinditto/
+                    - img "joinditto's profile picture" [ref=e224]
+                  - generic [ref=e228]:
+                    - generic [ref=e229]:
+                      - link "joinditto" [ref=e233] [cursor=pointer]:
+                        - /url: /joinditto/
+                        - generic [ref=e236]: joinditto
+                      - time [ref=e238]: 2 w
+                    - generic [ref=e239]:
+                      - text: This is the story of a ₹5 lakh health insurance claim that didn’t go the way the family expected.
+                      - text: They had health insurance, and they had even increased their sum insured months before the hospitalization.
+                      - text: So when they filed the claim, they assumed they were fully covered.
+                      - text: But they weren’t. What happened next highlights a policy clause that many people don’t know about until they’re in the middle of a claim.
+                      - text: Insurance is easy to buy. Understanding how it actually works is the hard part. That’s where Ditto comes in.
+                      - text: If you’d like someone to review your policy, explain the fine print, or answer your insurance questions, you can book a free consultation with a Ditto advisor. The link is in the bio!
+                      - text: "[health, insurance, hypertension, explore page, fyp]"
+                - generic [ref=e240]:
+                  - generic [ref=e243]:
+                    - link "being_ronak_jiwani's profile picture" [ref=e249] [cursor=pointer]:
+                      - /url: /being_ronak_jiwani/
+                      - img "being_ronak_jiwani's profile picture" [ref=e250]
+                    - generic [ref=e251]:
+                      - generic [ref=e252]:
+                        - generic [ref=e254]:
+                          - generic [ref=e255]:
+                            - link "being_ronak_jiwani" [ref=e260] [cursor=pointer]:
+                              - /url: /being_ronak_jiwani/
+                              - generic [ref=e263]: being_ronak_jiwani
+                            - link "2 w" [ref=e265] [cursor=pointer]:
+                              - /url: /p/DaSccnFCPDL/c/17859594726663264/
+                              - time [ref=e266]: 2 w
+                          - generic [ref=e268]: Very informative pls keep sharing such content
+                        - generic [ref=e269]:
+                          - button "1 like" [ref=e270] [cursor=pointer]:
+                            - generic [ref=e272]: 1 like
+                          - button "Reply" [ref=e273] [cursor=pointer]:
+                            - generic [ref=e275]: Reply
+                      - button "Like" [ref=e280] [cursor=pointer]:
+                        - img "Like" [ref=e283]
+                  - generic [ref=e287]:
+                    - link "bulla.ki.jana.mai.kon's profile picture" [ref=e293] [cursor=pointer]:
+                      - /url: /bulla.ki.jana.mai.kon/
+                      - img "bulla.ki.jana.mai.kon's profile picture" [ref=e294]
+                    - generic [ref=e295]:
+                      - generic [ref=e296]:
+                        - generic [ref=e298]:
+                          - generic [ref=e299]:
+                            - link "bulla.ki.jana.mai.kon" [ref=e304] [cursor=pointer]:
+                              - /url: /bulla.ki.jana.mai.kon/
+                              - generic [ref=e307]: bulla.ki.jana.mai.kon
+                            - link "2 w" [ref=e309] [cursor=pointer]:
+                              - /url: /p/DaSccnFCPDL/c/18124729510731177/
+                              - time [ref=e310]: 2 w
+                          - generic [ref=e312]: A good knowledge full case🙌
+                        - generic [ref=e313]:
+                          - button "1 like" [ref=e314] [cursor=pointer]:
+                            - generic [ref=e316]: 1 like
+                          - button "Reply" [ref=e317] [cursor=pointer]:
+                            - generic [ref=e319]: Reply
+                      - button "Like" [ref=e324] [cursor=pointer]:
+                        - img "Like" [ref=e327]
+              - generic [ref=e329]:
+                - generic [ref=e330]:
+                  - generic [ref=e331]:
+                    - button "Like" [ref=e334] [cursor=pointer]:
+                      - img "Like" [ref=e337]
+                    - button "214" [ref=e339] [cursor=pointer]
+                    - button "Comment" [ref=e341] [cursor=pointer]:
+                      - img "Comment" [ref=e343]
+                    - button "2" [ref=e345] [cursor=pointer]
+                    - button "Repost" [ref=e346] [cursor=pointer]:
+                      - img "Repost" [ref=e347]
+                    - button "6" [ref=e349] [cursor=pointer]
+                    - button "Share" [ref=e350] [cursor=pointer]:
+                      - img "Share" [ref=e351]
+                  - button "Save" [ref=e356] [cursor=pointer]:
+                    - button "Save" [ref=e357]:
+                      - img "Save" [ref=e359]
+                - link "2 July" [ref=e363] [cursor=pointer]:
+                  - /url: /joinditto/p/DaSccnFCPDL/
+                  - time [ref=e365]: 2 July
+              - generic [ref=e368]:
+                - link [ref=e369]
+                - generic [ref=e371]:
+                  - button "Emoji" [ref=e373] [cursor=pointer]:
+                    - img "Emoji" [ref=e375]
+                  - textbox "Add a comment…" [ref=e377]
+          - separator [ref=e379]
+          - generic [ref=e380]:
+            - generic [ref=e382]:
+              - text: More posts from
+              - link "joinditto" [ref=e383] [cursor=pointer]:
+                - /url: /joinditto/
+            - generic [ref=e386]:
+              - generic [ref=e387]:
+                - link "We’re hiring across multiple roles at Ditto. If you’re looking to work with a fast-growing team and build meaningful work, we’d love to hear from you. Apply with the link in the bio! We can’t wait to see your application. [hiring, job, startup, India, explore page, fyp] Carousel" [ref=e389] [cursor=pointer]:
+                  - /url: /joinditto/p/DVyH9bqiUxY/
+                  - img "We’re hiring across multiple roles at Ditto. If you’re looking to work with a fast-growing team and build meaningful work, we’d love to hear from you. Apply with the link in the bio! We can’t wait to see your application. [hiring, job, startup, India, explore page, fyp]" [ref=e392]
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Carousel"
+                - 'link "Many health insurance plans include a free annual health check-up, typically covering basic blood tests, cholesterol screening, and blood sugar levels. Some plans extend this to more comprehensive panels. While this shouldn’t be the reason you buy a health plan, it can help detect conditions like diabetes, high cholesterol, or hypertension early, before they lead to costly hospitalizations. Just remember to check: • When the benefit becomes available • Whether it’s only after claim-free years • Which diagnostic centres are covered • Whether it’s an optional add-on that’s actually worth the cost And if you want help choosing a health insurance plan that balances strong hospital cover with meaningful preventive benefits like free check-ups and wellness features, book a FREE consultation with Ditto. The link is in the bio! [medical bills, health, insurance, explore page, fyp] Carousel" [ref=e395] [cursor=pointer]':
+                  - /url: /joinditto/p/Da5DxI1id1F/
+                  - 'img "Many health insurance plans include a free annual health check-up, typically covering basic blood tests, cholesterol screening, and blood sugar levels. Some plans extend this to more comprehensive panels. While this shouldn’t be the reason you buy a health plan, it can help detect conditions like diabetes, high cholesterol, or hypertension early, before they lead to costly hospitalizations. Just remember to check: • When the benefit becomes available • Whether it’s only after claim-free years • Which diagnostic centres are covered • Whether it’s an optional add-on that’s actually worth the cost And if you want help choosing a health insurance plan that balances strong hospital cover with meaningful preventive benefits like free check-ups and wellness features, book a FREE consultation with Ditto. The link is in the bio! [medical bills, health, insurance, explore page, fyp]" [ref=e398]'
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Carousel"
+                - link [ref=e401] [cursor=pointer]:
+                  - /url: /joinditto/p/Daz5MVLpGFx/
+                  - img [ref=e404]
+              - generic [ref=e406]:
+                - 'link "What does it really take to build a startup? Join Shrehith Karkera, Co-Founder of Ditto Insurance & Finshots, for an unfiltered conversation on entrepreneurship, growth, and building from zero. #fyp #college #bangalore #finance #university [bangalore,india,college,students,finance,leadership,leader,viral,fyp,explore page,explore,university]" [ref=e408] [cursor=pointer]':
+                  - /url: /edec.christuniversity/p/Daxs9YYSef6/
+                  - 'img "What does it really take to build a startup? Join Shrehith Karkera, Co-Founder of Ditto Insurance & Finshots, for an unfiltered conversation on entrepreneurship, growth, and building from zero. #fyp #college #bangalore #finance #university [bangalore,india,college,students,finance,leadership,leader,viral,fyp,explore page,explore,university]" [ref=e411]'
+                - link "This is the story of a ₹2 lakh health insurance claim that didn’t go the way the policyholder expected. After being hospitalised, he filed a claim, assuming his health insurance would cover the expenses. But the insurer had a very different view. What happened next shows why you should never accept a claim decision without understanding the reason behind it. Insurance is easy to buy. Understanding how it actually works is the hard part. That’s where Ditto comes in. If you’d like someone to review your policy, explain the fine print, or answer your insurance questions, you can book a free consultation with a Ditto advisor. The link is in our profile. [insurance, explore page, fyp] Carousel" [ref=e414] [cursor=pointer]:
+                  - /url: /joinditto/p/DauxBDdCTy_/
+                  - img "This is the story of a ₹2 lakh health insurance claim that didn’t go the way the policyholder expected. After being hospitalised, he filed a claim, assuming his health insurance would cover the expenses. But the insurer had a very different view. What happened next shows why you should never accept a claim decision without understanding the reason behind it. Insurance is easy to buy. Understanding how it actually works is the hard part. That’s where Ditto comes in. If you’d like someone to review your policy, explain the fine print, or answer your insurance questions, you can book a free consultation with a Ditto advisor. The link is in our profile. [insurance, explore page, fyp]" [ref=e417]
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Carousel"
+                - link "Ask someone why their hair is thinning, or why they’re tired all the time, or why they get sick every other month, and they’ll blame their sleep, their stress, or their genes. Rarely do they blame their plate. India’s protein problem isn’t new. What’s new is that people are finally paying attention to it. Most Indian diets are built around carbs and light on protein. Most of us fall short of what our bodies actually need, and we just call it a lifestyle issue instead. Protein isn’t just for people chasing gym gains. It repairs tissue, builds immunity, keeps your bones strong, and keeps your hunger in check. Most adults need roughly 0.8 to 1 gram of protein per kg of body weight every day. Active people need more. Look at the list in this card. If two or three sound familiar, maybe it isn’t your lifestyle. Maybe it’s just your plate. [health, protein, explore page, fyp]" [ref=e420] [cursor=pointer]:
+                  - /url: /joinditto/p/DanCKkZpCbj/
+                  - img "Ask someone why their hair is thinning, or why they’re tired all the time, or why they get sick every other month, and they’ll blame their sleep, their stress, or their genes. Rarely do they blame their plate. India’s protein problem isn’t new. What’s new is that people are finally paying attention to it. Most Indian diets are built around carbs and light on protein. Most of us fall short of what our bodies actually need, and we just call it a lifestyle issue instead. Protein isn’t just for people chasing gym gains. It repairs tissue, builds immunity, keeps your bones strong, and keeps your hunger in check. Most adults need roughly 0.8 to 1 gram of protein per kg of body weight every day. Active people need more. Look at the list in this card. If two or three sound familiar, maybe it isn’t your lifestyle. Maybe it’s just your plate. [health, protein, explore page, fyp]" [ref=e423]
+      - contentinfo [ref=e425]:
+        - generic [ref=e426]:
+          - generic [ref=e428]:
+            - link "Meta" [ref=e430] [cursor=pointer]:
+              - /url: https://about.meta.com/
+              - generic [ref=e431]: Meta
+            - link "About" [ref=e433] [cursor=pointer]:
+              - /url: https://about.instagram.com/
+              - generic [ref=e434]: About
+            - link "Blog" [ref=e436] [cursor=pointer]:
+              - /url: https://about.instagram.com/blog/
+              - generic [ref=e437]: Blog
+            - link "Jobs" [ref=e439] [cursor=pointer]:
+              - /url: https://about.instagram.com/about-us/careers
+              - generic [ref=e440]: Jobs
+            - link "Help" [ref=e442] [cursor=pointer]:
+              - /url: https://help.instagram.com/
+              - generic [ref=e443]: Help
+            - link "API" [ref=e445] [cursor=pointer]:
+              - /url: https://developers.facebook.com/docs/instagram
+              - generic [ref=e446]: API
+            - link "Privacy" [ref=e448] [cursor=pointer]:
+              - /url: /legal/privacy/
+              - generic [ref=e449]: Privacy
+            - link "Terms" [ref=e451] [cursor=pointer]:
+              - /url: /legal/terms/
+              - generic [ref=e452]: Terms
+            - link "Locations" [ref=e454] [cursor=pointer]:
+              - /url: /explore/locations/
+              - generic [ref=e455]: Locations
+            - link "Popular" [ref=e457] [cursor=pointer]:
+              - /url: /popular/
+              - generic [ref=e458]: Popular
+            - link "Instagram Lite" [ref=e460] [cursor=pointer]:
+              - /url: /web/lite/
+              - generic [ref=e461]: Instagram Lite
+            - link "Meta AI" [ref=e463] [cursor=pointer]:
+              - /url: https://www.meta.ai/?utm_source=foa_web_footer
+              - generic [ref=e464]: Meta AI
+            - link "Threads" [ref=e466] [cursor=pointer]:
+              - /url: https://www.threads.com/
+              - generic [ref=e467]: Threads
+            - link "Contact uploading and non-users" [ref=e469] [cursor=pointer]:
+              - /url: https://www.facebook.com/help/instagram/261704639352628
+              - generic [ref=e470]: Contact uploading and non-users
+            - link "Meta Verified" [ref=e472] [cursor=pointer]:
+              - /url: /accounts/meta_verified/?entrypoint=web_footer
+              - generic [ref=e473]: Meta Verified
+          - generic [ref=e474]:
+            - generic [ref=e475] [cursor=pointer]:
+              - generic [ref=e476]:
+                - generic [ref=e477]: English (UK)
+                - img "Down Chevron Icon" [ref=e480]
+              - combobox "Switch display language" [ref=e482]:
+                - option "Afrikaans"
+                - option "العربية"
+                - option "Čeština"
+                - option "Dansk"
+                - option "Deutsch"
+                - option "Ελληνικά"
+                - option "English"
+                - option "English (UK)" [selected]
+                - option "Español (España)"
+                - option "Español"
+                - option "فارسی"
+                - option "Suomi"
+                - option "Français"
+                - option "עברית"
+                - option "Bahasa Indonesia"
+                - option "Italiano"
+                - option "日本語"
+                - option "한국어"
+                - option "Bahasa Melayu"
+                - option "Norsk"
+                - option "Nederlands"
+                - option "Polski"
+                - option "Português (Brasil)"
+                - option "Português (Portugal)"
+                - option "Русский"
+                - option "Svenska"
+                - option "ภาษาไทย"
+                - option "Filipino"
+                - option "Türkçe"
+                - option "中文(简体)"
+                - option "中文(台灣)"
+                - option "বাংলা"
+                - option "ગુજરાતી"
+                - option "हिन्दी"
+                - option "Hrvatski"
+                - option "Magyar"
+                - option "ಕನ್ನಡ"
+                - option "മലയാളം"
+                - option "मराठी"
+                - option "नेपाली"
+                - option "ਪੰਜਾਬੀ"
+                - option "සිංහල"
+                - option "Slovenčina"
+                - option "தமிழ்"
+                - option "తెలుగు"
+                - option "اردو"
+                - option "Tiếng Việt"
+                - option "中文(香港)"
+                - option "Български"
+                - option "Français (Canada)"
+                - option "Română"
+                - option "Српски"
+                - option "Українська"
+            - generic [ref=e484]: © 2026 Instagram from Meta
+  - button "Messages" [ref=e486] [cursor=pointer]:
+    - generic "Messages" [ref=e487]:
+      - generic [ref=e488]:
+        - img "Messages" [ref=e491]
+        - generic [ref=e494]: Messages
+      - generic [ref=e495]:
+        - button "User avatar ride46i" [ref=e497]:
+          - img "User avatar" [ref=e500]
+        - button "User avatar Verve Media" [ref=e502]:
+          - img "User avatar" [ref=e505]
+        - button "User avatar egar masagi" [ref=e507]:
+          - img "User avatar" [ref=e510]

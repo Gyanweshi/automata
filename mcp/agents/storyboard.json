@@ -18,6 +18,11 @@
         "FREEPIK_API_KEY": "${FREEPIK_API_KEY}"
       },
       "purpose": "Search Freepik assets and generate images or video assets for storyboard and content workflows."
+    },
+    "higgsfield": {
+      "type": "http",
+      "url": "https://mcp.higgsfield.ai/mcp",
+      "purpose": "Generate images (up to 4K) and video (up to 15s) via Soul, Kling, Seedance, Veo, and Cinema Studio models; character training, video analysis/clipping, virality scoring, and background removal. Authenticates via OAuth to your Higgsfield account — no API key."
     }
   }
 }
