@@ -18,7 +18,18 @@ This is an agency multi-agent monorepo for:
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
 - Agent behavior docs: `skills/agency-*/SKILL.md`
 - Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter is the agent config, body is the brand narrative and memory (not committed to repo)
-- Generated outputs: `workspace/<brand-slug>/research/`, `workspace/<brand-slug>/storyboards/`, `workspace/<brand-slug>/content/`
+- Durable research, results, briefs, scripts, captions, plans, and other knowledge Markdown: `$OBSIDIAN_VAULT_PATH/` (use `D:\Brainiac2` as the Windows fallback when unset)
+- Temporary generated working files: `workspace/<brand-slug>/research/`, `workspace/<brand-slug>/storyboards/`, `workspace/<brand-slug>/content/`
+
+## Vault-First Output Policy
+
+- The vault is the final home for research, results, briefs, scripts, captions, content plans, storyboard notes, and other human-readable knowledge artifacts.
+- Code, tests, packages, runtime configuration, caches, and disposable intermediates remain in the repo.
+- Repo `workspace/` outputs and root working copies are temporary. Remove agent-created duplicates after verifying the final Markdown in the vault.
+- Final vault notes require YAML frontmatter with `type`, `status`, `created` or `updated`, and relevant `tags`.
+- Ongoing research/project notes require a concise `## Memory` section of no more than 10 bullets covering decisions, useful findings, rejected directions, current state, and next step.
+- Brand work updates `Brands/<slug>.md` memory. Non-brand research maintains memory in its research note and records durable policy in `memory/DECISIONS.md`.
+- Raw browser dumps, logs, screenshots, and extraction artifacts are not final notes. Retain only for provenance in clearly named vault subfolders; never leave misleading scratch files at the repo root.
 
 Do not duplicate full README content in context files. Keep context operational and concise.
 

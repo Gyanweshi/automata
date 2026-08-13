@@ -180,3 +180,34 @@ class SceneBuilder:
                 notes="Single image must communicate the core idea without a caption.",
             )],
         )]
+
+    def from_script(self, raw_script: list[dict]) -> list[Scene]:
+        """Parse a structured list of scenes into Scene and Shot objects."""
+        scenes: list[Scene] = []
+        for i, scene_data in enumerate(raw_script):
+            shots_data = scene_data.get("shots", [])
+            shots = []
+            for j, shot_data in enumerate(shots_data):
+                shots.append(Shot(
+                    shot_number=shot_data.get("shot_number", j + 1),
+                    shot_type=shot_data.get("shot_type", ""),
+                    subject=shot_data.get("subject", ""),
+                    action=shot_data.get("action", ""),
+                    lighting=shot_data.get("lighting", self.brand.visual.photography_style),
+                    props=shot_data.get("props", []),
+                    notes=shot_data.get("notes", ""),
+                    complexity=shot_data.get("complexity", "simple"),
+                ))
+            
+            scenes.append(Scene(
+                scene_number=scene_data.get("scene_number", i + 1),
+                description=scene_data.get("description", ""),
+                visual_elements=scene_data.get("visual_elements", []),
+                text_overlay=scene_data.get("text_overlay", ""),
+                mood=scene_data.get("mood", self.brand.visual.mood),
+                camera_angle=scene_data.get("camera_angle", ""),
+                duration_seconds=scene_data.get("duration_seconds"),
+                location=scene_data.get("location", ""),
+                shots=shots,
+            ))
+        return scenes

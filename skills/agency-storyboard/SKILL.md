@@ -114,6 +114,32 @@ Instead:
    - Refined generation prompts ready to paste into any AI tool
    - Option to generate with Freepik immediately
 
+## Optional Low-Resolution Source Preparation
+
+When a storyboard must preserve an existing image exactly and its resolution is too
+low for 4K crops or restrained camera motion, use the repo-owned Lanczos helper before
+building frames. This is deterministic resampling, not generative enhancement: it does
+not restore missing detail or authorize geometry changes.
+
+```powershell
+.\scripts\upscale-storyboard-image.ps1 `
+  -InputPath "<source-image>" `
+  -OutputDirectory "workspace/<brand-slug>/storyboards/<run>/upscaled"
+```
+
+The helper performs the proven sequence `source -> exact 4K -> exact 8K`, using the
+4K result as the input to the 8K pass. It preserves aspect ratio, letterboxes when
+needed, sets square pixels, writes PNGs into `4k-exact/` and `8k-exact/`, and refuses
+to overwrite existing outputs unless `-Force` is explicitly supplied.
+
+- Default landscape canvas: `3840x2160`, then `7680x4320`.
+- For vertical work, pass `-Width4K 2160 -Height4K 3840`.
+- Use only when extra pixel density helps cropping, pan/zoom, masking, or delivery.
+- Inspect the 4K result before using the 8K result; stop if ringing, halos, or source
+  compression artifacts become objectionable.
+- Keep these generated files in the run workspace while active. Move final/provenance
+  assets into the matching vault project and remove duplicate workspace copies.
+
 ## Aspect Ratios by Format
 
 | Format | Recommended | Use |

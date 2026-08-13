@@ -1,7 +1,7 @@
 """AI generation prompt writer — structured prompts for image/video tools."""
 from __future__ import annotations
 
-from agency_common.models import BrandProfile, GenerationPrompt, Scene
+from agency_common.models import BrandProfile, GenerationPrompt, Scene, ConsistencyBible
 from agency_common.models import VisualDNA
 
 
@@ -36,6 +36,7 @@ TOOL_SCHEMAS = {
         ],
         "default_aspect": "4:5",
         "prompt_style": "natural_language",
+        "recommended_tier": ["simple"],
         "notes": (
             "Gemini 3 Flash image. Natural-language prose, no numeric lens params "
             "(50mm, f/2.8 are ignored). Supports image grounding for real places "
@@ -49,6 +50,7 @@ TOOL_SCHEMAS = {
         ],
         "default_aspect": "4:5",
         "prompt_style": "natural_language",
+        "recommended_tier": ["hands_or_mechanical", "full_scene"],
         "notes": (
             "Gemini 3 Pro image. Thinking mode for complex/spatial scenes, up to "
             "14 reference images. ~$0.15/img — use for hero/key visuals."
@@ -173,29 +175,55 @@ class PromptWriter:
         scene: Scene,
         tool: str = "freepik_image",
         aspect_ratio: str | None = None,
+        bible: ConsistencyBible | None = None,
+        reference_id: str | None = None,
     ) -> GenerationPrompt:
         """Convert a scene into a generation prompt for the specified tool."""
         schema = TOOL_SCHEMAS.get(tool, TOOL_SCHEMAS["generic"])
         ar = aspect_ratio or schema["default_aspect"]
         brand_style = self._brand_style_string()
 
+        # Avoid brand's listed visual avoidances
+        avoid = ", ".join(self.brand.visual.avoid_visuals)
+        negative = f"{UNIVERSAL_NEGATIVE}, {avoid}".strip(", ")
+
         shot_desc = ""
+        complexity = "simple"
         if scene.shots:
             shot = scene.shots[0]
+            complexity = shot.complexity
             shot_desc = (
                 f"{shot.shot_type} shot, subject: {shot.subject}, "
                 f"{shot.action}, lighting: {shot.lighting}"
             )
+            
+            # Shot-aware negative prompts
+            subject_action = (shot.subject + " " + shot.action).lower()
+            if any(k in subject_action for k in ["hand", "grip", "lever", "handlebar"]) or complexity == "hands_or_mechanical":
+                negative = f"{negative}, malformed hands, extra fingers, warped or duplicated mechanical geometry"
+            
+            if "macro" in shot.shot_type.lower() or "close-up" in shot.shot_type.lower() or "close up" in shot.shot_type.lower():
+                negative = f"{negative}, not black and white, not monochrome, full-color photograph"
 
         visual_elements = ", ".join(scene.visual_elements) if scene.visual_elements else ""
+        
+        bible_str = ""
+        if bible:
+            bible_parts = []
+            if bible.subject_descriptors:
+                bible_parts.append("Subject: " + ", ".join(bible.subject_descriptors))
+            if bible.wardrobe:
+                bible_parts.append("Wardrobe: " + ", ".join(bible.wardrobe))
+            if bible.equipment:
+                bible_parts.append("Equipment: " + ", ".join(bible.equipment))
+            if bible.color_grade:
+                bible_parts.append(f"Color grade: {bible.color_grade}")
+            bible_str = ", ".join(bible_parts)
+
         positive = (
-            f"{scene.description}, {visual_elements}, {shot_desc}, "
+            f"{bible_str}, {scene.description}, {visual_elements}, {shot_desc}, "
             f"mood: {scene.mood}, {brand_style}"
         ).strip(", ")
-
-        # Avoid brand's listed visual avoidances
-        avoid = ", ".join(self.brand.visual.avoid_visuals)
-        negative = f"{UNIVERSAL_NEGATIVE}, {avoid}".strip(", ")
 
         additional: dict = {}
         if tool == "freepik_video" and scene.duration_seconds:
@@ -203,7 +231,7 @@ class PromptWriter:
         if tool == "blender" and scene.shots:
             additional["camera_angle"] = scene.shots[0].camera_angle
 
-        return GenerationPrompt(
+        prompt = GenerationPrompt(
             tool=tool,
             positive_prompt=positive,
             negative_prompt=negative,
@@ -211,15 +239,20 @@ class PromptWriter:
             aspect_ratio=ar,
             additional_params=additional,
         )
+        if reference_id:
+            prompt.reference_creation_ids = [reference_id]
+        return prompt
 
     def storyboard_prompts(
         self,
         scenes: list[Scene],
         tool: str = "freepik_image",
         aspect_ratio: str | None = None,
+        bible: ConsistencyBible | None = None,
+        hero_reference_id: str | None = None,
     ) -> list[GenerationPrompt]:
         """Generate one prompt per scene."""
-        return [self.scene_to_prompt(scene, tool=tool, aspect_ratio=aspect_ratio) for scene in scenes]
+        return [self.scene_to_prompt(scene, tool=tool, aspect_ratio=aspect_ratio, bible=bible, reference_id=hero_reference_id) for scene in scenes]
 
     def standalone_image_prompt(
         self,

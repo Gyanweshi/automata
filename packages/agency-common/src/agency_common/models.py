@@ -2,13 +2,20 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Literal
 from pydantic import BaseModel, Field
 
 
 # ---------------------------------------------------------------------------
 # Brand Profile
 # ---------------------------------------------------------------------------
+
+class ConsistencyBible(BaseModel):
+    subject_descriptors: list[str] = Field(default_factory=list)
+    wardrobe: list[str] = Field(default_factory=list)
+    equipment: list[str] = Field(default_factory=list)
+    color_grade: str = ""
+
 
 class BrandVoice(BaseModel):
     formal_casual: int = Field(5, ge=1, le=10, description="1=extremely formal, 10=extremely casual")
@@ -399,6 +406,7 @@ class Shot(BaseModel):
     lighting: str = ""
     props: list[str] = Field(default_factory=list)
     notes: str = ""
+    complexity: Literal["simple", "hands_or_mechanical", "full_scene"] = "simple"
 
 
 class Scene(BaseModel):
@@ -409,6 +417,7 @@ class Scene(BaseModel):
     mood: str = ""
     camera_angle: str = ""
     duration_seconds: Optional[int] = None
+    location: str = ""
     shots: list[Shot] = Field(default_factory=list)
 
 
@@ -418,6 +427,7 @@ class GenerationPrompt(BaseModel):
     negative_prompt: str = ""
     style: str = ""
     aspect_ratio: str = "1:1"
+    reference_creation_ids: list[str] = Field(default_factory=list)
     additional_params: dict[str, Any] = Field(default_factory=dict)
 
 
