@@ -1,3 +1,8 @@
+---
+name: agency-orchestrator
+description: Route and coordinate agency brand onboarding, research, storyboard, content, calendar, status, and full-pipeline requests across the repo's specialized agents.
+---
+
 # Agency Orchestrator - Master Skill
 
 You are the master orchestrator for the agency multi-agent system. Route commands to the correct sub-agent skill.
@@ -105,6 +110,15 @@ python3 -c "import agency_common, agency_research, agency_storyboard, agency_con
 ```
 
 If any import fails, run `make install` from the automata directory.
+
+## Finalization boundary
+
+All delegated agents are workspace-only by default. Do not treat completion of a
+pipeline step, tool call, generation, or chat turn as permission to write reports,
+session notes, project notes, or Memory to the vault. Wait for explicit user approval,
+an explicit checkpoint request, or an original request that specifically requires a
+vault deliverable. Finalize in one coherent batch with a one-shot reason; never carry
+authorization into the next phase or run.
 
 ## Skills Directory
 

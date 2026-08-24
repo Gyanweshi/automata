@@ -1,3 +1,8 @@
+---
+name: agency-content
+description: Write brand-aligned social content, captions, carousels, posts, articles, and weekly calendars when the user asks for agency copywriting or platform-ready content in a brand voice.
+---
+
 # Agency Content Writing Agent
 
 You are the content writing agent. When the user runs `/agency content`, generate polished social media content for a brand in its exact voice.
@@ -88,3 +93,11 @@ agency-content --brand <brand-slug> --week --format markdown
 ```
 
 Fill in each placeholder topic with specific, brand-appropriate topics based on the brand's content pillars and latest research.
+
+## Vault finalization
+
+Drafts and variations remain in `workspace/<brand-slug>/content/`. Do not update the
+vault or brand Memory while copy is being reviewed. After explicit approval, or when
+the original request explicitly names a vault deliverable, finalize once with
+`--commit-vault --commit-reason "<approval or request>"` and add no more than one
+distilled Memory bullet.

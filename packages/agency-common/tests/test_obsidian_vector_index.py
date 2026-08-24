@@ -403,7 +403,14 @@ def test_process_session_file_appends_backlinks_and_upserts(tmp_path):
     note_path.write_text("Session transcript", encoding="utf-8")
     collection = FakeCollection()
 
-    assert process_session_file(note_path, collection, n_results=2, stability_seconds=0)
+    assert process_session_file(
+        note_path,
+        collection,
+        n_results=2,
+        stability_seconds=0,
+        commit_vault=True,
+        commit_reason="approved test output",
+    )
 
     updated_content = note_path.read_text(encoding="utf-8")
     assert "### Related Concepts\n- [[Architecture]]\n- [[Agents]]" in updated_content
@@ -459,7 +466,13 @@ def test_process_unlinked_sessions_counts_only_processed_markdown(tmp_path):
     (tmp_path / "Session_2.md").write_text("Session two\n\n### Related Concepts\n- [[Done]]", encoding="utf-8")
     (tmp_path / ".syncthing.tmp").write_text("temp", encoding="utf-8")
 
-    assert process_unlinked_sessions(tmp_path, FakeCollection(), stability_seconds=0) == 1
+    assert process_unlinked_sessions(
+        tmp_path,
+        FakeCollection(),
+        stability_seconds=0,
+        commit_vault=True,
+        commit_reason="approved test output",
+    ) == 1
 
 
 def test_load_chroma_dependencies_reports_missing_dependency(monkeypatch):

@@ -350,6 +350,8 @@ def process_session_file(
     *,
     n_results: int = 3,
     stability_seconds: float = DEFAULT_SESSION_STABILITY_SECONDS,
+    commit_vault: bool = False,
+    commit_reason: str | None = None,
 ) -> bool:
     """
     Add related-note backlinks to one session file and upsert it into Chroma.
@@ -378,6 +380,13 @@ def process_session_file(
     updated_content = append_related_concepts(content, related_links)
 
     if related_links:
+        from .vault_write_gate import require_vault_write
+        require_vault_write(
+            commit_vault=commit_vault,
+            commit_reason=commit_reason,
+            operation="session backlink update",
+            target=file_path,
+        )
         try:
             file_path.write_text(f"{updated_content}\n", encoding="utf-8")
         except OSError:
@@ -400,6 +409,8 @@ def process_unlinked_sessions(
     *,
     n_results: int = 3,
     stability_seconds: float = DEFAULT_SESSION_STABILITY_SECONDS,
+    commit_vault: bool = False,
+    commit_reason: str | None = None,
 ) -> int:
     """Process all stable, unlinked Markdown session files in the sessions directory."""
     processed_count = 0
@@ -409,6 +420,8 @@ def process_unlinked_sessions(
             collection,
             n_results=n_results,
             stability_seconds=stability_seconds,
+            commit_vault=commit_vault,
+            commit_reason=commit_reason,
         ):
             processed_count += 1
 
@@ -422,6 +435,8 @@ def run_session_watchdog(
     collection_name: str = DEFAULT_COLLECTION_NAME,
     n_results: int = 3,
     stability_seconds: float = DEFAULT_SESSION_STABILITY_SECONDS,
+    commit_vault: bool = False,
+    commit_reason: str | None = None,
 ) -> None:
     """Continuously monitor Agent_Sessions and link new stable session notes."""
     if interval_seconds <= 0:
@@ -439,6 +454,8 @@ def run_session_watchdog(
                 collection,
                 n_results=n_results,
                 stability_seconds=stability_seconds,
+                commit_vault=commit_vault,
+                commit_reason=commit_reason,
             )
             time.sleep(interval_seconds)
     except KeyboardInterrupt:

@@ -1,4 +1,4 @@
-.PHONY: install install-skills uninstall test pipeline clean help
+.PHONY: install install-skills install-housekeeper-watchdog uninstall test pipeline clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -13,6 +13,8 @@ BROWSER_ACT_MODE ?= stealth
 BROWSER_ACT_SESSION_NAME ?=
 PLATFORMS ?=
 VENV ?= .venv
+RETENTION_DAYS ?= 7
+DAILY_AT ?= 03:00
 
 ifeq ($(OS),Windows_NT)
 PYTHON ?= $(VENV)/Scripts/python.exe
@@ -43,6 +45,7 @@ help:
 	@echo "Setup:"
 	@echo "  make install        Install all packages in editable mode"
 	@echo "  make install-skills Symlink skills to ~/.claude/skills/"
+	@echo "  make install-housekeeper-watchdog  Install the native cleanup scheduler"
 	@echo "  make uninstall      Uninstall all packages"
 	@echo ""
 	@echo "Run agents (set BRAND=my-client TOPIC='...' TYPE=carousel):"
@@ -74,6 +77,9 @@ install:
 
 install-skills:
 	bash scripts/install-skills.sh
+
+install-housekeeper-watchdog:
+	$(PYTHON) scripts/install-housekeeper-watchdog.py --daily-at $(DAILY_AT) --retention-days $(RETENTION_DAYS)
 
 uninstall:
 	$(PIP) uninstall -y agency-common agency-research agency-storyboard agency-content
@@ -116,6 +122,4 @@ test:
 	$(PYTHON) -m pytest packages/*/tests -v
 
 clean:
-	rm -rf $(WORKSPACE)/*
-	touch $(WORKSPACE)/.gitkeep
-	@echo "Workspace cleaned."
+	$(PYTHON) -m agency_common.housekeeping clear-workspace --repo . --confirm quarantine-workspace --retention-days $(RETENTION_DAYS)

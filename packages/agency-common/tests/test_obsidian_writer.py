@@ -2,6 +2,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 import frontmatter
+import pytest
 
 from agency_common import obsidian_writer
 from agency_common.obsidian_writer import (
@@ -13,10 +14,11 @@ from agency_common.obsidian_writer import (
     log_agent_session_with_related_notes,
     update_brand_memory,
 )
+from agency_common.vault_write_gate import VaultWriteBlockedError
 
 
 def test_get_sessions_dir_creates_agent_sessions_directory(tmp_path):
-    sessions_dir = get_sessions_dir(vault_path=tmp_path)
+    sessions_dir = get_sessions_dir(vault_path=tmp_path, create=True)
 
     assert sessions_dir == tmp_path / "Agent_Sessions"
     assert sessions_dir.is_dir()
@@ -86,6 +88,8 @@ def test_log_agent_session_writes_utf8_markdown(monkeypatch, tmp_path):
         "Draft a caption",
         "Agent: Café launch caption ready.",
         tags=["content"],
+        commit_vault=True,
+        commit_reason="approved test output",
     )
 
     assert output_path == tmp_path / "Agent_Sessions" / "Session_2026-05-03_14-30-00.md"
@@ -106,7 +110,9 @@ def test_log_agent_session_uses_suffix_when_filename_exists(monkeypatch, tmp_pat
     monkeypatch.setattr(obsidian_writer, "datetime", FixedDateTime)
     monkeypatch.setenv("OBSIDIAN_VAULT_PATH", str(tmp_path))
 
-    output_path = log_agent_session("Agent", "Task", "Transcript")
+    output_path = log_agent_session(
+        "Agent", "Task", "Transcript", commit_vault=True, commit_reason="approved test output"
+    )
 
     assert output_path == sessions_dir / "Session_2026-05-03_14-30-00_02.md"
 
@@ -133,7 +139,10 @@ def test_update_brand_memory_creates_section_when_absent(tmp_path):
     brand_md = brands_dir / "maple.md"
     brand_md.write_text("# Maple\n\nSome body text.", encoding="utf-8")
 
-    result = update_brand_memory("maple", "carousel brief for topic A.", vault_path=tmp_path)
+    result = update_brand_memory(
+        "maple", "carousel brief for topic A.", vault_path=tmp_path,
+        commit_vault=True, commit_reason="approved test output",
+    )
 
     assert result is True
     content = brand_md.read_text(encoding="utf-8")
@@ -150,7 +159,10 @@ def test_update_brand_memory_appends_to_existing_section(tmp_path):
         encoding="utf-8",
     )
 
-    update_brand_memory("maple", "second insight.", vault_path=tmp_path)
+    update_brand_memory(
+        "maple", "second insight.", vault_path=tmp_path,
+        commit_vault=True, commit_reason="approved test output",
+    )
 
     content = brand_md.read_text(encoding="utf-8")
     assert "first insight." in content
@@ -164,7 +176,10 @@ def test_update_brand_memory_trims_to_ten_bullets(tmp_path):
     existing_bullets = "\n".join(f"- 2026-05-01: insight {i}." for i in range(10))
     brand_md.write_text(f"# Maple\n\n## Memory\n\n{existing_bullets}\n", encoding="utf-8")
 
-    update_brand_memory("maple", "newest insight.", vault_path=tmp_path)
+    update_brand_memory(
+        "maple", "newest insight.", vault_path=tmp_path,
+        commit_vault=True, commit_reason="approved test output",
+    )
 
     content = brand_md.read_text(encoding="utf-8")
     bullets = [line for line in content.splitlines() if line.strip().startswith("-")]
@@ -174,7 +189,10 @@ def test_update_brand_memory_trims_to_ten_bullets(tmp_path):
 
 
 def test_update_brand_memory_returns_false_when_brand_note_missing(tmp_path):
-    result = update_brand_memory("nonexistent-brand", "some insight.", vault_path=tmp_path)
+    result = update_brand_memory(
+        "nonexistent-brand", "some insight.", vault_path=tmp_path,
+        commit_vault=True, commit_reason="approved test output",
+    )
     assert result is False
 
 
@@ -187,7 +205,10 @@ def test_update_brand_memory_ignores_html_comments_in_memory_section(tmp_path):
         encoding="utf-8",
     )
 
-    update_brand_memory("maple", "real insight.", vault_path=tmp_path)
+    update_brand_memory(
+        "maple", "real insight.", vault_path=tmp_path,
+        commit_vault=True, commit_reason="approved test output",
+    )
 
     content = brand_md.read_text(encoding="utf-8")
     bullets = [line for line in content.splitlines() if line.strip().startswith("-")]
@@ -204,7 +225,10 @@ def test_update_brand_memory_handles_concurrent_writes(tmp_path):
     with ThreadPoolExecutor(max_workers=5) as executor:
         results = list(
             executor.map(
-                lambda i: update_brand_memory("maple", f"parallel insight {i}.", vault_path=tmp_path),
+                lambda i: update_brand_memory(
+                    "maple", f"parallel insight {i}.", vault_path=tmp_path,
+                    commit_vault=True, commit_reason="approved test output",
+                ),
                 range(20),
             )
         )
@@ -236,8 +260,28 @@ def test_log_agent_session_with_related_notes_appends_and_logs(monkeypatch, tmp_
         transcript="**User:** Build me a retrieval engine.",
         tags=["agent-log", "architecture"],
         n_related=2,
+        commit_vault=True,
+        commit_reason="approved test output",
     )
 
     content = output_path.read_text(encoding="utf-8")
 
     assert "### Related Concepts\n- [[Architecture]]\n- [[Agent Harness]]" in content
+
+
+def test_vault_writes_are_blocked_by_default(tmp_path, monkeypatch):
+    monkeypatch.setenv("OBSIDIAN_VAULT_PATH", str(tmp_path))
+
+    with pytest.raises(VaultWriteBlockedError, match="explicit commit_vault=True"):
+        log_agent_session("Agent", "Task", "Transcript")
+
+    assert not (tmp_path / "Agent_Sessions").exists()
+
+
+def test_vault_commit_requires_a_reason(tmp_path):
+    brands_dir = tmp_path / "Brands"
+    brands_dir.mkdir()
+    (brands_dir / "maple.md").write_text("# Maple\n", encoding="utf-8")
+
+    with pytest.raises(VaultWriteBlockedError, match="non-empty commit reason"):
+        update_brand_memory("maple", "insight", vault_path=tmp_path, commit_vault=True)

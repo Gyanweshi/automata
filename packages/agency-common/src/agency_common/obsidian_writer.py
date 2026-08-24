@@ -10,6 +10,7 @@ from typing import Any
 import frontmatter
 
 from .knowledge_reader import DEFAULT_VAULT_ENV_VAR, VaultPathError, get_vault_path
+from .vault_write_gate import require_vault_write
 
 DEFAULT_SESSIONS_DIR = "Agent_Sessions"
 
@@ -23,8 +24,9 @@ def get_sessions_dir(
     vault_path: Path | None = None,
     subdirectory: str = DEFAULT_SESSIONS_DIR,
     env_var: str = DEFAULT_VAULT_ENV_VAR,
+    create: bool = False,
 ) -> Path:
-    """Return the session log directory, creating it when needed."""
+    """Return the session log directory; create it only when explicitly requested."""
     resolved_vault_path = vault_path.expanduser().resolve() if vault_path else get_vault_path(env_var)
     if not resolved_vault_path.exists():
         raise VaultPathError(f"Vault path does not exist: {resolved_vault_path}")
@@ -32,10 +34,11 @@ def get_sessions_dir(
         raise VaultPathError(f"Vault path must be a directory: {resolved_vault_path}")
 
     sessions_dir = resolved_vault_path / subdirectory
-    try:
-        sessions_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise ObsidianWriterError(f"Could not create session log directory: {sessions_dir}") from exc
+    if create:
+        try:
+            sessions_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise ObsidianWriterError(f"Could not create session log directory: {sessions_dir}") from exc
 
     return sessions_dir
 
@@ -96,11 +99,19 @@ def log_agent_session(
     task_summary: str,
     transcript: str,
     tags: list[str] | None = None,
+    *,
+    commit_vault: bool = False,
+    commit_reason: str | None = None,
 ) -> Path:
     """Write an agent session transcript into Agent_Sessions inside the Obsidian vault."""
+    require_vault_write(
+        commit_vault=commit_vault,
+        commit_reason=commit_reason,
+        operation="agent session logging",
+    )
     safe_tags = tags if tags is not None else ["agent-log"]
     timestamp = datetime.now()
-    sessions_dir = get_sessions_dir()
+    sessions_dir = get_sessions_dir(create=True)
     output_path = _next_available_path(sessions_dir, _session_filename(timestamp))
     markdown = build_session_markdown(
         agent_name=agent_name,
@@ -183,6 +194,8 @@ def update_brand_memory(
     insight: str,
     *,
     vault_path: Path | None = None,
+    commit_vault: bool = False,
+    commit_reason: str | None = None,
 ) -> bool:
     """
     Append a distilled one-line insight to the brand's ## Memory section.
@@ -196,6 +209,11 @@ def update_brand_memory(
     itself. The memory is always in context via BrandVoiceEngine.full_brief(),
     with zero retrieval cost.
     """
+    require_vault_write(
+        commit_vault=commit_vault,
+        commit_reason=commit_reason,
+        operation=f"brand memory update for {brand_slug}",
+    )
     try:
         resolved = vault_path.expanduser().resolve() if vault_path else get_vault_path()
     except Exception:
@@ -257,8 +275,16 @@ def log_agent_session_with_related_notes(
     transcript: str,
     tags: list[str] | None = None,
     n_related: int = 3,
+    *,
+    commit_vault: bool = False,
+    commit_reason: str | None = None,
 ) -> Path:
     """Find related notes for the task summary, append them, and log the session."""
+    require_vault_write(
+        commit_vault=commit_vault,
+        commit_reason=commit_reason,
+        operation="agent session logging",
+    )
     from .obsidian_vector_index import get_related_notes
 
     related_links = get_related_notes(query_text=task_summary, n_results=n_related)
@@ -268,4 +294,6 @@ def log_agent_session_with_related_notes(
         task_summary=task_summary,
         transcript=transcript_with_links,
         tags=tags,
+        commit_vault=commit_vault,
+        commit_reason=commit_reason,
     )

@@ -41,6 +41,8 @@ def test_harness_runner_executes_tool_and_returns_final_answer(monkeypatch):
         available_tools={
             "search_second_brain": lambda search_query, num_results=3: f"context:{search_query}:{num_results}",
         },
+        commit_vault=True,
+        commit_reason="test finalization",
     )
 
     answer = runner.run_task("Use the same error handling structure")
@@ -55,6 +57,23 @@ def test_harness_runner_executes_tool_and_returns_final_answer(monkeypatch):
     assert logged[0]["agent_name"] == "Core_Architect"
     assert logged[0]["task_summary"] == "Use the same error handling structure"
     assert "Core_Architect ran `search_second_brain`" in logged[0]["transcript"]
+    assert logged[0]["commit_vault"] is True
+
+
+def test_harness_runner_does_not_log_without_explicit_finalization(monkeypatch):
+    client = FakeClient([
+        SimpleNamespace(message={"role": "assistant", "content": "Done"}, tool_calls=[]),
+    ])
+    logged = []
+    monkeypatch.setattr(
+        "agency_common.harness_runner.log_agent_session_with_related_notes",
+        lambda **kwargs: logged.append(kwargs),
+    )
+
+    runner = HarnessRunner(agent_name="Agent", system_prompt="System", llm_client=client)
+
+    assert runner.run_task("Task") == "Done"
+    assert logged == []
 
 
 def test_harness_runner_supports_openai_style_function_tool_calls(monkeypatch):

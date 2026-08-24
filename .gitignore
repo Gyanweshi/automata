@@ -47,6 +47,7 @@ secrets.yaml
 
 # Local scratch / temp
 .tmp/
+.housekeeper/
 *.stackdump
 data/outputs/
 data/assets/brands/

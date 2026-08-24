@@ -23,6 +23,11 @@
       "type": "http",
       "url": "https://mcp.higgsfield.ai/mcp",
       "purpose": "Generate images (up to 4K) and video (up to 15s) via Soul, Kling, Seedance, Veo, and Cinema Studio models; character training, video analysis/clipping, virality scoring, and background removal. Authenticates via OAuth to your Higgsfield account — no API key."
+    },
+    "magnific": {
+      "type": "http",
+      "url": "https://mcp.magnific.com",
+      "purpose": "Upscale and edit images, generate image/video/audio/3D assets, and browse Magnific creations. Authenticates via OAuth to your Magnific account and uses its credit balance."
     }
   }
 }

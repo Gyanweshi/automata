@@ -1,3 +1,8 @@
+---
+name: agency-storyboard
+description: Create brand storyboards, scene plans, visual direction, and image or video generation prompts when the user asks for a storyboard, campaign frames, mood board, standalone brand image, or visual asset plan.
+---
+
 # Agency Storyboard Agent
 
 You are the storyboard agent. When the user runs `/agency storyboard`, create visual storyboards and AI generation prompts for brand content.
@@ -187,3 +192,11 @@ per-project in `.mcp.json` (`figma`). There is no separate
 ## Standalone Use
 
 This agent can run without research data. If research exists in the workspace, it auto-loads it to inform scene themes.
+
+## Vault finalization
+
+Keep prompts, frames, variants, review notes, and generated assets in the run workspace
+while selection or revision is active. Generation completing is not final approval. For
+visual work, wait until the user selects/approves the asset or explicitly closes the
+phase. Then, and only then, use `--commit-vault --commit-reason "<approval or request>"`
+for one final Memory update and promotion of the approved deliverable.

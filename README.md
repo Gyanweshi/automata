@@ -301,6 +301,7 @@ The project-level MCP config [.mcp.json](.mcp.json) is intentionally empty so MC
 |--------|---------|-------|-----------|---------|
 | `blender` | via `uvx blender-mcp` | Storyboard/3D | No | Blender scene creation and inspection |
 | `freepik-fastmcp` | vendored | Storyboard/content | `FREEPIK_API_KEY` | Freepik search, downloads, Mystic image generation |
+| `magnific` | remote `https://mcp.magnific.com` | Storyboard/content | Magnific OAuth | Magnific upscaling, image/video/audio/3D generation, and creation history |
 | `perplexity` | `@perplexity-ai/mcp-server@0.9.0` | Research | `PERPLEXITY_API_KEY` | Current web search, deep research, and citations |
 | `playwright` | `@playwright/mcp@0.0.73` | Research | No | Browser automation and page extraction |
 | `firecrawl` | `firecrawl-mcp@3.14.1` | Research | `FIRECRAWL_API_KEY` | Search, scrape, crawl, and structured extraction |
@@ -314,6 +315,8 @@ The project-level MCP config [.mcp.json](.mcp.json) is intentionally empty so MC
 Most MCP clients can use the manifests under `mcp/agents/` directly or with small changes. If your harness expects a different format, copy the relevant `command`, `args`, and `env` entries from the agent manifest into that client.
 
 For Codex on this machine, you can register a server manually with:
+
+Magnific is already project-scoped in `.codex/config.toml`. Authenticate it once with `codex mcp login magnific`; the browser OAuth flow uses your Magnific account and stores no API key in this repo.
 
 <details open>
 <summary><strong>Linux, macOS, or WSL</strong></summary>

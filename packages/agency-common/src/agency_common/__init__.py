@@ -42,7 +42,9 @@ from .obsidian_writer import (
     get_sessions_dir,
     log_agent_session,
     log_agent_session_with_related_notes,
+    update_brand_memory,
 )
+from .vault_write_gate import VaultWriteBlockedError, require_vault_write
 from .obsidian_vector_index import (
     VectorIndexError,
     build_vector_database,
@@ -74,7 +76,8 @@ __all__ = [
     "ObsidianWriterError",
     "append_related_concepts", "build_session_markdown",
     "format_related_concepts_section", "get_sessions_dir",
-    "log_agent_session", "log_agent_session_with_related_notes",
+    "log_agent_session", "log_agent_session_with_related_notes", "update_brand_memory",
+    "VaultWriteBlockedError", "require_vault_write",
     "VectorIndexError",
     "build_vector_database", "get_related_notes",
     "process_session_file", "process_unlinked_sessions",

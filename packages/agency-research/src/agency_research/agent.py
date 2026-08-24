@@ -27,7 +27,6 @@ from agency_common.models import (
     ResearchOutput,
     VisualDNA,
 )
-from agency_common.obsidian_writer import update_brand_memory
 from .frameworks import FrameworkOrchestrator
 from .analyzers import (
     AdjacencyMapper,
@@ -332,33 +331,6 @@ class ResearchAgent:
                 adjacency_report=adjacency_report,
             ),
         )
-
-        # Distil one line from this run into brand memory
-        top_insights = []
-        for platform, research in platform_results.items():
-            active = [c for c in research.competitors if c.avg_engagement_rate > 0]
-            if active:
-                top = max(active, key=lambda c: c.avg_engagement_rate)
-                top_insights.append(
-                    f"{platform}: {top.handle} leads at {top.avg_engagement_rate:.1%} engagement"
-                )
-        if visual_dna and visual_dna.pattern_interrupt_opportunity:
-            top_insights.append(
-                f"visual pattern interrupt: {visual_dna.pattern_interrupt_opportunity[:80]}"
-            )
-        if comment_analysis and comment_analysis.content_pillars:
-            top_insights.append(
-                f"audience pillar: {comment_analysis.content_pillars[0][:80]}"
-            )
-
-        insight = (
-            "Research — " + "; ".join(top_insights)
-            if top_insights
-            else f"Research run on {', '.join(platform_results.keys()) or 'no platforms'}."
-        )
-        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
-        if updated:
-            LOGGER.info("Brand memory updated for %s", brand.slug)
 
         return output
 

@@ -42,6 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--format", choices=["json", "summary"], default="summary", help="Output format")
     p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
     p.add_argument(
+        "--commit-vault",
+        action="store_true",
+        help="Finalize this completed output to vault session/Memory notes.",
+    )
+    p.add_argument("--commit-reason", help="Required approval/finalization reason for --commit-vault.")
+    p.add_argument(
         "--scraper",
         choices=["playwright", "apify", "browser-act", "cdp"],
         default="cdp",
@@ -154,6 +160,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     parser = build_parser()
     args = parser.parse_args()
+    if args.commit_vault and not (args.commit_reason or "").strip():
+        parser.error("--commit-reason is required with --commit-vault")
 
     from agency_common.brand_loader import load_brand
     from agency_common.config import AgencyConfig
@@ -284,9 +292,9 @@ def main():
                 s = research.sentiment
                 print(f"  Sentiment: {s.positive_pct}% positive, {s.negative_pct}% negative")
 
-    # Log session to Obsidian vault
-    try:
-        from agency_common.obsidian_writer import log_agent_session
+    # Vault is read-only during ordinary runs. Commit once, after workspace output exists.
+    if args.commit_vault:
+        from agency_common.obsidian_writer import log_agent_session, update_brand_memory
         platform_lines = []
         for platform, research in output.platforms.items():
             platform_lines.append(
@@ -304,9 +312,16 @@ def main():
             task_summary=f"Competitor research for {brand.name}",
             transcript=transcript,
             tags=["research", "competitor-analysis", f"brand/{args.brand}"],
+            commit_vault=True,
+            commit_reason=args.commit_reason,
         )
-    except Exception as exc:
-        print(f"[warn] Could not write session log: {exc}")
+        update_brand_memory(
+            brand_slug=args.brand,
+            insight=f"Research finalized: {output.summary[:180]}",
+            commit_vault=True,
+            commit_reason=args.commit_reason,
+        )
+        print("Vault finalization committed.")
 
     if args.notebooklm and md_path:
         _run_notebooklm(brand.name, args.brand, md_path)

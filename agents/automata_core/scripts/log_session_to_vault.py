@@ -12,7 +12,8 @@ Usage (called by Claude Code Stop hook):
     echo '{"session_id": "...", "stop_hook_active": true}' | python3 log_session_to_vault.py
 
 Usage for the current Codex session:
-    python3 scripts/log_session_to_vault.py --codex-current
+    python3 scripts/log_session_to_vault.py --codex-current --commit-vault \
+      --commit-reason "User requested session finalization"
 """
 from __future__ import annotations
 
@@ -255,6 +256,17 @@ def append_to_brand_note(
 def main() -> int:
     mode = "claude"
     args = sys.argv[1:]
+    if "--commit-vault" not in args:
+        print("Vault Logger: blocked; explicit --commit-vault is required", file=sys.stderr)
+        return 2
+    try:
+        reason_index = args.index("--commit-reason")
+        commit_reason = args[reason_index + 1].strip()
+    except (ValueError, IndexError):
+        commit_reason = ""
+    if not commit_reason:
+        print("Vault Logger: blocked; --commit-reason is required", file=sys.stderr)
+        return 2
     if "--codex-current" in args:
         mode = "codex"
         payload = {"session_id": os.environ.get("CODEX_THREAD_ID", "")}

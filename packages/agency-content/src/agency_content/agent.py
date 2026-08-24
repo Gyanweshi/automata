@@ -12,7 +12,6 @@ from agency_common.models import (
     ResearchOutput,
     StoryboardOutput,
 )
-from agency_common.obsidian_writer import update_brand_memory
 
 from .voice import BrandVoiceEngine
 from .writers import InstagramWriter, LinkedInWriter
@@ -44,8 +43,8 @@ class ContentAgent:
     - Research-informed hashtag recommendations
     - Slot structure for Claude to fill in
 
-    After each run, a one-line distilled insight is written back into the brand
-    note's ## Memory section, so future runs accumulate context without retrieval.
+    Runs are workspace-only. The CLI performs any explicitly authorized final
+    Memory update after the output has been written.
     """
 
     def __init__(self, config: AgencyConfig | None = None):
@@ -82,12 +81,6 @@ class ContentAgent:
             pieces=pieces,
             summary=f"{variations} {platform}/{content_type} brief(s) generated for '{topic}' ({brand.name})",
         )
-
-        # Distil one line from this run into the brand memory — in-place, no separate files.
-        insight = f"{platform}/{content_type} brief for '{topic}' ({variations} variation(s))."
-        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
-        if updated:
-            LOGGER.info("Brand memory updated for %s", brand.slug)
 
         return output
 
@@ -135,11 +128,6 @@ class ContentAgent:
             pieces=pieces,
             summary=f"Weekly content plan: {len(pieces)} briefs generated for {brand.name}",
         )
-
-        insight = f"Weekly plan: {len(pieces)} briefs across instagram/linkedin."
-        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
-        if updated:
-            LOGGER.info("Brand memory updated for %s (weekly plan)", brand.slug)
 
         return output
 

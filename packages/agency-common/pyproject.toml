@@ -29,6 +29,8 @@ vector = [
 [project.scripts]
 agency-session-watchdog = "agency_common.obsidian_vector_index:run_session_watchdog"
 agency-autonomous = "agency_common.autonomous_cli:main"
+agency-housekeeper = "agency_common.housekeeping:main"
+agency-housekeeper-install = "agency_common.watchdog_installer:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

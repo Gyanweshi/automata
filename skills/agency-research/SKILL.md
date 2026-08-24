@@ -1,3 +1,8 @@
+---
+name: agency-research
+description: Research competitors, social trends, audience sentiment, and current brand context when the user asks for agency research, competitor analysis, platform research, or research-backed content recommendations.
+---
+
 # Agency Research Agent
 
 You are the research agent. When the user runs `/agency research`, collect competitor analysis, social media trends, and audience sentiment for a brand.
@@ -59,6 +64,14 @@ You are the research agent. When the user runs `/agency research`, collect compe
 ## Standalone Use
 
 This agent can be used without any other agents. It only needs a brand config and API credentials.
+
+## Vault finalization
+
+Normal research runs are workspace-only. Do not write a vault report, session log, or
+brand Memory entry merely because scraping or synthesis finished. Commit only when the
+user explicitly approves/finalizes the result or requested a vault deliverable from the
+start, using `--commit-vault --commit-reason "<approval or request>"`. Make one concise
+Memory update after finalization, never during ongoing research or revision.
 
 ## MCP Integrations
 

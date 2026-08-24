@@ -6,7 +6,6 @@ from datetime import datetime
 
 from agency_common.config import AgencyConfig
 from agency_common.models import BrandProfile, ResearchOutput, StoryboardOutput
-from agency_common.obsidian_writer import update_brand_memory
 
 from .prompt_writer import PromptWriter
 from .scene_builder import SceneBuilder
@@ -121,10 +120,5 @@ class StoryboardAgent:
                 f"{len(scenes)} scenes, {len(prompts)} generation prompts, tool: {tool}"
             ),
         )
-
-        insight = f"Storyboard: {content_type} for '{topic}' — {len(scenes)} scenes, tool: {tool}."
-        updated = update_brand_memory(brand_slug=brand.slug, insight=insight)
-        if updated:
-            LOGGER.info("Brand memory updated for %s", brand.slug)
 
         return output

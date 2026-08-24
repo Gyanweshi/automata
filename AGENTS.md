@@ -31,6 +31,16 @@ This is an agency multi-agent monorepo for:
 - Brand work updates `Brands/<slug>.md` memory. Non-brand research maintains memory in its research note and records durable policy in `memory/DECISIONS.md`.
 - Raw browser dumps, logs, screenshots, and extraction artifacts are not final notes. Retain only for provenance in clearly named vault subfolders; never leave misleading scratch files at the repo root.
 
+## Vault Write Gate
+
+- Treat the vault as read-only while a task, phase, review, or visual iteration is active. Put drafts, generated options, QA notes, research reports, session logs, and other working material under `workspace/` or another repo-owned temporary directory.
+- A command finishing, an image being generated, or an agent reaching the end of a turn does not mean the work is approved or final.
+- Write to the vault only when the original request explicitly asks for a vault deliverable, or the user explicitly says to finalize, approve, save, publish, commit to vault, or save a checkpoint.
+- For iterative visual work, finalization begins only after the user approves the selected asset or explicitly closes the phase. Do not update brand Memory while options are still being generated or reviewed.
+- Vault authorization is one-shot and target-specific. Do not persist it in an environment variable or reuse it for a later run.
+- On finalization, write the smallest coherent batch: the approved artifact or note, required frontmatter, and at most one distilled Memory update. Verify the vault copy before removing workspace duplicates.
+- Official Python vault writers default to denied. Callers must pass `commit_vault=True` and a non-empty `commit_reason`; CLIs expose this as `--commit-vault --commit-reason "..."`.
+
 Do not duplicate full README content in context files. Keep context operational and concise.
 
 ## Environment Rules
@@ -103,6 +113,7 @@ Storyboard agent:
 
 - `freepik-fastmcp`
 - `blender`
+- `magnific`
 
 Content agent:
 

@@ -32,6 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workspace", "-w", default=None)
     p.add_argument("--brands-dir", default=None)
     p.add_argument("--no-markdown", action="store_true")
+    p.add_argument("--commit-vault", action="store_true", help="Finalize this completed output to brand Memory.")
+    p.add_argument("--commit-reason", help="Required approval/finalization reason for --commit-vault.")
     p.add_argument("--format", choices=["json", "markdown", "summary"], default="summary")
     p.add_argument("--latest", action="store_true", help="Show latest run output")
     p.add_argument("--list", action="store_true", dest="list_runs", help="List past runs")
@@ -41,6 +43,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     parser = build_parser()
     args = parser.parse_args()
+    if args.commit_vault and not (args.commit_reason or "").strip():
+        parser.error("--commit-reason is required with --commit-vault")
 
     from agency_common.brand_loader import load_brand
     from agency_common.config import AgencyConfig
@@ -115,6 +119,16 @@ def main():
     print(f"Content briefs written: {json_path}")
     if md_path:
         print(f"Markdown: {md_path}")
+
+    if args.commit_vault:
+        from agency_common.obsidian_writer import update_brand_memory
+        update_brand_memory(
+            brand_slug=brand.slug,
+            insight=f"Content finalized: {output.summary[:180]}",
+            commit_vault=True,
+            commit_reason=args.commit_reason,
+        )
+        print("Vault finalization committed.")
 
     if args.format == "json":
         print(json.dumps(output.model_dump(), indent=2, default=str))

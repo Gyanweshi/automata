@@ -68,6 +68,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Model name to pass to the LLM client (e.g. gpt-4o, gpt-4o-mini).",
     )
     parser.add_argument("--max-iterations", type=int, default=5)
+    parser.add_argument(
+        "--commit-vault",
+        action="store_true",
+        help="Finalize this completed run to the vault (default: workspace only).",
+    )
+    parser.add_argument(
+        "--commit-reason",
+        help="Required reason/approval reference when --commit-vault is used.",
+    )
     return parser
 
 
@@ -75,6 +84,8 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.commit_vault and not (args.commit_reason or "").strip():
+        parser.error("--commit-reason is required with --commit-vault")
 
     client_kwargs: dict[str, Any] = {}
     if args.model:
@@ -87,6 +98,8 @@ def main(argv: list[str] | None = None) -> int:
             system_prompt=get_persona_prompt(args.agent),
             llm_client=llm_client,
             max_iterations=args.max_iterations,
+            commit_vault=args.commit_vault,
+            commit_reason=args.commit_reason,
         )
         print(f"Booting {args.agent.capitalize()} Agent Engine...")
         final_result = runner.run_task(args.task)
