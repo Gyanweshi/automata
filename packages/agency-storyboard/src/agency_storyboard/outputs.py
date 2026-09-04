@@ -1,4 +1,4 @@
-"""Write storyboard output to workspace as JSON and markdown."""
+"""Write storyboard output as workspace JSON and a human-readable Markdown note."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,8 +15,10 @@ def write_storyboard_output(
     workspace: WorkspaceManager,
     brand_profile=None,
     markdown_dir: Path | None = None,
+    *,
+    status: str = "draft",
 ) -> tuple[Path, Path | None]:
-    """Write StoryboardOutput to workspace. Returns (json_path, md_path)."""
+    """Write StoryboardOutput JSON to workspace and optional Markdown elsewhere."""
     json_path = workspace.write("storyboards", output.brand_slug, output)
 
     md_path = None
@@ -26,6 +28,7 @@ def write_storyboard_output(
         frontmatter = OutputWriter.standard_frontmatter(
             "storyboard", output.brand_slug, output.run_id,
             tags=[output.content_type, "visual"],
+            status=status,
         )
         OutputWriter.write_markdown(md_content, md_path, frontmatter)
 

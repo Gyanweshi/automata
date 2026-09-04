@@ -17,10 +17,16 @@ param(
     [string]$BrowserActMode = "stealth",
     [string]$BrowserActSessionName = "",
     [switch]$Parallel,
-    [int]$MaxWorkers = 4
+    [int]$MaxWorkers = 4,
+    [switch]$CommitVault,
+    [string]$CommitReason = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($CommitVault -and -not $CommitReason.Trim()) {
+    throw "-CommitReason is required with -CommitVault."
+}
 
 $RootDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $RootDir
@@ -75,6 +81,10 @@ $ResearchPlatformArgs = @()
 if ($Platforms) {
     $ResearchPlatformArgs = @("--platforms", $Platforms)
 }
+$VaultArgs = @()
+if ($CommitVault) {
+    $VaultArgs = @("--commit-vault", "--commit-reason", $CommitReason)
+}
 
 switch ($Command) {
     "status" {
@@ -94,22 +104,22 @@ switch ($Command) {
     }
     "dry-run" {
         Invoke-AgencyCli $Research "agency_research.cli" @("--brand", $Brand, "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--dry-run")
-        Invoke-AgencyCli $Content "agency_content.cli" @("--brand", $Brand, "--platform", "instagram", "--type", "caption", "--topic", "test", "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--format", "summary")
+        Invoke-AgencyCli $Content "agency_content.cli" @("--brand", $Brand, "--platform", "instagram", "--type", "caption", "--topic", "test", "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--format", "summary", "--dry-run")
     }
     "research" {
-        $Args = @("--brand", $Brand, "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--scraper", $Scraper, "--instagram-login-mode", $InstagramLoginMode, "--browser-act-mode", $BrowserActMode, "--browser-act-session-name", $BrowserActSessionName) + $ResearchPlatformArgs + $ResearchParallelArgs
+        $Args = @("--brand", $Brand, "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--scraper", $Scraper, "--instagram-login-mode", $InstagramLoginMode, "--browser-act-mode", $BrowserActMode, "--browser-act-session-name", $BrowserActSessionName) + $ResearchPlatformArgs + $ResearchParallelArgs + $VaultArgs
         Invoke-AgencyCli $Research "agency_research.cli" $Args
     }
     "storyboard" {
-        Invoke-AgencyCli $Storyboard "agency_storyboard.cli" @("--brand", $Brand, "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir)
+        Invoke-AgencyCli $Storyboard "agency_storyboard.cli" (@("--brand", $Brand, "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir) + $VaultArgs)
     }
     "content" {
-        Invoke-AgencyCli $Content "agency_content.cli" @("--brand", $Brand, "--platform", "instagram", "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir)
+        Invoke-AgencyCli $Content "agency_content.cli" (@("--brand", $Brand, "--platform", "instagram", "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir) + $VaultArgs)
     }
     "pipeline" {
-        $Args = @("--brand", $Brand, "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--scraper", $Scraper, "--instagram-login-mode", $InstagramLoginMode, "--browser-act-mode", $BrowserActMode, "--browser-act-session-name", $BrowserActSessionName) + $ResearchPlatformArgs + $ResearchParallelArgs
+        $Args = @("--brand", $Brand, "--workspace", $Workspace, "--brands-dir", $BrandsDir, "--scraper", $Scraper, "--instagram-login-mode", $InstagramLoginMode, "--browser-act-mode", $BrowserActMode, "--browser-act-session-name", $BrowserActSessionName) + $ResearchPlatformArgs + $ResearchParallelArgs + $VaultArgs
         Invoke-AgencyCli $Research "agency_research.cli" $Args
-        Invoke-AgencyCli $Storyboard "agency_storyboard.cli" @("--brand", $Brand, "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir)
-        Invoke-AgencyCli $Content "agency_content.cli" @("--brand", $Brand, "--platform", "instagram", "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir)
+        Invoke-AgencyCli $Storyboard "agency_storyboard.cli" (@("--brand", $Brand, "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir) + $VaultArgs)
+        Invoke-AgencyCli $Content "agency_content.cli" (@("--brand", $Brand, "--platform", "instagram", "--type", $Type, "--topic", $Topic, "--workspace", $Workspace, "--brands-dir", $BrandsDir) + $VaultArgs)
     }
 }

@@ -43,8 +43,8 @@ class ContentAgent:
     - Research-informed hashtag recommendations
     - Slot structure for Claude to fill in
 
-    Runs are workspace-only. The CLI performs any explicitly authorized final
-    Memory update after the output has been written.
+    The CLI writes human-readable notes to the vault and keeps machine data in
+    workspace. It performs final-status and Memory writes only when authorized.
     """
 
     def __init__(self, config: AgencyConfig | None = None):

@@ -1,4 +1,4 @@
-"""Write research output to workspace as JSON and markdown."""
+"""Write research output as workspace JSON and a human-readable Markdown note."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,9 +12,11 @@ def write_research_output(
     output: ResearchOutput,
     workspace: WorkspaceManager,
     markdown_dir: Path | None = None,
+    *,
+    status: str = "draft",
 ) -> tuple[Path, Path | None]:
     """
-    Write ResearchOutput to workspace as JSON and optionally as markdown.
+    Write ResearchOutput to workspace as JSON and optionally to a Markdown directory.
     Returns (json_path, md_path).
     """
     json_path = workspace.write("research", output.brand_slug, output)
@@ -26,6 +28,7 @@ def write_research_output(
         frontmatter = OutputWriter.standard_frontmatter(
             "research", output.brand_slug, output.run_id,
             tags=["competitor-analysis"] + list(output.platforms.keys()),
+            status=status,
         )
         OutputWriter.write_markdown(md_content, md_path, frontmatter)
 

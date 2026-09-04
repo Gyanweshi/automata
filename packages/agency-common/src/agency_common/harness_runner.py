@@ -128,7 +128,7 @@ class HarnessRunner:
     def _finalize_vault(self, user_task: str, *, tags: list[str]) -> None:
         """Commit final session/memory state only after explicit authorization."""
         if not self.commit_vault:
-            LOGGER.info("[%s] Vault finalization not requested; workspace state retained.", self.agent_name)
+            LOGGER.info("[%s] Vault finalization not requested; draft state retained.", self.agent_name)
             return
         _write_session_log(
             agent_name=self.agent_name,

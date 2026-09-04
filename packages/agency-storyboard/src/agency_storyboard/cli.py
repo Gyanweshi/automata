@@ -73,7 +73,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workspace", "-w", default=None)
     p.add_argument("--brands-dir", default=None)
     p.add_argument("--no-markdown", action="store_true")
-    p.add_argument("--commit-vault", action="store_true", help="Finalize this completed output to brand Memory.")
+    p.add_argument("--commit-vault", action="store_true", help="Write the Markdown note as final and update brand Memory.")
     p.add_argument("--commit-reason", help="Required approval/finalization reason for --commit-vault.")
     p.add_argument("--format", choices=["json", "markdown", "summary", "prompts"], default="summary")
     p.add_argument("--latest", action="store_true")
@@ -89,6 +89,8 @@ def main():
     args = parser.parse_args()
     if args.commit_vault and not (args.commit_reason or "").strip():
         parser.error("--commit-reason is required with --commit-vault")
+    if args.commit_vault and args.no_markdown:
+        parser.error("--no-markdown cannot be combined with --commit-vault")
 
     from agency_common.brand_loader import load_brand
     from agency_common.config import AgencyConfig
@@ -162,8 +164,24 @@ def main():
         detail_mode=args.detail_mode,
     )
 
-    md_dir = None if args.no_markdown else workspace.root / "storyboards" / args.brand
-    json_path, md_path = write_storyboard_output(output, workspace, brand_profile=brand, markdown_dir=md_dir)
+    note_status = "final" if args.commit_vault else "draft"
+    if args.no_markdown:
+        md_dir = None
+    else:
+        from agency_common.output_writer import OutputWriter
+        md_dir = OutputWriter.vault_markdown_directory(
+            args.brand,
+            "Storyboards",
+            status=note_status,
+            vault_path=config.obsidian_vault_path,
+        )
+    json_path, md_path = write_storyboard_output(
+        output,
+        workspace,
+        brand_profile=brand,
+        markdown_dir=md_dir,
+        status=note_status,
+    )
     print(f"Storyboard written: {json_path}")
     if md_path:
         print(f"Markdown: {md_path}")

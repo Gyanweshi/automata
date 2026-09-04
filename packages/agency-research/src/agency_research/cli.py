@@ -40,11 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--latest", action="store_true", help="Show latest run output and exit")
     p.add_argument("--list", action="store_true", dest="list_runs", help="List past runs and exit")
     p.add_argument("--format", choices=["json", "summary"], default="summary", help="Output format")
-    p.add_argument("--no-markdown", action="store_true", help="Skip writing markdown output to workspace")
+    p.add_argument("--no-markdown", action="store_true", help="Skip writing the Markdown note to the vault")
     p.add_argument(
         "--commit-vault",
         action="store_true",
-        help="Finalize this completed output to vault session/Memory notes.",
+        help="Write the Markdown note as final and update vault session/Memory notes.",
     )
     p.add_argument("--commit-reason", help="Required approval/finalization reason for --commit-vault.")
     p.add_argument(
@@ -162,6 +162,8 @@ def main():
     args = parser.parse_args()
     if args.commit_vault and not (args.commit_reason or "").strip():
         parser.error("--commit-reason is required with --commit-vault")
+    if args.commit_vault and args.no_markdown:
+        parser.error("--no-markdown cannot be combined with --commit-vault")
 
     from agency_common.brand_loader import load_brand
     from agency_common.config import AgencyConfig
@@ -270,9 +272,24 @@ def main():
         max_workers=args.max_workers,
     )
 
-    # Write to workspace
-    md_dir = None if args.no_markdown else workspace.root / "research" / args.brand
-    json_path, md_path = write_research_output(output, workspace, markdown_dir=md_dir)
+    # Machine-readable interchange stays in workspace; human-readable notes live in the vault.
+    note_status = "final" if args.commit_vault else "draft"
+    if args.no_markdown:
+        md_dir = None
+    else:
+        from agency_common.output_writer import OutputWriter
+        md_dir = OutputWriter.vault_markdown_directory(
+            args.brand,
+            "Research",
+            status=note_status,
+            vault_path=config.obsidian_vault_path,
+        )
+    json_path, md_path = write_research_output(
+        output,
+        workspace,
+        markdown_dir=md_dir,
+        status=note_status,
+    )
     print(f"Research complete. Output: {json_path}")
     if md_path:
         print(f"Markdown report: {md_path}")
@@ -292,7 +309,7 @@ def main():
                 s = research.sentiment
                 print(f"  Sentiment: {s.positive_pct}% positive, {s.negative_pct}% negative")
 
-    # Vault is read-only during ordinary runs. Commit once, after workspace output exists.
+    # Canonical session and Memory updates remain approval-gated.
     if args.commit_vault:
         from agency_common.obsidian_writer import log_agent_session, update_brand_memory
         platform_lines = []

@@ -2,19 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Output Location — Always Write to the Vault
+## Output Location — Hybrid Vault Policy
 
-**Never write research, brand work, games, or project outputs to `D:\automata\workspace\` or any subfolder of this repo.** Everything that isn't code goes directly to the Obsidian vault at `D:\Brainiac2`.
+Human-readable research, brand work, briefs, scripts, and project notes go directly to the Obsidian vault at `D:\Brainiac2`. Active notes use `status: draft`; approval changes them to `status: final`. Canonical brand Memory remains approval-gated.
 
 | What | Where in vault |
 |------|---------------|
 | Research (LinkedIn, competitor, market) | `D:\Brainiac2\Research\<topic>\` |
 | Brand work (copy, storyboards, content) | `D:\Brainiac2\Brands\<slug>\` |
-| Agent pipeline JSON outputs | `D:\Brainiac2\workspace\` (via `AGENCY_WORKSPACE` env var — automatic) |
+| Agent pipeline Markdown drafts | `D:\Brainiac2\Brands\<slug>\Drafts\<type>\` |
+| Agent pipeline JSON outputs | `D:\automata\workspace\` (temporary inter-agent data) |
 | Games / side projects | `D:\Brainiac2\Games\<name>\` |
 | Spreadsheets / exports | `D:\Brainiac2\Research\<topic>\` |
 
-The only things that belong in `D:\automata\workspace\` are the `.gitkeep` placeholder files. If you catch yourself writing a `.csv`, `.xlsx`, `.md` research file, or any deliverable into the automata repo, stop and write it to the vault instead.
+Use `D:\automata\workspace\` for machine-readable JSON, browser dumps, logs, screenshots, cookies, browser profiles, masks, previews, generated variants, and other disposable or high-volume intermediates. Do not leave human-readable knowledge drafts or deliverables in the repo.
 
 ## Commands
 

@@ -94,10 +94,12 @@ agency-content --brand <brand-slug> --week --format markdown
 
 Fill in each placeholder topic with specific, brand-appropriate topics based on the brand's content pillars and latest research.
 
-## Vault finalization
+## Hybrid vault finalization
 
-Drafts and variations remain in `workspace/<brand-slug>/content/`. Do not update the
-vault or brand Memory while copy is being reviewed. After explicit approval, or when
-the original request explicitly names a vault deliverable, finalize once with
-`--commit-vault --commit-reason "<approval or request>"` and add no more than one
-distilled Memory bullet.
+Human-readable copy drafts and variations go to
+`$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Content/` with `status: draft`; JSON and
+other machine intermediates remain in `workspace/<brand-slug>/content/`. Do not update
+brand Memory while copy is being reviewed. After explicit approval, or when the original
+request explicitly asks for a final deliverable, use
+`--commit-vault --commit-reason "<approval or request>"` to write the note as final and
+add no more than one distilled Memory bullet.

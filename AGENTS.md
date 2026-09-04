@@ -16,30 +16,32 @@ This is an agency multi-agent monorepo for:
 - Human setup and usage guide: `README.md`
 - Startup-safe MCP config: `.mcp.json` (intentionally empty by default)
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
-- Agent behavior docs: `skills/agency-*/SKILL.md`
+- Canonical agent skills: `skills/*/SKILL.md`
+- Skill discovery shims: `.agents/skills/` for Codex and `.claude/skills/` for Claude Code
 - Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter is the agent config, body is the brand narrative and memory (not committed to repo)
 - Durable research, results, briefs, scripts, captions, plans, and other knowledge Markdown: `$OBSIDIAN_VAULT_PATH/` (use `D:\Brainiac2` as the Windows fallback when unset)
-- Temporary generated working files: `workspace/<brand-slug>/research/`, `workspace/<brand-slug>/storyboards/`, `workspace/<brand-slug>/content/`
+- Machine-readable run data and disposable working files: `workspace/<brand-slug>/research/`, `workspace/<brand-slug>/storyboards/`, `workspace/<brand-slug>/content/`
 
-## Vault-First Output Policy
+## Vault Output Policy
 
-- The vault is the final home for research, results, briefs, scripts, captions, content plans, storyboard notes, and other human-readable knowledge artifacts.
+- The vault is the working and final home for research, results, briefs, scripts, captions, content plans, storyboard notes, and other human-readable knowledge artifacts.
+- Write active brand drafts under `Brands/<slug>/Drafts/<type>/` with `status: draft`. Approved notes live under `Brands/<slug>/<Type>/` with `status: final`.
 - Code, tests, packages, runtime configuration, caches, and disposable intermediates remain in the repo.
-- Repo `workspace/` outputs and root working copies are temporary. Remove agent-created duplicates after verifying the final Markdown in the vault.
+- Keep machine-readable interchange JSON, browser dumps, logs, screenshots, cookies, browser profiles, masks, previews, generated variants, and other disposable or high-volume artifacts in `workspace/`.
+- Repo `workspace/` outputs and root working copies are temporary. Remove agent-created duplicates after verifying any approved asset or human-readable note in the vault.
 - Final vault notes require YAML frontmatter with `type`, `status`, `created` or `updated`, and relevant `tags`.
 - Ongoing research/project notes require a concise `## Memory` section of no more than 10 bullets covering decisions, useful findings, rejected directions, current state, and next step.
 - Brand work updates `Brands/<slug>.md` memory. Non-brand research maintains memory in its research note and records durable policy in `memory/DECISIONS.md`.
-- Raw browser dumps, logs, screenshots, and extraction artifacts are not final notes. Retain only for provenance in clearly named vault subfolders; never leave misleading scratch files at the repo root.
+- Raw browser dumps, logs, screenshots, and extraction artifacts are not vault notes. Keep them in `workspace/`; never leave misleading scratch files at the repo root.
 
-## Vault Write Gate
+## Hybrid Vault Finalization
 
-- Treat the vault as read-only while a task, phase, review, or visual iteration is active. Put drafts, generated options, QA notes, research reports, session logs, and other working material under `workspace/` or another repo-owned temporary directory.
+- Creating a new human-readable draft note in the vault does not require final approval. Do not silently overwrite an existing vault note.
 - A command finishing, an image being generated, or an agent reaching the end of a turn does not mean the work is approved or final.
-- Write to the vault only when the original request explicitly asks for a vault deliverable, or the user explicitly says to finalize, approve, save, publish, commit to vault, or save a checkpoint.
-- For iterative visual work, finalization begins only after the user approves the selected asset or explicitly closes the phase. Do not update brand Memory while options are still being generated or reviewed.
-- Vault authorization is one-shot and target-specific. Do not persist it in an environment variable or reuse it for a later run.
-- On finalization, write the smallest coherent batch: the approved artifact or note, required frontmatter, and at most one distilled Memory update. Verify the vault copy before removing workspace duplicates.
-- Official Python vault writers default to denied. Callers must pass `commit_vault=True` and a non-empty `commit_reason`; CLIs expose this as `--commit-vault --commit-reason "..."`.
+- For iterative visual work, keep generated options and review media in `workspace/`. Copy only the selected asset and necessary provenance into the vault after approval.
+- Canonical brand notes, `## Memory`, final status, approved assets, and destructive overwrites remain approval-gated. Authorization is one-shot and target-specific; do not persist or reuse it.
+- On finalization, promote or write the smallest coherent batch: the approved artifact or note with `status: final`, required frontmatter, and at most one distilled Memory update.
+- Official Python Memory/session writers remain default-deny. Callers pass `commit_vault=True` and a non-empty `commit_reason`; CLIs expose this as `--commit-vault --commit-reason "..."`. Without that flag, CLIs write Markdown as a vault draft and JSON to `workspace/`.
 
 Do not duplicate full README content in context files. Keep context operational and concise.
 

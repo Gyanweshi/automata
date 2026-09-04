@@ -21,7 +21,8 @@ def require_vault_write(
     if not commit_vault:
         raise VaultWriteBlockedError(
             f"Vault write blocked for {operation}.{target_text} "
-            "Finish in workspace, then retry with explicit commit_vault=True and a commit reason."
+            "Keep the working note as a draft, then retry with explicit "
+            "commit_vault=True and a commit reason."
         )
     if not reason:
         raise VaultWriteBlockedError(

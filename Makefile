@@ -15,6 +15,8 @@ PLATFORMS ?=
 VENV ?= .venv
 RETENTION_DAYS ?= 7
 DAILY_AT ?= 03:00
+COMMIT_VAULT ?= 0
+COMMIT_REASON ?=
 
 ifeq ($(OS),Windows_NT)
 PYTHON ?= $(VENV)/Scripts/python.exe
@@ -37,6 +39,12 @@ RESEARCH_PARALLEL_FLAGS := --parallel --max-workers $(MAX_WORKERS)
 endif
 ifneq ($(strip $(PLATFORMS)),)
 RESEARCH_PLATFORM_FLAGS := --platforms $(PLATFORMS)
+endif
+ifeq ($(COMMIT_VAULT),1)
+ifeq ($(strip $(COMMIT_REASON)),)
+$(error COMMIT_REASON is required when COMMIT_VAULT=1)
+endif
+VAULT_FLAGS := --commit-vault --commit-reason "$(COMMIT_REASON)"
 endif
 
 help:
@@ -67,7 +75,7 @@ help:
 
 install:
 	$(PYTHON_CMD) -m venv $(VENV)
-	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install --upgrade "pip>=26.2" "setuptools>=83.0.0"
 	$(PIP) install -e ./packages/agency-common[test]
 	$(PIP) install -e ./packages/agency-research[test]
 	$(PIP) install -e ./packages/agency-storyboard
@@ -85,35 +93,35 @@ uninstall:
 	$(PIP) uninstall -y agency-common agency-research agency-storyboard agency-content
 
 research:
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS)
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS) $(VAULT_FLAGS)
 
 storyboard:
 	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
 
 content:
 	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
 
 pipeline:
 	@echo "==> Research"
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS)
+	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS) $(VAULT_FLAGS)
 	@echo ""
 	@echo "==> Storyboard"
 	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
 	@echo ""
 	@echo "==> Content"
 	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR)
+		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
 
 week:
-	$(AGENCY_CONTENT) --brand $(BRAND) --week --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format markdown
+	$(AGENCY_CONTENT) --brand $(BRAND) --week --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format markdown $(VAULT_FLAGS)
 
 dry-run:
 	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --dry-run
 	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type caption --topic "test" \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format summary
+		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format summary --dry-run
 
 status:
 	$(PIP) show agency-common agency-research agency-storyboard agency-content 2>/dev/null | grep -E "^(Name|Version|Location)"

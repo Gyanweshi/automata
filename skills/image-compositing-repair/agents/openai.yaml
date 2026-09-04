@@ -1,0 +1,3 @@
+interface:
+  display_name: "Image Compositing Repair"
+  short_description: "Deterministic compositing and image repair"

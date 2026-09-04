@@ -18,7 +18,7 @@ You are the master orchestrator for the agency multi-agent system. Route command
 3. If they provide a website URL, run `/market brand <url>` to auto-detect voice dimensions.
 4. Write the brand profile as `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`. Frontmatter contains the structured config; markdown body contains human-readable brand narrative and memory. Never write real brand files to the repo.
 5. The `.md` body must include these sections in order: `## Audience`, `## Platforms` (external links, not wikilinks), `## Competitors` (external links), `## Strategy Notes` (initial decisions from onboarding), `## Memory` (empty block with comment `<!-- Maintained automatically by agents. Max 10 bullets. -->` - do not populate manually).
-6. Create workspace folders: `workspace/<slug>/research/`, `workspace/<slug>/storyboards/`, `workspace/<slug>/content/`.
+6. Create workspace folders for JSON and disposable intermediates: `workspace/<slug>/research/`, `workspace/<slug>/storyboards/`, `workspace/<slug>/content/`. Human-readable drafts go to the matching brand folders in the vault.
 7. Confirm success and show next steps.
 
 ### Run research
@@ -111,14 +111,15 @@ python3 -c "import agency_common, agency_research, agency_storyboard, agency_con
 
 If any import fails, run `make install` from the automata directory.
 
-## Finalization boundary
+## Hybrid finalization boundary
 
-All delegated agents are workspace-only by default. Do not treat completion of a
-pipeline step, tool call, generation, or chat turn as permission to write reports,
-session notes, project notes, or Memory to the vault. Wait for explicit user approval,
-an explicit checkpoint request, or an original request that specifically requires a
-vault deliverable. Finalize in one coherent batch with a one-shot reason; never carry
-authorization into the next phase or run.
+Delegated agents write human-readable notes to the vault with `status: draft`; JSON,
+browser artifacts, generated variants, and other disposable intermediates stay in
+`workspace/`. Do not treat completion of a pipeline step, tool call, generation, or chat
+turn as permission to mark a note final, promote an asset, or update canonical Memory.
+Those actions require explicit user approval, an explicit checkpoint request, or an
+original request for a final deliverable. Finalize in one coherent batch with a one-shot
+reason; never carry authorization into the next phase or run.
 
 ## Skills Directory
 

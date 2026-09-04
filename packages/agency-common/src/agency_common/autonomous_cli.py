@@ -71,7 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--commit-vault",
         action="store_true",
-        help="Finalize this completed run to the vault (default: workspace only).",
+        help="Finalize the session and canonical Memory state in the vault.",
     )
     parser.add_argument(
         "--commit-reason",

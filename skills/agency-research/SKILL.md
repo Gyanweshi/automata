@@ -42,7 +42,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
    Use `--parallel --max-workers 4` when the brand has multiple independent sources or competitors to research. Add `--notebooklm` to feed the markdown report into a NotebookLM notebook for AI synthesis. Use `--dry-run` first if the user just wants to verify config.
 
-5. **Read and synthesize results**: After the CLI writes JSON to workspace, read it with:
+5. **Read and synthesize results**: After the CLI writes machine-readable JSON to workspace and a Markdown draft to the vault, read the latest data with:
    ```bash
    agency-research --brand <brand-slug> --latest --format json
    ```
@@ -53,7 +53,7 @@ You are the research agent. When the user runs `/agency research`, collect compe
    - Audience sentiment breakdown
    - Recommendations for the brand based on findings
 
-6. **Output**: The raw JSON is in `workspace/<brand-slug>/research/`. A markdown report is in the same directory. Mention both paths.
+6. **Output**: The raw JSON is in `workspace/<brand-slug>/research/`. The Markdown report is in `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Research/` with `status: draft`. Mention both paths.
 
 ## Platform Notes
 
@@ -65,13 +65,14 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 This agent can be used without any other agents. It only needs a brand config and API credentials.
 
-## Vault finalization
+## Hybrid vault finalization
 
-Normal research runs are workspace-only. Do not write a vault report, session log, or
-brand Memory entry merely because scraping or synthesis finished. Commit only when the
-user explicitly approves/finalizes the result or requested a vault deliverable from the
-start, using `--commit-vault --commit-reason "<approval or request>"`. Make one concise
-Memory update after finalization, never during ongoing research or revision.
+Normal research runs write the human-readable report to the vault with `status: draft`;
+raw JSON and extraction artifacts stay in `workspace/`. Do not update brand Memory merely
+because scraping or synthesis finished. When the user approves/finalizes the result, or
+requested a final vault deliverable from the start, use
+`--commit-vault --commit-reason "<approval or request>"` to write the report as final and
+make one concise Memory update. Never update Memory during ongoing research or revision.
 
 ## MCP Integrations
 

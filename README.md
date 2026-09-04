@@ -112,7 +112,7 @@ automata/
 | `mcp/agents/` | Agent-scoped MCP manifests |
 | `.mcp.json` | Aggregate MCP config for clients that use one project-level MCP file |
 | `brands/` | Brand configuration files |
-| `workspace/` | Generated research, storyboard, and content outputs |
+| `workspace/` | Temporary JSON, generated variants, and technical intermediates |
 
 ## Fresh Setup
 
@@ -288,7 +288,7 @@ The bootstrap script checks Python, Node, npm, npx, and `uv`; creates `.venv`; i
 Claude Code and Codex sessions can be logged into the Obsidian vault configured by `OBSIDIAN_VAULT_PATH`.
 
 ```bash
-python3 scripts/log_session_to_vault.py --codex-current
+python3 scripts/log_session_to_vault.py --codex-current --commit-vault --commit-reason "user requested session log"
 ```
 
 Session transcripts (both Claude Code and Codex) are written to `Agent_Sessions/` in the vault. This directory is excluded from the vector index so session noise does not pollute second-brain searches. Structured run summaries are written instead to `Brands/<slug>/Agent_Runs/` and are indexed.
@@ -508,13 +508,19 @@ Run the full pipeline:
 
 </details>
 
-Outputs are written to:
+Human-readable Markdown is written to the Obsidian vault as a draft:
 
 ```text
-workspace/<brand-slug>/research/
-workspace/<brand-slug>/storyboards/
-workspace/<brand-slug>/content/
+$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Research/
+$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Storyboards/
+$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Content/
 ```
+
+Machine-readable JSON and disposable media intermediates remain under `workspace/`.
+Pass `--commit-vault --commit-reason "..."` to write the note as final and update
+the brand's distilled Memory.
+
+The PowerShell wrapper accepts the equivalent `-CommitVault -CommitReason "..."` flags.
 
 ## Adding A New Brand
 
@@ -674,6 +680,10 @@ source .venv/bin/activate
 
 **3. Install dependencies**
 ```bash
+# Recommended (reproducible)
+uv sync --locked
+
+# Compatibility fallback
 pip install -r requirements.txt
 ```
 
@@ -746,6 +756,11 @@ Modular capability packages loaded by agents on demand:
 - `visual-image/` — Image creation workflows
 - `visual-video/` — Video production workflows
 - `agency-orchestrator/` — Orchestration logic
+- `image-compositing-repair/` — Deterministic masks, composites, and regional image repair
+- `zen-magnific-automation/` — Recoverable Zen/Selenium automation for Magnific Spaces
+
+Canonical skill packages live in `skills/`. Codex discovers project registrations
+from `.agents/skills/`; Claude Code discovers them from `.claude/skills/`.
 
 ---
 
@@ -767,13 +782,13 @@ All sessions are automatically logged via `core/session_logger.py`.
 
 ## 📁 Data & Outputs
 
-> ⚠️ `data/` and `workspace/` are **gitignored** — generated outputs live only locally.
+> ⚠️ `data/` and `workspace/` are **gitignored** — temporary machine data and intermediates live only locally. Human-readable draft and final notes live in the vault.
 
 | Folder | Contents |
 |---|---|
 | `data/outputs/` | Generated files (slides, docs, reports, videos) |
 | `data/assets/brands/` | Brand asset libraries |
-| `workspace/` | Temporary agent working directories |
+| `workspace/` | Temporary JSON, browser artifacts, generated variants, and agent working directories |
 | `memory/` | Local vector DB and agent memory state |
 
 ---

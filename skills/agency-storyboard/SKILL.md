@@ -96,7 +96,7 @@ Instead:
    - Read `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>.md`. This is the single source of truth for brand-specific visual direction, mood, photography style, and prior decisions.
    - Read the `## Memory` section carefully and build on what has already worked or been rejected.
    - Do not call `search_second_brain` for brand-specific context. Use vault search only for broad topic or reference research that is not already covered in the brand note.
-   - If prior research or content exists in `workspace/<brand-slug>/research/` or `workspace/<brand-slug>/content/`, skim the latest relevant output before storyboarding.
+   - Read prior human-readable research/content in the brand's vault folders. Use the latest workspace JSON only when structured inter-agent data is needed.
 
 3. **Generate the storyboard**:
    ```bash
@@ -191,12 +191,14 @@ per-project in `.mcp.json` (`figma`). There is no separate
 
 ## Standalone Use
 
-This agent can run without research data. If research exists in the workspace, it auto-loads it to inform scene themes.
+This agent can run without research data. If research JSON exists in the workspace, the CLI auto-loads it to inform scene themes; human-readable reports remain available in the vault.
 
-## Vault finalization
+## Hybrid vault finalization
 
-Keep prompts, frames, variants, review notes, and generated assets in the run workspace
-while selection or revision is active. Generation completing is not final approval. For
-visual work, wait until the user selects/approves the asset or explicitly closes the
-phase. Then, and only then, use `--commit-vault --commit-reason "<approval or request>"`
-for one final Memory update and promotion of the approved deliverable.
+Write the human-readable storyboard and prompt note to
+`$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Storyboards/` with `status: draft`.
+Keep generated frames, image variants, masks, previews, and other review media in the run
+workspace while selection or revision is active. Generation completing is not final
+approval. When the user selects/approves the asset or explicitly closes the phase, use
+`--commit-vault --commit-reason "<approval or request>"` to write the note as final,
+promote only the approved asset/provenance, and make one distilled Memory update.
