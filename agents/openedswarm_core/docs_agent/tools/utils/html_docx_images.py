@@ -47,7 +47,7 @@ def embed_local_images(html: str, base_dir: Path) -> str:
         if src.startswith("http://") or src.startswith("https://"):
             try:
                 req = Request(src, headers={"User-Agent": "docs-agent"})
-                with urlopen(req, timeout=20) as response:
+                with urlopen(req, timeout=20) as response:  # nosec B310 - http(s) scheme validated above
                     data = response.read()
                 mime, _ = mimetypes.guess_type(src.split("?")[0])
                 mime = mime or "image/png"
@@ -232,7 +232,7 @@ def _load_image_stream(src: str) -> BytesIO | Path | None:
     if src.startswith("http://") or src.startswith("https://"):
         try:
             request = Request(src, headers={"User-Agent": "docs-agent"})
-            with urlopen(request, timeout=20) as response:
+            with urlopen(request, timeout=20) as response:  # nosec B310 - http(s) scheme validated above
                 return BytesIO(response.read())
         except Exception:
             return None

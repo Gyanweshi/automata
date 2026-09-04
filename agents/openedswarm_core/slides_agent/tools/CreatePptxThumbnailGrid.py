@@ -160,7 +160,7 @@ if __name__ == "__main__":
     if test_pptx.exists():
         tool = CreatePptxThumbnailGrid(
             input_pptx=str(test_pptx),
-            output_prefix="/tmp/test_thumbnails",
+            output_prefix=str(Path(tempfile.gettempdir()) / "test_thumbnails"),
         )
         print(tool.run())
     else:

@@ -148,7 +148,7 @@ def _bootstrap() -> None:
         _bin_url = f"https://github.com/VRSEN/OpenSwarm/releases/latest/download/{_bin_name}"
         print("Downloading OpenSwarm TUI, please wait…\n")
         try:
-            urllib.request.urlretrieve(_bin_url, str(_bin_path))
+            urllib.request.urlretrieve(_bin_url, str(_bin_path))  # nosec B310 - fixed HTTPS release URL
             if sys.platform != "win32":
                 _bin_path.chmod(0o755)
             print("\nDone.\n")

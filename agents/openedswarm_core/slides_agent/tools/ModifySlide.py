@@ -508,7 +508,8 @@ def _screenshot_html_slide(html_path: Path) -> tuple[Any | None, str]:
             page = browser.new_page(viewport={"width": 1280, "height": 720})
             page.goto(html_path.resolve().as_uri(), wait_until="load", timeout=20_000)
             page.wait_for_timeout(800)  # let JS and fonts settle
-            tmp = Path(tempfile.mktemp(suffix=".jpg"))
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+                tmp = Path(tmp_file.name)
             page.screenshot(
                 path=str(tmp),
                 clip={"x": 0, "y": 0, "width": 1280, "height": 720},

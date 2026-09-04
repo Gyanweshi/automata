@@ -70,8 +70,8 @@ $PipExe = Join-Path $RootDir ".venv\Scripts\pip.exe"
 
 Write-Host ""
 Write-Host "==> Installing agency packages into .venv"
-& $PythonExe -m pip install --upgrade pip
-& $PipExe install -r requirements.txt
+& $PythonExe -m pip install --upgrade "pip>=26.2" "setuptools>=83.0.0"
+uv sync --locked --cache-dir (Join-Path $RootDir ".uv-cache")
 Ok "agency CLIs and dependencies installed"
 
 Write-Host ""

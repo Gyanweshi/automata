@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 from agency_swarm.tools import BaseTool
 from pydantic import Field
@@ -71,7 +72,7 @@ class WriteFile(BaseTool):
 
 if __name__ == "__main__":
     # Test the tool
-    test_file_path = "/tmp/test_write_tool.py"
+    test_file_path = os.path.join(tempfile.gettempdir(), "test_write_tool.py")
     test_content = '''#!/usr/bin/env python3
 """Test Python file created by WriteFile tool."""
 

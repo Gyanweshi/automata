@@ -46,7 +46,7 @@ class ImageSearch(BaseTool):
                     "per_page": self.per_page,
                 })
                 req = Request(url, headers={"Authorization": f"Client-ID {key}"})
-                with urlopen(req, timeout=20) as response:
+                with urlopen(req, timeout=20) as response:  # nosec B310 - provider URL is constructed above
                     data = json.loads(response.read().decode("utf-8"))
                 for item in data.get("results", []):
                     results.append({
@@ -70,7 +70,7 @@ class ImageSearch(BaseTool):
                     "per_page": self.per_page,
                 })
                 req = Request(url, headers={"Authorization": key})
-                with urlopen(req, timeout=20) as response:
+                with urlopen(req, timeout=20) as response:  # nosec B310 - provider URL is constructed above
                     data = json.loads(response.read().decode("utf-8"))
                 for item in data.get("photos", []):
                     results.append({
@@ -95,7 +95,7 @@ class ImageSearch(BaseTool):
                     "per_page": self.per_page,
                 })
                 req = Request(url)
-                with urlopen(req, timeout=20) as response:
+                with urlopen(req, timeout=20) as response:  # nosec B310 - provider URL is constructed above
                     data = json.loads(response.read().decode("utf-8"))
                 for item in data.get("hits", []):
                     results.append({

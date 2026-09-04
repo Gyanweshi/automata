@@ -1,4 +1,5 @@
 import os
+import tempfile
 from typing import Optional
 
 from agency_swarm.tools import BaseTool
@@ -88,7 +89,7 @@ class EditFile(BaseTool):
 
 if __name__ == "__main__":
     # Test the tool
-    test_file_path = "/tmp/test_edit_tool.txt"
+    test_file_path = os.path.join(tempfile.gettempdir(), "test_edit_tool.txt")
     test_content = """This is a test file.
 Line 2 has some text.
 Line 3 has the same text.

@@ -79,8 +79,8 @@ fi
 
 echo ""
 echo "==> Installing agency packages into .venv"
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m pip install --upgrade "pip>=26.2" "setuptools>=83.0.0"
+uv sync --locked --cache-dir "$(pwd)/.uv-cache"
 ok "agency CLIs and dependencies installed"
 
 echo ""

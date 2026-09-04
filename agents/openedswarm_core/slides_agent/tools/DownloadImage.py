@@ -33,7 +33,7 @@ class DownloadImage(BaseTool):
 
         try:
             request = Request(self.url, headers={"User-Agent": "slides_agent/1.0"})
-            with urlopen(request, timeout=30) as response:
+            with urlopen(request, timeout=30) as response:  # nosec B310 - scheme validated above
                 content = response.read()
             # Reject HTML or non-image content (e.g. error pages)
             if content.lstrip()[:100].lower().startswith((b"<!doctype", b"<html", b"< ")):

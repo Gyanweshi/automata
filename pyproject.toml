@@ -1,0 +1,74 @@
+[project]
+name = "automata-agents"
+version = "0.1.0"
+description = "Multi-agent research, storyboard, and content automation toolkit"
+requires-python = ">=3.12"
+dependencies = [
+    "agency-swarm[fastapi,jupyter,litellm]>=1.11.0",
+    "questionary>=2.0.0",
+    "fastapi",
+    "uvicorn",
+    "pytz",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "statsmodels>=0.14.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.12.0",
+    "plotly>=5.14.0",
+    "openpyxl>=3.1.0",
+    "xlrd>=2.0.0",
+    "jupyter>=1.0.0",
+    "ipython>=8.0.0",
+    "nbformat>=5.0.0",
+    "pillow>=12.3.0",
+    "python-pptx>=1.0.0",
+    "defusedxml>=0.7.0",
+    "pdf2image>=1.16.0",
+    "markitdown[pptx]>=0.1.0",
+    "six>=1.16.0",
+    "playwright",
+    "python-docx",
+    "tinycss2",
+    "beautifulsoup4",
+    "cairosvg",
+    "weasyprint",
+    "html2text",
+    "opencv-python-headless",
+    "moviepy<2",
+    "httpx",
+    "imageio-ffmpeg",
+    "aiohttp>=3.14.3",
+    "cryptography>=50.0.0",
+    "datamodel-code-generator>=0.64.0,<0.69.0",
+    "jupyter-server>=2.20.0",
+    "jupyterlab>=4.5.10,<4.6",
+    "mcp>=1.28.1,<2",
+    "mistune>=3.3.0",
+    "protego>=0.6.2",
+    "pydantic-settings>=2.14.2",
+    "setuptools>=83.0.0",
+    "tornado>=6.5.8",
+    "agency-common[test]",
+    "agency-research[test]",
+    "agency-storyboard",
+    "agency-content",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+agency-common = { path = "packages/agency-common", editable = true }
+agency-research = { path = "packages/agency-research", editable = true }
+agency-storyboard = { path = "packages/agency-storyboard", editable = true }
+agency-content = { path = "packages/agency-content", editable = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pip-audit>=2.10.0",
+    "bandit[toml]>=1.9.0",
+    "detect-secrets>=1.5.0",
+]

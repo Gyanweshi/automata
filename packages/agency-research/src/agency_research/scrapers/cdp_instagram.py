@@ -225,7 +225,7 @@ class CDPInstagramScraper:
     def _chrome_reachable(self) -> bool:
         import urllib.request
         try:
-            urllib.request.urlopen(
+            urllib.request.urlopen(  # nosec B310 - fixed loopback Chrome DevTools endpoint
                 f"http://127.0.0.1:{self.chrome_port}/json/version", timeout=3
             )
             return True

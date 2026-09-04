@@ -79,7 +79,8 @@ class CheckSlide(BaseTool):
             page = browser.new_page(viewport=_SLIDE_VIEWPORT)
             page.goto(html_path.resolve().as_uri(), wait_until="load", timeout=20_000)
             page.wait_for_timeout(800)
-            tmp = Path(tempfile.mktemp(suffix=".jpg"))
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+                tmp = Path(tmp_file.name)
             page.screenshot(
                 path=str(tmp),
                 clip={"x": 0, "y": 0, **_SLIDE_VIEWPORT},
