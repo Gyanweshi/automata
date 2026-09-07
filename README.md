@@ -762,6 +762,36 @@ Modular capability packages loaded by agents on demand:
 Canonical skill packages live in `skills/`. Codex discovers project registrations
 from `.agents/skills/`; Claude Code discovers them from `.claude/skills/`.
 
+Creative brainstorming is available through `skills/agency-ideation/SKILL.md`, routed
+by `AGENTS.md` and the orchestrator, storyboard, and content skills. Ask the assistant
+`/agency ideate <brand-slug> "<brief>"`. The runtime uses the compact,
+agency-authored `references/agency-bank.json` with 23 stable `es-*` IDs, a closed tag
+vocabulary, six families, explicit platform/campaign/execution altitude, and near-twin pairing rules. The former authenticated Deck
+index has been retired; normal ideation does not require Deck login or scraping. The
+15-entry historical secondary-source pilot
+remains separate and can be queried with `--historical`.
+
+The integrated framework bank is `skills/agency-ideation/references/frameworks.json`.
+It contains nine public methods from IDEO.org, Strategyzer, Blue Ocean Strategy, and
+the Ehrenberg-Bass Institute, selected for audience insight, memory, problem framing,
+proposition, differentiation, and testing. Retrieve by stage with
+`.\.venv\Scripts\python.exe skills/agency-ideation/scripts/select_tools.py --frameworks --stage insight`.
+The bank separates evidence, assumptions, and proposed offer changes; it does not
+replace research or validate an idea by itself.
+Platform- and campaign-altitude routes also receive a campaign-architecture pass for
+flighting, channel roles, message hierarchy, and distribution assumptions.
+
+Inspect the bank with
+`.\.venv\Scripts\python.exe skills/agency-ideation/scripts/select_tools.py --list`
+or inspect the vocabulary with `--list-tags`, then retrieve entries with
+`--tag community --limit 5`. On Linux/macOS use `.venv/bin/python`.
+This is an agent-led ideation and concept-handoff workflow; the standalone Python
+`pipeline` command is unchanged and does not generate or ingest concept handoffs.
+The intended agent order is `research -> evidence readiness -> ideation -> selected
+concept -> storyboard -> content`. Research must surface missing, stale, irrelevant,
+or unreliable inputs before downstream execution; storyboard is not a strategy-gap
+resolver.
+
 ---
 
 ## ⚙️ Runner

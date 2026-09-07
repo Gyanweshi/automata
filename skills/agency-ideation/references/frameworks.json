@@ -1,0 +1,496 @@
+{
+  "schema_version": 1,
+  "bank_kind": "frameworks",
+  "bank_version": "1.1.0",
+  "checked_on": "2026-09-07",
+  "scope": "Nine selected public methods from IDEO.org, Strategyzer, Blue Ocean Strategy, and the Ehrenberg-Bass Institute. Concise source summaries plus original agency application guidance; not complete toolkits.",
+  "attribution": "Methods belong to their named creators. IDEO.org Design Kit; Strategyzer and Alex Osterwalder; Blue Ocean Strategy by Chan Kim and Renée Mauborgne. No affiliation implied.",
+  "current_primary_access": {
+    "status": "public_primary_verified",
+    "tool_bodies_read": true,
+    "tool_count": 9,
+    "login_required": false
+  },
+  "sources": {
+    "ideo-themes": {
+      "title": "Find Themes",
+      "provider": "IDEO.org",
+      "url": "https://www.designkit.org/methods/find-themes.html",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "ideo-hmw": {
+      "title": "How Might We",
+      "provider": "IDEO.org",
+      "url": "https://www.designkit.org/methods/how-might-we.html",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "ideo-gut-check": {
+      "title": "Gut Check",
+      "provider": "IDEO.org",
+      "url": "https://www.designkit.org/methods/gut-check.html",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "strategyzer-vpc": {
+      "title": "Value Proposition Canvas",
+      "provider": "Strategyzer",
+      "url": "https://www.strategyzer.com/library/the-value-proposition-canvas",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "strategyzer-test-card": {
+      "title": "Test Card",
+      "provider": "Strategyzer / Alex Osterwalder",
+      "url": "https://www.strategyzer.com/library/validate-your-ideas-with-the-test-card",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "bos-strategy-canvas": {
+      "title": "Strategy Canvas",
+      "provider": "Chan Kim and Renée Mauborgne",
+      "url": "https://www.blueoceanstrategy.com/tools/strategy-canvas/",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "bos-four-actions": {
+      "title": "Four Actions Framework",
+      "provider": "Chan Kim and Renée Mauborgne",
+      "url": "https://www.blueoceanstrategy.com/tools/four-actions-framework/",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "bos-noncustomers": {
+      "title": "Three Tiers of Noncustomers",
+      "provider": "Chan Kim and Renée Mauborgne",
+      "url": "https://www.blueoceanstrategy.com/tools/three-tiers-of-noncustomers/",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text; linked videos, paid playbooks and templates not imported."
+    },
+    "ehb-distinctiveness": {
+      "title": "Distinctive Brand Assets and Mental Availability",
+      "provider": "Ehrenberg-Bass Institute for Marketing Science",
+      "url": "https://marketingscience.info/news-and-insights/brands-of-distinction",
+      "kind": "public_primary",
+      "checked_on": "2026-09-07",
+      "read_scope": "Public explanatory text on fame, uniqueness, and distinctive assets; books, measurement services, and paid workshops not imported."
+    }
+  },
+  "tools": [
+    {
+      "id": "ideo-themes",
+      "name": "Find Themes",
+      "source_id": "ideo-themes",
+      "source_heading": "Find Themes",
+      "verification": "primary_description",
+      "family": "insight",
+      "stage": "insight",
+      "core": "Synthesize observations into meaningful patterns.",
+      "tags": [
+        "research",
+        "insight",
+        "audience"
+      ],
+      "application": {
+        "prompt": "What pattern changes how we understand this audience, and which observations support it?",
+        "inputs": [
+          "interview notes or observations with evidence IDs"
+        ],
+        "outputs": [
+          "theme statements",
+          "supporting evidence IDs",
+          "contradictions and unknowns"
+        ],
+        "steps": [
+          "Group observations around recurring needs or tensions.",
+          "Name each cluster and trace it to source observations.",
+          "Keep contradictory observations visible before choosing a theme."
+        ],
+        "best_for": [
+          "insight"
+        ],
+        "failure_modes": [
+          "Treating a repeated phrase as a proven need",
+          "Inventing interviews to fill gaps"
+        ],
+        "original_example": "Several documented customers describe abandoning a product setup midway; the team clusters the reasons before proposing a solution.",
+        "next_stages": [
+          "question"
+        ],
+        "scope_note": "Research synthesis; does not collect new evidence."
+      }
+    },
+    {
+      "id": "ideo-hmw",
+      "name": "How Might We",
+      "source_id": "ideo-hmw",
+      "source_heading": "How Might We",
+      "verification": "primary_description",
+      "family": "question",
+      "stage": "question",
+      "core": "Turn an insight into an open design question.",
+      "tags": [
+        "framing",
+        "brief",
+        "ideation"
+      ],
+      "application": {
+        "prompt": "How might we help this audience achieve the desired change within the actual constraints?",
+        "inputs": [
+          "audience context",
+          "supported insight or explicitly labeled hypothesis"
+        ],
+        "outputs": [
+          "bounded opportunity question",
+          "scope constraints",
+          "linked insight IDs"
+        ],
+        "steps": [
+          "Identify the audience and desired change.",
+          "Frame a question that permits several kinds of response.",
+          "Narrow vague questions and reopen questions that already dictate a solution."
+        ],
+        "best_for": [
+          "question"
+        ],
+        "failure_modes": [
+          "Hiding a prescribed execution in the question",
+          "Question too broad to guide work"
+        ],
+        "original_example": "A documented setup problem becomes: How might we help first-time users reach their first useful result during one short break?",
+        "next_stages": [
+          "proposition",
+          "differentiation",
+          "creative"
+        ],
+        "scope_note": "Problem framing; not proof that an opportunity exists."
+      }
+    },
+    {
+      "id": "ideo-gut-check",
+      "name": "Gut Check",
+      "source_id": "ideo-gut-check",
+      "source_heading": "Gut Check",
+      "verification": "primary_description",
+      "family": "evaluation",
+      "stage": "evaluation",
+      "core": "Preserve a concept's purpose while confronting constraints.",
+      "tags": [
+        "feasibility",
+        "evaluation",
+        "concept"
+      ],
+      "application": {
+        "prompt": "What must survive for this idea to work, and which execution choices can change?",
+        "inputs": [
+          "candidate concepts",
+          "production and business constraints"
+        ],
+        "outputs": [
+          "keep, adapt, or drop recommendation",
+          "feasible revision",
+          "unresolved constraints"
+        ],
+        "steps": [
+          "State the audience value at the heart of each idea.",
+          "Compare its execution with real limits.",
+          "Try a simpler execution that preserves the value, or explain why it should be dropped."
+        ],
+        "best_for": [
+          "evaluation"
+        ],
+        "failure_modes": [
+          "Rejecting unfamiliar ideas without examining them",
+          "Removing the feature that carries the idea"
+        ],
+        "original_example": "An unaffordable touring installation becomes a local prototype that tests the same audience interaction.",
+        "next_stages": [
+          "testing",
+          "creative"
+        ],
+        "scope_note": "Use after generating routes, not to suppress exploration at the outset."
+      }
+    },
+    {
+      "id": "strategyzer-vpc",
+      "name": "Value Proposition Canvas",
+      "source_id": "strategyzer-vpc",
+      "source_heading": "Value Proposition Canvas",
+      "verification": "primary_description",
+      "family": "proposition",
+      "stage": "proposition",
+      "core": "Relate customer needs to value the offer delivers.",
+      "tags": [
+        "value",
+        "proposition",
+        "customer"
+      ],
+      "application": {
+        "prompt": "Which important audience need can this offer credibly address, and why should the audience care?",
+        "inputs": [
+          "one customer segment",
+          "jobs, pains and gains with evidence labels",
+          "actual product or service capabilities"
+        ],
+        "outputs": [
+          "prioritized customer profile",
+          "offer-to-need relationships",
+          "proposition candidate",
+          "unsupported claims to test"
+        ],
+        "steps": [
+          "Separate what the audience is trying to achieve from what the product offers.",
+          "Identify the most important pains and gains using available evidence.",
+          "Connect capabilities to those needs and flag weak or missing support."
+        ],
+        "best_for": [
+          "proposition"
+        ],
+        "failure_modes": [
+          "Features mislabeled as customer jobs",
+          "Canvas completion treated as product-market fit"
+        ],
+        "original_example": "For a repair service, 'keep working during a breakdown' becomes the customer job; verified pickup and loan equipment are candidate ways to address it.",
+        "next_stages": [
+          "creative",
+          "testing"
+        ],
+        "scope_note": "Concise application of the public explanation; not the paid playbook or a reproduced canvas."
+      }
+    },
+    {
+      "id": "strategyzer-test-card",
+      "name": "Test Card",
+      "source_id": "strategyzer-test-card",
+      "source_heading": "Test Card",
+      "verification": "primary_description",
+      "family": "testing",
+      "stage": "testing",
+      "core": "Specify a hypothesis, experiment, measurement, and success threshold.",
+      "tags": [
+        "validation",
+        "experiment",
+        "evidence"
+      ],
+      "application": {
+        "prompt": "What observation would make us revise or abandon this assumption?",
+        "inputs": [
+          "risky assumption",
+          "available participants or data",
+          "test constraints"
+        ],
+        "outputs": [
+          "test plan",
+          "metric",
+          "predeclared threshold",
+          "decision rule"
+        ],
+        "steps": [
+          "State one assumption whose failure would change the decision.",
+          "Choose a test capable of producing evidence against it.",
+          "Specify what will be measured and the threshold before running the test."
+        ],
+        "best_for": [
+          "testing"
+        ],
+        "failure_modes": [
+          "Choosing the threshold after seeing results",
+          "Measuring attention when the claim concerns purchase behavior"
+        ],
+        "original_example": "For a proposed onboarding message, test whether first-time users can complete the target task; define completion and the decision threshold before recruitment.",
+        "next_stages": [
+          "insight",
+          "proposition",
+          "evaluation"
+        ],
+        "scope_note": "Plans a test. It does not recruit, launch advertising, or claim validation without observed results."
+      }
+    },
+    {
+      "id": "bos-strategy-canvas",
+      "name": "Strategy Canvas",
+      "source_id": "bos-strategy-canvas",
+      "source_heading": "Strategy Canvas",
+      "verification": "primary_description",
+      "family": "differentiation",
+      "stage": "differentiation",
+      "core": "Compare offers across the factors buyers receive.",
+      "tags": [
+        "competition",
+        "differentiation",
+        "positioning"
+      ],
+      "application": {
+        "prompt": "Where do these offers look the same to buyers, and which differences are supported?",
+        "inputs": [
+          "relevant competitors and alternatives",
+          "buyer-relevant factors",
+          "evidence for relative offering levels"
+        ],
+        "outputs": [
+          "current competitive profile",
+          "factor comparison with evidence labels",
+          "areas of similarity or potential difference"
+        ],
+        "steps": [
+          "Choose factors that matter to buyers and define comparable scales.",
+          "Map current offerings with evidence and visible unknowns.",
+          "Identify where proposed differentiation changes the buyer experience rather than just the wording."
+        ],
+        "best_for": [
+          "differentiation"
+        ],
+        "failure_modes": [
+          "Fabricated competitor scores",
+          "Self-serving comparison factors"
+        ],
+        "original_example": "A local service compares appointment flexibility, turnaround, transparency, and access across alternatives using published terms and customer evidence.",
+        "next_stages": [
+          "differentiation",
+          "proposition"
+        ],
+        "scope_note": "A diagnostic comparison, not proof that a proposed market opportunity will succeed."
+      }
+    },
+    {
+      "id": "bos-four-actions",
+      "name": "Four Actions Framework",
+      "source_id": "bos-four-actions",
+      "source_heading": "Four Actions Framework",
+      "verification": "primary_description",
+      "family": "differentiation",
+      "stage": "differentiation",
+      "core": "Reconstruct value through elimination, reduction, raising, and creation.",
+      "tags": [
+        "innovation",
+        "offer",
+        "differentiation"
+      ],
+      "application": {
+        "prompt": "Which category conventions cost effort without enough buyer value, and what could replace them?",
+        "inputs": [
+          "category conventions",
+          "customer and noncustomer needs",
+          "cost and delivery constraints"
+        ],
+        "outputs": [
+          "proposed offer changes by action",
+          "buyer-value rationale",
+          "cost and feasibility assumptions"
+        ],
+        "steps": [
+          "Review what the category routinely offers and why.",
+          "Propose what to remove, reduce, improve, and introduce.",
+          "Check the combined effect on buyer value and cost; carry unverified changes as proposals."
+        ],
+        "best_for": [
+          "differentiation"
+        ],
+        "failure_modes": [
+          "Adding benefits without addressing cost",
+          "Treating copy changes as offer innovation"
+        ],
+        "original_example": "A workshop provider proposes fewer lecture hours, simpler packages, more supervised practice, and a first-project clinic, then checks delivery costs.",
+        "next_stages": [
+          "proposition",
+          "testing"
+        ],
+        "scope_note": "Suggests offer changes; it does not authorize changing the actual service or advertising unavailable features."
+      }
+    },
+    {
+      "id": "bos-noncustomers",
+      "name": "Three Tiers of Noncustomers",
+      "source_id": "bos-noncustomers",
+      "source_heading": "Three Tiers of Noncustomers",
+      "verification": "primary_description",
+      "family": "insight",
+      "stage": "insight",
+      "core": "Explore reluctant, rejecting, and unconsidered category audiences.",
+      "tags": [
+        "audience",
+        "growth",
+        "noncustomers"
+      ],
+      "application": {
+        "prompt": "Who needs the outcome but avoids this category, and why?",
+        "inputs": [
+          "category boundary",
+          "evidence about use and nonuse",
+          "alternative ways people meet the need"
+        ],
+        "outputs": [
+          "three noncustomer groups",
+          "barriers and common needs",
+          "research gaps"
+        ],
+        "steps": [
+          "Distinguish marginal users, active rejecters, and people who have not considered the category.",
+          "Identify what prevents participation using evidence rather than demographic guesses.",
+          "Look for needs shared across groups and possible ways to address barriers."
+        ],
+        "best_for": [
+          "insight"
+        ],
+        "failure_modes": [
+          "Assuming everyone outside the market is available demand",
+          "Inventing market sizes"
+        ],
+        "original_example": "A shared workspace explores occasional visitors, workers who rejected memberships, and people using unrelated places to work; interviews investigate each group's reasons.",
+        "next_stages": [
+          "question",
+          "differentiation"
+        ],
+        "scope_note": "Audience exploration, not a forecast or an authorization to target newly inferred groups."
+      }
+    },
+    {
+      "id": "ehb-distinctiveness",
+      "name": "Distinctive Brand Assets and Mental Availability",
+      "source_id": "ehb-distinctiveness",
+      "source_heading": "Distinctive Brand Assets and Mental Availability",
+      "verification": "primary_description",
+      "family": "memory",
+      "stage": "memory",
+      "core": "Make the brand easier to notice, recognize, and retrieve across buying situations.",
+      "tags": ["memory", "distinctiveness", "reach", "brand"],
+      "application": {
+        "prompt": "Which category entry points should this brand be easier to recall in, and which consistent assets can build fame and uniqueness there?",
+        "inputs": [
+          "category entry points or buying situations",
+          "existing brand assets",
+          "evidence about fame, uniqueness, and reach"
+        ],
+        "outputs": [
+          "priority memory situations",
+          "distinctive asset candidates",
+          "consistency and reach requirements",
+          "measurement gaps"
+        ],
+        "steps": [
+          "List the buying situations and category cues where the brand should come to mind.",
+          "Assess each visual, verbal, sonic, or character asset for fame and uniqueness rather than novelty alone.",
+          "Design repeatable executions that link the asset to the category and reach more relevant buyers over time."
+        ],
+        "best_for": ["memory", "brand building", "campaign evaluation"],
+        "failure_modes": [
+          "Confusing unusual creative with distinctive branding",
+          "Changing assets before they build memory",
+          "Treating niche differentiation as a substitute for reach"
+        ],
+        "original_example": "A tea brand keeps one recognizable color, sound, and serving ritual consistent across many everyday unwind situations while varying the stories around them.",
+        "next_stages": ["creative", "evaluation", "testing"],
+        "scope_note": "A memory and distinctiveness diagnostic; it does not replace media planning, distribution, or measurement."
+      }
+    }
+  ]
+}

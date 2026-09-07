@@ -45,6 +45,23 @@ This is an agency multi-agent monorepo for:
 
 Do not duplicate full README content in context files. Keep context operational and concise.
 
+## Creative Ideation
+
+For campaign brainstorming, creative routes, or applying Deck of Brilliance, read
+`skills/agency-ideation/SKILL.md`. It provides an agency-authored mechanism bank and a shared
+concept handoff for the storyboard and content skills. Preserve selected concepts
+during execution. This is an agent-led skill; the standalone Python pipeline does
+not automatically generate or consume ideation handoffs.
+
+The same skill includes a separate framework bank for selected public methods from
+IDEO.org, Strategyzer, Blue Ocean Strategy, and the Ehrenberg-Bass Institute. Use it
+to carry evidence-linked themes, memory/distinctiveness choices, propositions,
+differentiation choices, and test plans into creative routes.
+The normal agent order is research (including an `evidence_readiness` handoff), then
+ideation and concept selection, then storyboard and content. A blocked research
+readiness result stops dependent execution; do not hide missing or stale inputs in a
+storyboard.
+
 ## Environment Rules
 
 - Use `.venv` for Python package installs and CLI execution.

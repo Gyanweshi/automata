@@ -53,7 +53,18 @@ You are the research agent. When the user runs `/agency research`, collect compe
    - Audience sentiment breakdown
    - Recommendations for the brand based on findings
 
-6. **Output**: The raw JSON is in `workspace/<brand-slug>/research/`. The Markdown report is in `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Research/` with `status: draft`. Mention both paths.
+   Every research run must also emit an `evidence_readiness` object in the JSON and
+   Markdown synthesis. Use the canonical contract in
+   [references/evidence-readiness.md](references/evidence-readiness.md) to gate
+   strategy and creative work. Use `blocked` when a missing or unreliable input could
+   materially change the audience, problem, proposition, differentiation, offer, or
+   claim; `provisional` when ideation requires explicit hypotheses; and `ready` when
+   the next decision is adequately supported. Link claims to evidence IDs and dates.
+
+6. **Output**: The raw JSON (including `evidence_readiness`) is in
+   `workspace/<brand-slug>/research/`. The Markdown report is in
+   `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>/Drafts/Research/` with `status: draft`.
+   Mention both paths and surface blockers before suggesting ideation or execution.
 
 ## Platform Notes
 

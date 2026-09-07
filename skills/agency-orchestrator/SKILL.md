@@ -9,6 +9,15 @@ You are the master orchestrator for the agency multi-agent system. Route command
 
 ## Available Commands
 
+### Brainstorm creative routes
+
+`/agency ideate <brand-slug> "<brief>"`
+
+Read `skills/agency-ideation/SKILL.md` and use its mechanism bank to create distinct
+concept routes. This is a conversational skill command, not a Python CLI subcommand.
+Carry the chosen concept ID, proposition, brand role, and tool IDs into both
+storyboard and content work. A recommendation remains distinct from user approval.
+
 ### Onboard a new brand
 
 `/agency onboard <brand-name>`
@@ -43,14 +52,28 @@ Delegate to the agency-content skill. Generates structured writing briefs and ac
 
 `/agency pipeline <brand-slug> <content-type> "<topic>"`
 
-Run all three agents in sequence for a brand and topic:
+Run the research and execution CLIs for a brand and topic. Concept development is an
+agent-led gate between them; it is not currently a Python CLI stage.
 
 1. Read `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>.md`, especially `## Memory`, before deciding whether to reuse prior outputs.
 2. `agency-research --brand <brand-slug> --workspace ./workspace` (skip if already run today unless the user asks for fresh research).
    - For Instagram login walls, use `scripts/open-instagram-session.ps1` and rerun with `--scraper cdp` or browser-act session mode instead of repeatedly retrying blocked public pages.
-3. `agency-storyboard --brand <brand-slug> --type <content-type> --topic "<topic>" --workspace ./workspace`
-4. `agency-content --brand <brand-slug> --platform instagram --type <content-type> --topic "<topic>" --workspace ./workspace`
-5. Read all three outputs and synthesize a complete content package:
+3. Read the research `evidence_readiness` object before downstream work. If it is
+   `blocked`, surface missing, stale, irrelevant, or unreliable inputs and stop the
+   dependent storyboard/content path. Ask for the smallest next action. If it is
+   `provisional`, continue only with explicit hypotheses and tests; `ready` permits
+   normal strategy work. This readiness gate is upstream of ideation, not a storyboard
+   afterthought.
+4. If concept development is needed and no concept is selected, pause the CLI sequence
+   and apply `skills/agency-ideation/SKILL.md`, consuming the research readiness
+   object. Resume only with a selected concept handoff. This conversational step is
+   intentionally outside the CLI numbering because the Python commands do not ingest
+   its JSON automatically.
+5. `agency-storyboard --brand <brand-slug> --type <content-type> --topic "<topic>" --workspace ./workspace`
+   - Storyboard is the execution stage: run it only after a selected concept or an
+     explicitly execution-only brief. Do not use it to silently resolve strategy gaps.
+6. `agency-content --brand <brand-slug> --platform instagram --type <content-type> --topic "<topic>" --workspace ./workspace`
+7. Read all outputs and synthesize a complete content package:
    - Research brief (competitor insights, trending hashtags)
    - Storyboard (scenes + generation prompts)
    - Written content (2 variations)

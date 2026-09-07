@@ -16,6 +16,17 @@ Types: `carousel` | `reel` | `post` | `mood_board`
 
 Types: `carousel` | `reel` | `post` | `mood_board` | `image`
 
+## Execution gate
+
+Storyboard is downstream execution, not a substitute for research or strategy. When
+called from the full pipeline, require the research `evidence_readiness` object and a
+selected concept handoff (concept ID, proposition, brand role, and constraints). If
+research is `blocked`, stop and report the blocker; if it is `provisional`, keep the
+hypotheses visible in the scene plan. A direct standalone storyboard request may use
+the ideation skill's brief audit as a fallback, but must not invent unsupported
+audience, proposition, or product claims. Do not silently re-ideate an already
+selected concept.
+
 ## Standalone Images (`--type image`)
 
 Use `image` for a single, freestanding visual that isn't part of a storyboard/scene
@@ -89,6 +100,13 @@ Instead:
   and per-model constraints (duration, dialogue/lip-sync, multi-shot).
 
 ## Steps
+
+For an open campaign brief, read `skills/agency-ideation/SKILL.md` after loading brand
+context and before scene generation. If a concept handoff already exists, use its
+idea, proposition, brand role, and tool IDs in the scene plan and prompt note. Keep
+the same concept ID as the content agent. Reconcile CLI scaffolds with the concept;
+the CLI does not consume the ideation JSON. Skip renewed ideation for an existing
+selected concept, exact visual instruction, or execution-only edit.
 
 1. **Verify install**: `python3 -c "import agency_storyboard; print('OK')"`
 

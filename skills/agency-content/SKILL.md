@@ -19,6 +19,13 @@ Examples:
 
 ## Steps
 
+For an open creative brief, read `skills/agency-ideation/SKILL.md` after loading brand
+context and before generating copy. Reuse an existing concept handoff when available:
+carry its proposition, brand role, concept ID, and tool IDs into the writing brief.
+The storyboard and copy should express the same idea. Reconcile CLI placeholders
+with that handoff; the Python generator does not consume the ideation JSON. Skip
+renewed ideation for a selected concept, supplied copy, or execution-only edit.
+
 1. **Verify install**: `python3 -c "import agency_content; print('OK')"`
 
 2. **Load context** - before writing a single word:
