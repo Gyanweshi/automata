@@ -56,7 +56,6 @@ packages/agency-common/     # Shared Pydantic models, config, workspace I/O, bra
 packages/agency-research/   # Competitor scraping, trend/sentiment analysis
 packages/agency-storyboard/ # Scene building, visual direction, AI image-gen prompts
 packages/agency-content/    # Multi-platform social copy generation
-packages/freepik-fastmcp/   # Vendored Freepik MCP server (image/video)
 ```
 
 **Data flow**: Brand YAML → agent CLI → JSON written to `workspace/{brand}/{agent}/{timestamp}.json`. Downstream agents call `workspace.read_latest(agent, brand)` to consume upstream outputs. Agents are decoupled — they share state through the filesystem only, no direct cross-package imports.
@@ -95,13 +94,14 @@ Defined in `.mcp.json` (aggregate) and `mcp/agents/*.json` (agent-scoped). Keep 
 
 | Server | Assigned to | Key env var |
 |---|---|---|
-| `perplexity` | research | `PERPLEXITY_API_KEY` |
 | `playwright` | research | — |
 | `firecrawl` | research | `FIRECRAWL_API_KEY` |
 | `chrome-devtools` | research | — |
+| `notebooklm` | research | Google login/session |
 | `apify` | research | `APIFY_API_TOKEN` |
-| `freepik-fastmcp` | storyboard | `FREEPIK_API_KEY` |
 | `blender` | storyboard | requires external Blender + addon |
+| `higgsfield` | storyboard | Higgsfield OAuth |
+| `magnific` | storyboard | Magnific OAuth |
 
 ## Context Layers — How to Use Them
 

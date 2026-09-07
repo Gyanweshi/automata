@@ -77,7 +77,7 @@ agent-led gate between them; it is not currently a Python CLI stage.
    - Research brief (competitor insights, trending hashtags)
    - Storyboard (scenes + generation prompts)
    - Written content (2 variations)
-   - Visual prompts ready for Freepik MCP
+   - Visual prompts ready for the configured image/video generation tooling
 
 ### Generate a weekly calendar
 

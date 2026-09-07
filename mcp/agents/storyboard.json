@@ -6,19 +6,6 @@
       "args": ["blender-mcp"],
       "purpose": "Create, inspect, and render Blender scenes for 3D storyboard work."
     },
-    "freepik-fastmcp": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "packages/freepik-fastmcp",
-        "main.py"
-      ],
-      "env": {
-        "FREEPIK_API_KEY": "${FREEPIK_API_KEY}"
-      },
-      "purpose": "Search Freepik assets and generate images or video assets for storyboard and content workflows."
-    },
     "higgsfield": {
       "type": "http",
       "url": "https://mcp.higgsfield.ai/mcp",

@@ -126,16 +126,12 @@ selected concept, exact visual instruction, or execution-only edit.
    - Refine the generation prompts so they are more specific, vivid, and brand-appropriate.
    - Add creative direction notes for each scene.
 
-5. **Freepik MCP integration**: After generating prompts, you can immediately generate images using the Freepik MCP tools already configured in this workspace:
-   - For images: use `mcp__freepik__create_image_mystic` or `mcp__freepik__text_to_image_mystic_sync`.
-   - For videos: use `mcp__freepik__create_video_kling_2_1_std` or `mcp__freepik__create_video_kling_2_1_pro`.
-   - Use the `positive_prompt` from the storyboard output as the prompt parameter.
-   - Check status with `mcp__freepik__get_mystic_task_status` or `mcp__freepik__get_kling_2_1_task_status`.
+5. **Generate assets**: After generating prompts, create the assets with the image/video tooling configured in your harness - for storyboard work that is the `higgsfield` MCP server in `mcp/agents/storyboard.json` (image up to 4K, short video) or the OpenSwarm Image/Video agents. The Freepik MCP integration was removed as redundant. Use the `positive_prompt` from the storyboard output as the prompt, or paste it into any generator.
 
 6. **Output**: Present the storyboard to the user as:
    - Scene-by-scene visual direction
    - Refined generation prompts ready to paste into any AI tool
-   - Option to generate with Freepik immediately
+   - Option to generate immediately with the configured image/video tooling
 
 ## Optional Low-Resolution Source Preparation
 
@@ -167,16 +163,16 @@ to overwrite existing outputs unless `-Force` is explicitly supplied.
 
 | Format | Recommended | Use |
 |--------|-------------|-----|
-| Instagram carousel | 4:5 (1080x1350) | Freepik image |
-| Instagram reel | 9:16 (1080x1920) | Freepik video |
-| Instagram post | 1:1 (1080x1080) | Freepik image |
-| LinkedIn carousel | 1:1 or 4:5 | Freepik image |
-| LinkedIn post | 1.91:1 (1200x628) | Freepik image |
+| Instagram carousel | 4:5 (1080x1350) | Static image |
+| Instagram reel | 9:16 (1080x1920) | Video |
+| Instagram post | 1:1 (1080x1080) | Static image |
+| LinkedIn carousel | 1:1 or 4:5 | Static image |
+| LinkedIn post | 1.91:1 (1200x628) | Static image |
 
 ## Tool Selection
 
-- `freepik_image` - best for carousels and static posts (uses Mystic model)
-- `freepik_video` - best for reels (uses Kling 2.1)
+- `freepik_image` - static-image prompt preset; best for carousels and static posts (legacy preset name kept for CLI compatibility; generation no longer goes through Freepik)
+- `freepik_video` - video prompt preset; best for reels (legacy preset name kept for CLI compatibility)
 - `blender` - for 3D visualization (uses Blender MCP, already configured)
 - `generic` - tool-agnostic prompts for any AI generator
 
@@ -184,28 +180,24 @@ to overwrite existing outputs unless `-Force` is explicitly supplied.
 
 Agent-scoped MCP configuration is stored in `mcp/agents/storyboard.json`.
 
-- **Freepik FastMCP** (`FREEPIK_API_KEY`) - search Freepik assets and generate Mystic/Kling visual assets.
+- **Higgsfield** (remote `https://mcp.higgsfield.ai/mcp`, OAuth) - image generation up to 4K and short video generation.
+- **Magnific** (remote `https://mcp.magnific.com`, OAuth) - upscaling and image editing.
 - **Blender** - create and inspect 3D storyboard scenes when Blender and its MCP addon are running.
-- `nano_banana_2` / `nano_banana_pro` - standalone ultrarealistic images, real-place
-  grounding, extreme aspect ratios (Gemini 3 Flash/Pro Image — see `skills/visual-image`)
-- `gpt_image_2` - standalone images needing dense/small text, UI mockups, brand
-  assets, or identity-preserving edits (5-slot prompt — see `skills/visual-image`)
-- `seedance` / `kling_3` / `veo` - standalone video prompts (see `skills/visual-video`)
-
-## MCP Integrations
-
-MCP servers are configured per-machine in `~/.claude.json` (`freepik`, `apify`) or
-per-project in `.mcp.json` (`figma`). There is no separate
-`mcp/agents/storyboard.json` file in this repo.
-
-- **Freepik FastMCP** (`FREEPIK_API_KEY`) - search Freepik assets and generate Mystic/Kling visual assets.
-- **Blender** - create and inspect 3D storyboard scenes when Blender and its MCP addon are running.
-- **Figma** (`.mcp.json`, official remote server at `https://mcp.figma.com/mcp`,
-  OAuth login on first use) - read Figma file/frame context and write new
+- **Figma** (`.mcp.json`, local Figma desktop server at `http://127.0.0.1:3845/mcp`,
+  requires the Figma desktop app running) - read Figma file/frame context and write new
   layers/frames back to the canvas. Use this for the "Recommended Final-Asset
   Workflow" above: place the clean generated photo, the brand's logo asset, and
   an editable text layer for the tagline as separate layers in a Figma frame,
   rather than flattening everything into one PNG.
+
+Related prompt presets for standalone generation (see `skills/visual-image` and
+`skills/visual-video`):
+
+- `nano_banana_2` / `nano_banana_pro` - standalone ultrarealistic images, real-place
+  grounding, extreme aspect ratios (Gemini 3 Flash/Pro Image - see `skills/visual-image`)
+- `gpt_image_2` - standalone images needing dense/small text, UI mockups, brand
+  assets, or identity-preserving edits (5-slot prompt - see `skills/visual-image`)
+- `seedance` / `kling_3` / `veo` - standalone video prompts (see `skills/visual-video`)
 
 ## Standalone Use
 

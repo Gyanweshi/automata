@@ -89,7 +89,6 @@ make one concise Memory update. Never update Memory during ongoing research or r
 
 Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use these MCPs when deeper live research is needed:
 
-- **Perplexity** (`PERPLEXITY_API_KEY`) - current web research with citations and source-backed synthesis.
 - **Playwright** - browser automation for public pages, screenshots, form flows, and page extraction.
 - **Firecrawl** (`FIRECRAWL_API_KEY`) - search, scrape, crawl, and structured web extraction.
 - **Chrome DevTools** - inspect live pages, console output, network requests, screenshots, and performance.

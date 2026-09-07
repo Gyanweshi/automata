@@ -35,7 +35,7 @@ It runs **8 specialized agents** under a single orchestrator. Each agent is an e
 automata/
 │
 ├── 🤖 agents/
-│   ├── swarm/                ← Multi-agent swarm (8 agents)
+│   ├── openedswarm_core/     ← Multi-agent swarm (8 agents, built on Agency Swarm)
 │   └── automata_core/        ← Brand research & social automation agent
 │
 ├── 🧩 packages/              ← Shared Python packages
@@ -43,16 +43,23 @@ automata/
 │   ├── agency-research/      ← Research pipeline
 │   ├── agency-storyboard/    ← Storyboard generation
 │   ├── agency-content/       ← Content creation
-│   └── freepik-fastmcp/      ← Freepik MCP integration
+│   └── openedswarm_core/     ← Swarm support package
 │
 ├── 🎓 skills/                ← Modular agent skill packages
-│   ├── agency-content/
-│   ├── agency-orchestrator/
-│   ├── agency-research/
-│   ├── agency-storyboard/
-│   ├── superdesign/
-│   ├── visual-image/
-│   └── visual-video/
+│   ├── agency-content/            ← Social copy, captions, weekly calendars
+│   ├── agency-housekeeper/        ← Repo & vault cleanup decisions
+│   ├── agency-ideation/           ← Strategy & campaign concept ideation
+│   ├── agency-orchestrator/       ← Orchestration entry points
+│   ├── agency-research/           ← Research workflows
+│   ├── agency-storyboard/         ← Storyboarding
+│   ├── frontend-design/           ← Frontend design guidance
+│   ├── html-preview/              ← HTML preview rendering
+│   ├── image-compositing-repair/  ← Deterministic image compositing & repair
+│   ├── render-upscale-crop/       ← Exact 4K/8K upscaling & b-roll crops
+│   ├── superdesign/               ← Design system generation
+│   ├── visual-image/              ← AI image prompt references
+│   ├── visual-video/              ← AI video prompt references
+│   └── zen-magnific-automation/   ← Magnific Spaces browser automation
 │
 ├── 🛠️ tools/
 │   └── pdf_utils/
@@ -107,7 +114,6 @@ automata/
 | `packages/agency-research` | Research agent CLI for competitor, trend, and sentiment analysis |
 | `packages/agency-storyboard` | Storyboard agent CLI for scenes, visual direction, and generation prompts |
 | `packages/agency-content` | Content agent CLI for captions, carousels, and weekly content |
-| `packages/freepik-fastmcp` | Vendored Freepik MCP server used for image and resource workflows |
 | `skills/` | Agent instructions for MCP-capable coding assistants |
 | `mcp/agents/` | Agent-scoped MCP manifests |
 | `.mcp.json` | Aggregate MCP config for clients that use one project-level MCP file |
@@ -171,10 +177,7 @@ cp env.example .env
 Add keys to `~/.bashrc`, `~/.zshrc`, or your shell profile:
 
 ```bash
-export FREEPIK_API_KEY=your_freepik_key_here
-export PERPLEXITY_API_KEY=your_perplexity_key_here
 export FIRECRAWL_API_KEY=your_firecrawl_key_here
-export CAPSULEHUB_API_KEY=your_capsulehub_key_here
 export APIFY_API_TOKEN=your_apify_token_here
 ```
 
@@ -237,10 +240,7 @@ Copy-Item env.example .env
 Set API keys:
 
 ```powershell
-[Environment]::SetEnvironmentVariable("FREEPIK_API_KEY", "your_freepik_key_here", "User")
-[Environment]::SetEnvironmentVariable("PERPLEXITY_API_KEY", "your_perplexity_key_here", "User")
 [Environment]::SetEnvironmentVariable("FIRECRAWL_API_KEY", "your_firecrawl_key_here", "User")
-[Environment]::SetEnvironmentVariable("CAPSULEHUB_API_KEY", "your_capsulehub_key_here", "User")
 [Environment]::SetEnvironmentVariable("APIFY_API_TOKEN", "your_apify_token_here", "User")
 ```
 
@@ -281,7 +281,7 @@ For daily agent commands on Windows, use PowerShell:
 
 </details>
 
-The bootstrap script checks Python, Node, npm, npx, and `uv`; creates `.venv`; installs the agency packages; prepares the vendored Freepik MCP server; validates MCP configs; verifies pinned npm MCP packages; installs Playwright Chromium; and reports missing API keys.
+The bootstrap script checks Python, Node, npm, npx, and `uv`; creates `.venv`; installs the agency packages; validates MCP configs; verifies pinned npm MCP packages; installs Playwright Chromium; and reports missing API keys.
 
 ## Session Logging
 
@@ -295,20 +295,19 @@ Session transcripts (both Claude Code and Codex) are written to `Agent_Sessions/
 
 ## MCP Servers
 
-The project-level MCP config [.mcp.json](.mcp.json) is intentionally empty so MCP clients that auto-load project configs do not start every server at session startup. Agent-specific MCP manifests live under `mcp/agents/`; use those manifests to register only the servers needed for the current workflow.
+The project-level MCP config [.mcp.json](.mcp.json) carries the shared servers (`figma`, `playwright`, `blender`, `higgsfield`). Agent-specific MCP manifests live under `mcp/agents/`; use those manifests to register only the servers needed for the current workflow. `perplexity`, `freepik-fastmcp`, and `capsulehub` were removed as redundant: Perplexity overlapped Firecrawl search and the Deep Research agent’s web search, Freepik asset/image generation overlapped Higgsfield, Magnific, and the Image Agent, and the CapsuleHub bridge was never registered in the agent manifests (manual-only) and saw no use.
 
 | Server | Version | Agent | Needs Key | Purpose |
 |--------|---------|-------|-----------|---------|
-| `blender` | via `uvx blender-mcp` | Storyboard/3D | No | Blender scene creation and inspection |
-| `freepik-fastmcp` | vendored | Storyboard/content | `FREEPIK_API_KEY` | Freepik search, downloads, Mystic image generation |
+| `blender` | via `uvx blender-mcp` | Storyboard/3D | No (external Blender + addon) | Blender scene creation and inspection |
+| `higgsfield` | remote `https://mcp.higgsfield.ai/mcp` | Storyboard/content | Higgsfield OAuth | Image (up to 4K) and short video generation, character training, background removal |
 | `magnific` | remote `https://mcp.magnific.com` | Storyboard/content | Magnific OAuth | Magnific upscaling, image/video/audio/3D generation, and creation history |
-| `perplexity` | `@perplexity-ai/mcp-server@0.9.0` | Research | `PERPLEXITY_API_KEY` | Current web search, deep research, and citations |
 | `playwright` | `@playwright/mcp@0.0.73` | Research | No | Browser automation and page extraction |
 | `firecrawl` | `firecrawl-mcp@3.14.1` | Research | `FIRECRAWL_API_KEY` | Search, scrape, crawl, and structured extraction |
 | `chrome-devtools` | `chrome-devtools-mcp@0.23.0` | Research | No | Console, network, screenshot, and performance inspection |
 | `notebooklm` | `@roomi-fields/notebooklm-mcp@1.5.9` | Research | Google login/session | NotebookLM source-grounded Q&A and notebook workflows |
-| `capsulehub` | `mcp-remote@0.1.38` bridge to `https://backend.tilantra.com/mcp/` | Shared context | `CAPSULEHUB_API_KEY` | CapsuleHub context capsules via Tilantra's remote MCP endpoint |
 | `apify` | `@apify/actors-mcp-server@0.9.20` | Research | `APIFY_API_TOKEN` | Apify Actor-backed scraping for social and web workflows |
+| `figma` | local `http://127.0.0.1:3845/mcp` | Design | Figma desktop app running | Read/write Figma canvas context for the final-asset workflow |
 
 ### Different MCP Harnesses
 
@@ -322,13 +321,7 @@ Magnific is already project-scoped in `.codex/config.toml`. Authenticate it once
 <summary><strong>Linux, macOS, or WSL</strong></summary>
 
 ```bash
-codex mcp add perplexity --env 'PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}' -- bash scripts/mcp-npx.sh -y @perplexity-ai/mcp-server@0.9.0
-```
-
-CapsuleHub requires an API key header, so register it through the `mcp-remote` stdio bridge:
-
-```bash
-codex mcp add capsulehub --env 'CAPSULEHUB_API_KEY=${CAPSULEHUB_API_KEY}' -- bash scripts/mcp-npx.sh -y mcp-remote@0.1.38 https://backend.tilantra.com/mcp/ --header 'X-API-Key:${CAPSULEHUB_API_KEY}' --transport sse-only
+codex mcp add firecrawl --env 'FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}' -- bash scripts/mcp-npx.sh -y firecrawl-mcp@3.14.1
 ```
 
 </details>
@@ -337,7 +330,7 @@ codex mcp add capsulehub --env 'CAPSULEHUB_API_KEY=${CAPSULEHUB_API_KEY}' -- bas
 <summary><strong>Windows PowerShell</strong></summary>
 
 ```powershell
-codex mcp add perplexity --env "PERPLEXITY_API_KEY=$env:PERPLEXITY_API_KEY" -- npx -y @perplexity-ai/mcp-server@0.9.0
+codex mcp add firecrawl --env "FIRECRAWL_API_KEY=$env:FIRECRAWL_API_KEY" -- npx -y firecrawl-mcp@3.14.1
 ```
 
 </details>
@@ -604,11 +597,8 @@ The API key is missing or not loaded into the environment. Check with:
 <summary><strong>Linux, macOS, or WSL</strong></summary>
 
 ```bash
-echo "$PERPLEXITY_API_KEY"
 echo "$FIRECRAWL_API_KEY"
-echo "$CAPSULEHUB_API_KEY"
 echo "$APIFY_API_TOKEN"
-echo "$FREEPIK_API_KEY"
 ```
 
 </details>
@@ -617,11 +607,8 @@ echo "$FREEPIK_API_KEY"
 <summary><strong>Windows PowerShell</strong></summary>
 
 ```powershell
-echo $env:PERPLEXITY_API_KEY
 echo $env:FIRECRAWL_API_KEY
-echo $env:CAPSULEHUB_API_KEY
 echo $env:APIFY_API_TOKEN
-echo $env:FREEPIK_API_KEY
 ```
 
 </details>
@@ -654,11 +641,9 @@ Use `mcp/agents/*.json` as a copy source. The important pieces are the server na
 Pinned npm MCP versions are intentional. To update them later:
 
 ```bash
-npm view @perplexity-ai/mcp-server version
 npm view @playwright/mcp version
 npm view firecrawl-mcp version
 npm view chrome-devtools-mcp version
-npm view mcp-remote version
 npm view @apify/actors-mcp-server version
 ```
 
@@ -689,20 +674,20 @@ pip install -r requirements.txt
 
 **4. Configure API keys**
 ```bash
-cp agents/swarm/.env.example agents/swarm/.env
+cp agents/openedswarm_core/.env.example agents/openedswarm_core/.env
 # Edit .env and add your keys
 ```
 
 **5. Run**
 ```bash
 # Interactive multi-agent swarm
-python agents/swarm/run.py
+python core/runner.py --agent openedswarm
 
 # Brand research agent
 python core/runner.py --agent automata --brand "YourBrand" --action research
 
 # API server (localhost:8080)
-python agents/swarm/server.py
+python agents/openedswarm_core/server.py
 ```
 
 ---
@@ -710,7 +695,8 @@ python agents/swarm/server.py
 ### Docker
 
 ```bash
-cp agents/swarm/.env.example agents/swarm/.env
+cp agents/openedswarm_core/.env.example agents/openedswarm_core/.env
+cd agents/openedswarm_core
 docker-compose up --build
 ```
 
@@ -726,6 +712,9 @@ docker-compose up --build
 | `FAL_KEY` | ⚡ Optional | Advanced video editing |
 | `SEARCH_API_KEY` | ⚡ Optional | Web search for Deep Research |
 | `COMPOSIO_API_KEY` | ⚡ Optional | 10,000+ integrations (Gmail, Slack, HubSpot…) |
+| `PEXELS_API_KEY` | ⚡ Optional | Stock photos for Slides Agent |
+| `PIXABAY_API_KEY` | ⚡ Optional | Stock photos for Slides Agent |
+| `UNSPLASH_ACCESS_KEY` | ⚡ Optional | Stock photos for Slides Agent |
 
 > **💡 Tip:** Tools degrade gracefully — the agent tells you exactly what key to add if a feature isn't available.
 
@@ -741,7 +730,6 @@ Shared installable Python packages, auto-installed via `requirements.txt`:
 | `agency-research` | Web research and source synthesis pipeline |
 | `agency-storyboard` | Storyboard & scene composition generation |
 | `agency-content` | Content formatting and copy generation |
-| `freepik-fastmcp` | Freepik asset library MCP integration |
 
 ---
 
@@ -752,11 +740,16 @@ Modular capability packages loaded by agents on demand:
 - `agency-research/` — Research workflows
 - `agency-storyboard/` — Visual storyboarding
 - `agency-content/` — Content generation pipelines
+- `agency-orchestrator/` — Orchestration logic
+- `agency-housekeeper/` — Repo & vault cleanup decisions and the retention watchdog
+- `agency-ideation/` — Strategy and campaign concept ideation frameworks
 - `superdesign/` — Design system generation
+- `frontend-design/` — Frontend design guidance
+- `html-preview/` — HTML preview rendering
 - `visual-image/` — Image creation workflows
 - `visual-video/` — Video production workflows
-- `agency-orchestrator/` — Orchestration logic
 - `image-compositing-repair/` — Deterministic masks, composites, and regional image repair
+- `render-upscale-crop/` — Exact 4K/8K Lanczos upscaling and b-roll crops
 - `zen-magnific-automation/` — Recoverable Zen/Selenium automation for Magnific Spaces
 
 Canonical skill packages live in `skills/`. Codex discovers project registrations
@@ -848,14 +841,14 @@ With `COMPOSIO_API_KEY`, agents unlock **10,000+ tools**:
 
 | File | Purpose |
 |---|---|
-| `agents/swarm/swarm.py` | Defines the swarm: all agents + communication flows |
-| `agents/swarm/shared_instructions.md` | System prompt shared by every agent |
-| `agents/swarm/.env.example` | All configurable environment variables |
+| `agents/openedswarm_core/swarm.py` | Defines the swarm: all agents + communication flows |
+| `agents/openedswarm_core/shared_instructions.md` | System prompt shared by every agent |
+| `agents/openedswarm_core/.env.example` | All configurable environment variables |
 | `core/runner.py` | Unified CLI runner |
 | `requirements.txt` | All Python dependencies |
 
 **Adding a new agent:**
-1. Create `agents/swarm/<agent_name>/` with `<agent_name>.py` + `instructions.md` + `tools/`
+1. Create `agents/openedswarm_core/<agent_name>/` with `<agent_name>.py` + `instructions.md` + `tools/`
 2. Import and register it in `swarm.py`
 3. Update `shared_instructions.md` with the agent's role
 
@@ -863,7 +856,7 @@ With `COMPOSIO_API_KEY`, agents unlock **10,000+ tools**:
 
 ## 📄 License
 
-MIT — see [LICENSE](agents/swarm/LICENSE).
+MIT — see [LICENSE](agents/openedswarm_core/LICENSE).
 
 ---
 

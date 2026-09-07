@@ -31,7 +31,6 @@ jobs:
           packages/agency-research/src
           packages/agency-storyboard/src
           packages/agency-content/src
-          packages/freepik-fastmcp/src
           core scripts agents/automata_core agents/openedswarm_core
           -lll
       - name: Scan tracked files for verified secrets

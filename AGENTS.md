@@ -14,7 +14,7 @@ This is an agency multi-agent monorepo for:
 ## Source Of Truth
 
 - Human setup and usage guide: `README.md`
-- Startup-safe MCP config: `.mcp.json` (intentionally empty by default)
+- Project-level MCP config: `.mcp.json` (shared servers: `figma`, `playwright`, `blender`, `higgsfield`)
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
 - Canonical agent skills: `skills/*/SKILL.md`
 - Skill discovery shims: `.agents/skills/` for Codex and `.claude/skills/` for Claude Code
@@ -122,16 +122,16 @@ Use the CDP helper when rendered Instagram post pages hit a login wall. It opens
 
 Research agent:
 
-- `perplexity`
 - `playwright`
 - `firecrawl`
 - `chrome-devtools`
+- `notebooklm`
 - `apify`
 
 Storyboard agent:
 
-- `freepik-fastmcp`
 - `blender`
+- `higgsfield`
 - `magnific`
 
 Content agent:
@@ -147,7 +147,6 @@ After setup-script, MCP-config, README, or agent-context changes, run what appli
 
 ```bash
 bash -n scripts/bootstrap.sh
-bash -n scripts/setup-mcp.sh
 python3 -m json.tool .mcp.json
 python3 -m json.tool mcp/agents/research.json
 python3 -m json.tool mcp/agents/storyboard.json
@@ -167,7 +166,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -SkipP
 ## Known Caveats
 
 - `README.md` uses collapsible sections as README-safe OS selection buttons. GitHub Markdown does not allow arbitrary JavaScript buttons.
-- `.mcp.json` is intentionally empty so MCP clients that auto-load project configs do not start every server at session startup. Use `mcp/agents/*.json` as the source for opt-in server registration.
+- `.mcp.json` carries the shared servers (`figma`, `playwright`, `blender`, `higgsfield`). Use `mcp/agents/*.json` as the source for agent-scoped server registration.
 - Blender MCP requires Blender and the MCP addon to be installed and running outside this repo.
 - API keys belong in environment variables or local `.env`, never in committed config.
 - `.agents` and `.codex` directories may be read-only in some harnesses. Use repo-owned `AGENTS.md`, `skills/`, and `mcp/agents/` as portable context.
