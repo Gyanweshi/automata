@@ -724,6 +724,14 @@ def clear_workspace(
     for entry in sorted(workspace.iterdir(), key=lambda path: path.name.lower()):
         quarantine_entry(entry)
 
+    remaining = [
+        candidate.relative_to(repo).as_posix()
+        for candidate in workspace.rglob("*")
+        if candidate.is_file() and candidate.name != ".gitkeep"
+    ]
+    if remaining:
+        skipped.extend(f"{path}: workspace cleanup incomplete" for path in remaining)
+
     result: dict[str, object] = {
         "batch": str(batch),
         "quarantined_at": quarantined_at.isoformat(),
@@ -732,6 +740,8 @@ def clear_workspace(
         "moved": moved,
         "preserved": preserved,
         "skipped": skipped,
+        "workspace_remaining": sorted(remaining),
+        "workspace_empty": not remaining,
     }
     if moved or skipped:
         batch.mkdir(parents=True, exist_ok=True)

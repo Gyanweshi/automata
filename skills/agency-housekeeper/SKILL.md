@@ -90,6 +90,20 @@ This preserves tracked workspace scaffolding such as `.gitkeep` and quarantines 
 other workspace file or directory for seven days. The daily watchdog permanently
 purges the batch after its `purge_after` timestamp.
 
+Treat `clear-workspace` as a final-state operation. After it runs, verify the returned
+`workspace_empty: true` and `workspace_remaining: []` fields, then inspect the actual
+workspace with:
+
+```bash
+find workspace -type f ! -name .gitkeep -print
+```
+
+The command is not complete if that command prints any path. A cleanup report must
+state the remaining workspace files, quarantined batch, purge date, and any skipped
+paths. `apply --confirm delete-safe` is cache/duplicate cleanup only; it does not mean
+the workspace is empty. When the user says “clean the workspace,” use
+`clear-workspace`, not only `apply --confirm delete-safe`.
+
 ## Judgment rules
 
 - Missing required final-note frontmatter is a repair task, not evidence that a note is disposable.
