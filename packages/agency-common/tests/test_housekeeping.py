@@ -264,6 +264,8 @@ def test_clear_workspace_preserves_tracked_scaffolding_and_quarantines_rest(
     manifest = json.loads((batch / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["retention_days"] == 7
     assert manifest["purge_after"].startswith("20")
+    assert result["workspace_empty"] is True
+    assert result["workspace_remaining"] == []
 
 
 def test_purge_uses_manifest_expiry_when_present(sandbox_path):
