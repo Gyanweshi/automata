@@ -378,6 +378,45 @@ class FrameworksOutput(BaseModel):
     hashtag_landscape: Optional[HashtagLandscapeResult] = None
 
 
+# ---------------------------------------------------------------------------
+# Evidence Readiness (research -> downstream handoff)
+# ---------------------------------------------------------------------------
+
+EvidenceStatus = Literal["supported", "provisional", "stale", "unreliable", "missing"]
+
+
+class EvidenceDimension(BaseModel):
+    status: EvidenceStatus = "missing"
+    evidence_ids: list[str] = Field(default_factory=list)
+    notes: str = ""
+    confidence: float = 0.0
+
+
+class EvidenceDecision(BaseModel):
+    """How the readiness verdict was reached and whether a person should confirm it."""
+
+    decision_id: str = ""
+    confidence: float = 0.0
+    route: Literal["act", "review", "escalate"] = "escalate"
+    source: str = ""
+
+
+class EvidenceReadiness(BaseModel):
+    evidence_readiness: Literal["blocked", "provisional", "ready"] = "blocked"
+    audience: EvidenceDimension = Field(default_factory=EvidenceDimension)
+    problem: EvidenceDimension = Field(default_factory=EvidenceDimension)
+    proposition: EvidenceDimension = Field(default_factory=EvidenceDimension)
+    differentiation: EvidenceDimension = Field(default_factory=EvidenceDimension)
+    constraints: EvidenceDimension = Field(default_factory=EvidenceDimension)
+    supported_claims: list[str] = Field(default_factory=list)
+    stale_inputs: list[str] = Field(default_factory=list)
+    irrelevant_or_unreliable: list[str] = Field(default_factory=list)
+    missing_inputs: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    recommended_next_step: str = ""
+    decision: Optional[EvidenceDecision] = None
+
+
 class ResearchOutput(BaseModel):
     brand_slug: str
     run_id: str
@@ -391,6 +430,7 @@ class ResearchOutput(BaseModel):
     comment_analysis: Optional[CommentAnalysis] = None
     adjacency_report: Optional[AdjacencyReport] = None
     frameworks: Optional[FrameworksOutput] = None
+    evidence_readiness: Optional[EvidenceReadiness] = None
     summary: str = ""
 
 

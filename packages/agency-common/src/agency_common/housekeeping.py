@@ -817,6 +817,18 @@ def _build_parser() -> argparse.ArgumentParser:
     clear.add_argument("--confirm", required=True)
     clear.add_argument("--retention-days", type=int, default=7)
 
+    triage = subparsers.add_parser(
+        "triage", help="Read-only rules-based grouping of an audit plan's review findings"
+    )
+    triage.add_argument("--plan", required=True)
+    triage.add_argument("--report", required=True, help="Markdown output path")
+    triage.add_argument("--json", dest="json_out", help="Optional per-file JSON output path")
+    triage.add_argument(
+        "--advise", action="store_true",
+        help="Ask an LLM for advisory suggestions on `review` rows (needs ANTHROPIC_API_KEY; rules still decide)",
+    )
+    triage.add_argument("--advise-limit", type=int, default=200, help="Max rows sent for advice")
+
     purge = subparsers.add_parser("purge", help="Permanently remove expired quarantine batches")
     purge.add_argument("--repo", default=".")
     purge.add_argument("--older-than-days", type=int, default=30)
@@ -851,6 +863,26 @@ def main(argv: list[str] | None = None) -> int:
                 print(markdown, end="")
         elif args.command == "apply":
             print(json.dumps(apply_plan(args.plan, confirm=args.confirm), indent=2))
+        elif args.command == "triage":
+            from .housekeeping_triage import triage_plan
+
+            backend = log = None
+            if args.advise:
+                from .config import AgencyConfig
+                from .decide import DecisionLog, LLMBackend
+
+                config = AgencyConfig.from_env()
+                backend, log = LLMBackend.from_config(config), DecisionLog(config.workspace)
+            rows, markdown = triage_plan(args.plan, backend=backend, log=log, advise_limit=args.advise_limit)
+            report_path = Path(args.report).expanduser().resolve()
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(markdown, encoding="utf-8")
+            print(f"Report: {report_path}")
+            if args.json_out:
+                json_path = Path(args.json_out).expanduser().resolve()
+                json_path.parent.mkdir(parents=True, exist_ok=True)
+                json_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+                print(f"JSON: {json_path}")
         elif args.command == "clear-workspace":
             print(json.dumps(
                 clear_workspace(

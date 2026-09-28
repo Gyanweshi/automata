@@ -16,6 +16,8 @@ from datetime import datetime
 from typing import Callable, TypeVar
 
 from agency_common.config import AgencyConfig
+from agency_common.decide import DecisionLog
+from agency_common.evidence_gate import assess_evidence
 from agency_common.models import (
     AdLibraryReport,
     AdjacencyReport,
@@ -331,6 +333,13 @@ class ResearchAgent:
                 adjacency_report=adjacency_report,
             ),
         )
+
+        try:
+            output.evidence_readiness = assess_evidence(
+                output, brand, dry_run=self.dry_run, log=DecisionLog(self.config.workspace),
+            )
+        except Exception:  # a gate bug must not discard a finished scrape
+            LOGGER.exception("Evidence-readiness gate failed for %s; leaving it unset", brand.slug)
 
         return output
 
