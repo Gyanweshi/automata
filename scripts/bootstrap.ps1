@@ -74,6 +74,10 @@ Write-Host "==> Installing agency packages into .venv"
 uv sync --locked --cache-dir (Join-Path $RootDir ".uv-cache")
 Ok "agency CLIs and dependencies installed"
 
+& $PythonExe scripts/sync-skills.py --sync
+if ($LASTEXITCODE -ne 0) { Fail "Skill registration requires review" }
+Ok "repo skills registered for Codex and Claude"
+
 Write-Host ""
 Write-Host "==> Preparing vendored MCP dependencies"
 uv sync --directory packages/freepik-fastmcp

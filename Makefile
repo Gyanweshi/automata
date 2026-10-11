@@ -1,4 +1,4 @@
-.PHONY: install install-skills install-housekeeper-watchdog uninstall test pipeline clean help
+.PHONY: install install-skills check-skills list-workflows install-housekeeper-watchdog uninstall test pipeline clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -52,7 +52,9 @@ help:
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install        Install all packages in editable mode"
-	@echo "  make install-skills Symlink skills to ~/.claude/skills/"
+	@echo "  make install-skills Register repo skills for Codex and Claude"
+	@echo "  make check-skills   Check skill discovery coverage"
+	@echo "  make list-workflows List local skills and specialist instructions"
 	@echo "  make install-housekeeper-watchdog  Install the native cleanup scheduler"
 	@echo "  make uninstall      Uninstall all packages"
 	@echo ""
@@ -81,10 +83,16 @@ install:
 	$(PIP) install -e ./packages/agency-storyboard
 	$(PIP) install -e ./packages/agency-content
 	@echo ""
-	@echo "All packages installed. Run 'make install-skills' to set up repo skills for Claude Code."
+	@echo "All packages installed. Run 'make install-skills' to register repo skills."
 
 install-skills:
-	bash scripts/install-skills.sh
+	$(PYTHON) scripts/sync-skills.py --sync
+
+check-skills:
+	$(PYTHON) scripts/sync-skills.py --check
+
+list-workflows:
+	$(PYTHON) -c "from agency_common.workflow_discovery import discover_workflows; print(discover_workflows())"
 
 install-housekeeper-watchdog:
 	$(PYTHON) scripts/install-housekeeper-watchdog.py --daily-at $(DAILY_AT) --retention-days $(RETENTION_DAYS)

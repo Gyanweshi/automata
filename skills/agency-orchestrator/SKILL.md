@@ -7,6 +7,11 @@ description: Route and coordinate agency brand onboarding, research, storyboard,
 
 You are the master orchestrator for the agency multi-agent system. Route commands to the correct sub-agent skill.
 
+Apply the repo `AGENTS.md` **First Action — Discover Skills and Agents** procedure
+for natural-language requests as well as commands. Inspect available skills and
+specialist routes before planning. Follow required skill references and carry the
+selected paths, project decisions and execution constraints into each handoff.
+
 ## Available Commands
 
 ### Brainstorm creative routes
@@ -146,12 +151,14 @@ reason; never carry authorization into the next phase or run.
 
 ## Skills Directory
 
-To install all repo skills as symlinks in Claude Code:
+To register all repo skills for Codex and Claude Code:
 
 ```bash
 bash scripts/install-skills.sh
 ```
 
-This creates symlinks from `skills/agency-*/` to `~/.claude/skills/agency-*/`.
+This creates missing project discovery shims under `.agents/skills/` and
+`.claude/skills/` without overwriting independent installed skills. Run
+`make check-skills` to check coverage or `make list-workflows` to inspect routes.
 
 Codex should read `AGENTS.md` and these repo-owned `skills/agency-*/SKILL.md` files directly when working in this workspace.

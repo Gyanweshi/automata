@@ -13,6 +13,8 @@ from agency_swarm.tools import (
 from openai.types.shared import Reasoning
 from dotenv import load_dotenv
 
+from shared_tools.WorkflowDiscovery import DiscoverWorkflows, ReadWorkflow
+
 from config import get_default_model, is_openai_provider
 from shared_tools import CopyFile, ExecuteTool, FindTools, ManageConnections, SearchTools
 
@@ -43,6 +45,7 @@ def _get_capsulehub_mcp_tool():
 def create_virtual_assistant() -> Agent:
     capsulehub_mcp = _get_capsulehub_mcp_tool()
     tools = [
+        DiscoverWorkflows, ReadWorkflow,
         WebSearchTool(),
         PersistentShellTool,
         IPythonInterpreter,

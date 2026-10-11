@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## First action for every task
+
+Read and follow `AGENTS.md`, especially **First Action — Discover Skills and Agents**.
+Check matching skills and existing specialists before planning or execution, even
+when no slash command is used. Follow required references, preserve project
+decisions, and use the applicable workflow without waiting for the user to name it.
+This applies across all domains and on every fresh session or material scope change.
+
 ## Output Location — Hybrid Vault Policy
 
 Human-readable research, brand work, briefs, scripts, and project notes go directly to the Obsidian vault at `D:\Brainiac2`. Active notes use `status: draft`; approval changes them to `status: final`. Canonical brand Memory remains approval-gated.
@@ -23,7 +31,7 @@ Use `D:\automata\workspace\` for machine-readable JSON, browser dumps, logs, scr
 # First-time setup
 bash scripts/bootstrap.sh       # Install Python/Node deps, create .venv
 make install                    # Install all packages in editable mode
-make install-skills             # Symlink skills/ to ~/.claude/skills/
+make install-skills             # Register repo skills for Codex and Claude
 
 # Trigger agents interactively
 python run.py                   # Interactive launcher — asks brand, action, topic

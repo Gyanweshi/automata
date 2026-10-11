@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 from .obsidian_vector_index import search_second_brain
 from .obsidian_writer import log_agent_session_with_related_notes, update_brand_memory
+from .workflow_discovery import discover_workflows, read_workflow
 
 log_agent_session = log_agent_session_with_related_notes
 _DEFAULT_LOG_AGENT_SESSION = log_agent_session
@@ -55,8 +56,10 @@ class HarnessRunner:
         self.commit_vault = commit_vault
         self.commit_reason = commit_reason
         self.messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
-        self.available_tools: dict[str, ToolFunction] = available_tools or {
+        self.available_tools: dict[str, ToolFunction] = available_tools if available_tools is not None else {
             "search_second_brain": search_second_brain,
+            "discover_workflows": discover_workflows,
+            "read_workflow": read_workflow,
         }
         self.tool_schemas = [
             {
@@ -85,6 +88,17 @@ class HarnessRunner:
                 },
             }
         ]
+        for name, description, properties, required in [
+            ("discover_workflows", "List local skills, specialist instruction paths and the repo routing policy.", {}, []),
+            ("read_workflow", "Read a discovered skill, agent instruction, or required text reference.",
+             {"path": {"type": "string", "description": "Absolute or repo-relative instruction/reference path."}}, ["path"]),
+        ]:
+            self.tool_schemas.append({"type": "function", "function": {
+                "name": name, "description": description,
+                "parameters": {"type": "object", "properties": properties, "required": required},
+            }})
+        self.tool_schemas = [schema for schema in self.tool_schemas
+                             if schema["function"]["name"] in self.available_tools]
 
     def run_task(self, user_task: str) -> str:
         """Execute the autonomous loop for a single user task."""

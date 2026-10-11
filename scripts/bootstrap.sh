@@ -83,6 +83,9 @@ echo "==> Installing agency packages into .venv"
 uv sync --locked --cache-dir "$(pwd)/.uv-cache"
 ok "agency CLIs and dependencies installed"
 
+.venv/bin/python scripts/sync-skills.py --sync
+ok "repo skills registered for Codex and Claude"
+
 echo ""
 echo "==> Validating MCP JSON files"
 python3 -m json.tool .mcp.json >/dev/null

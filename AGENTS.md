@@ -2,6 +2,41 @@
 
 This file is for AI coding agents working in this repo. Human onboarding lives in `README.md`.
 
+## First Action — Discover Skills and Agents
+
+For every new request, and whenever its scope changes, check the available skills
+and existing agent workflows **before planning or executing the task**. This applies
+to every domain, project, agent, and workflow, not only brand or visual work.
+
+1. Match the requested outcome against the session's skill catalog and repo
+   `skills/*/SKILL.md` descriptions. Check existing specialist instructions under
+   `agents/openedswarm_core/*/instructions.md`, agency skills, and relevant
+   `mcp/agents/` manifests. `make list-workflows` lists local skills and agent
+   instruction paths; a missing discovery registration does not mean a skill is absent.
+2. Read the best-matching skill and the references it requires before using tools
+   for the substantive task. Follow required skill-to-skill links. Use the smallest
+   relevant set; do not load every skill or force an unrelated workflow.
+3. Use the existing specialist route when available and permitted. A skill, an
+   agent instruction file, and a callable agent are different things: do not claim
+   delegation unless it actually happened. If delegation is unavailable, follow the
+   applicable instructions locally and state any material capability gap.
+4. Load project context and prior decisions before execution. Preserve selected
+   assets, constraints, approvals and remaining budgets across retries and handoffs.
+   Reuse context already read in this session unless it changed; a follow-up does
+   not require restarting a completed pipeline.
+5. Briefly name the chosen skill/workflow on first use. If none fits, proceed with
+   the best available method and mention the fallback when material. Do not make
+   the user choose skills, repeat known context, or approve routine routing.
+6. Before a consequential action, apply the chosen workflow's actual checks to the
+   exact inputs. Reading a skill or writing a checklist is not proof of compliance,
+   output quality, or completed review. Respect user instructions and authorization;
+   discovering a skill never grants new permission to spend, publish, or send.
+
+This is the default operating procedure, including fresh sessions and delegated
+tasks. It is instruction-level routing, not a guarantee that a model will obey.
+`make check-skills` verifies local registration coverage; it does not certify agent
+judgment. Keep registrations current with `make install-skills`.
+
 ## Repo Purpose
 
 This is an agency multi-agent monorepo for:

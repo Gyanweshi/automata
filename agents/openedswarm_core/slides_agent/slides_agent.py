@@ -6,6 +6,8 @@ from pathlib import Path
 from virtual_assistant.tools.ReadFile import ReadFile
 from shared_tools.CopyFile import CopyFile
 
+from shared_tools.WorkflowDiscovery import DiscoverWorkflows, ReadWorkflow
+
 from config import get_default_model, is_openai_provider
 
 # Import slide tools
@@ -58,6 +60,7 @@ def create_slides_agent() -> Agent:
         # files_folder=os.path.join(current_dir, "files"),
         # tools_folder=os.path.join(current_dir, "tools"),
         tools=[
+            DiscoverWorkflows, ReadWorkflow,
             # Slide creation and management: InsertNewSlides then ModifySlide
             InsertNewSlides,
             ModifySlide,

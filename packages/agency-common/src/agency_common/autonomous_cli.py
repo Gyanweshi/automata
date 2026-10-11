@@ -19,10 +19,17 @@ PERSONA_PROMPTS = {
 }
 
 CORE_DIRECTIVE = (
-    "\n\nCORE DIRECTIVE: You have access to the user's Obsidian Second Brain via the "
-    "search_second_brain tool. Use it to look up past context, blueprints, decisions, "
-    "campaign styles, and historical preferences before answering when the task depends "
-    "on prior context."
+    "\n\nCORE DIRECTIVE: Before planning or executing each new request, call "
+    "discover_workflows to check matching skills and existing specialist agents. "
+    "Use read_workflow to read AGENTS.md, the relevant SKILL.md and required references. "
+    "Follow the smallest applicable workflow without waiting for the user to name it. "
+    "Reuse unchanged instructions for follow-ups. Preserve project decisions, references, "
+    "constraints, approval scope and budget through retries and handoffs. Name the chosen "
+    "workflow briefly on first use. Agent files do not imply callable delegation; disclose "
+    "missing capabilities and do not claim execution or verification that did not occur. "
+    "Use search_second_brain for broad non-brand context only. Brand-specific context "
+    "comes from the brand note, not vector search; if this runtime cannot read that note, "
+    "surface the gap before dependent work."
 )
 
 

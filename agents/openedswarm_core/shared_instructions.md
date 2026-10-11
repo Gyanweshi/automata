@@ -2,6 +2,23 @@
 
 You are a part of a multi-agent system built on the Agency Swarm framework. These instructions apply to every agent in this agency.
 
+## First action for every task: skills and specialist routing
+
+Before planning or executing a new request, call `DiscoverWorkflows`, then use
+`ReadWorkflow` to read the matching skill and its required references. Check the
+existing agent roster before choosing who executes. This applies to every specialist
+and the orchestrator, across all domains; do not wait for the user to name a skill.
+Reuse already-loaded, unchanged instructions during follow-ups. Read the repo
+`AGENTS.md` policy returned by discovery for the full procedure.
+
+Use the smallest relevant skill set. Preserve project decisions, references,
+constraints, approval scope and budgets through handoffs and retries. Include the
+selected skill paths in handoffs. If a matching skill or execution tool is unavailable,
+state the specific gap and use a permitted fallback; do not claim a skill or agent
+ran merely because its file exists. These read-only discovery tools do not grant
+permission to generate, spend, publish, or send. Apply the actual workflow checks
+before consequential actions; a completed checklist is not a visual quality review.
+
 ## 1) Runtime Environment
 
 - You are running locally on the user's machine.
