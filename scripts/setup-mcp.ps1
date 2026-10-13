@@ -23,12 +23,10 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "==> Checking pinned npm MCP packages..."
 npm view @playwright/mcp@0.0.73 version | Out-Null
-npm view firecrawl-mcp@3.14.1 version | Out-Null
 npm view chrome-devtools-mcp@0.23.0 version | Out-Null
 npm view @roomi-fields/notebooklm-mcp@1.5.9 version | Out-Null
 npm view @apify/actors-mcp-server@0.9.20 version | Out-Null
 
 Write-Host "==> Done. Set any API keys you use with commands like:"
-Write-Host '    [Environment]::SetEnvironmentVariable("FIRECRAWL_API_KEY", "your_key_here", "User")'
 Write-Host '    [Environment]::SetEnvironmentVariable("APIFY_API_TOKEN", "your_token_here", "User")'
 Write-Host "Then close and reopen PowerShell."

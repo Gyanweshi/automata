@@ -12,10 +12,8 @@ class AgencyConfig:
         OBSIDIAN_VAULT_PATH   — path to Obsidian vault root
         ANTHROPIC_API_KEY     — Anthropic / Claude API key
         PERPLEXITY_API_KEY    — Perplexity MCP server key
-        FIRECRAWL_API_KEY     — Firecrawl MCP server key
         APIFY_API_TOKEN       — Apify token for scraping
         FB_PAGE_ACCESS_TOKEN  — Facebook Graph API token (owned pages)
-        FREEPIK_API_KEY       — Freepik API key (image/video generation)
         CAPSULEHUB_API_KEY    — CapsuleHub / Tilantra API key
         META_AD_LIBRARY_TOKEN — Facebook/Meta access token for Ad Library API
         BROWSER_ACT_MODE      — browser-act Instagram mode: stealth or session
@@ -36,10 +34,8 @@ class AgencyConfig:
     openai_api_base: str = field(default_factory=lambda: os.environ.get("OPENAI_API_BASE", ""))
     openai_api_key: str = field(default_factory=lambda: os.environ.get("OPENAI_API_KEY", ""))
     perplexity_api_key: str = field(default_factory=lambda: os.environ.get("PERPLEXITY_API_KEY", ""))
-    firecrawl_api_key: str = field(default_factory=lambda: os.environ.get("FIRECRAWL_API_KEY", ""))
     apify_token: str = field(default_factory=lambda: os.environ.get("APIFY_API_TOKEN", ""))
     fb_page_access_token: str = field(default_factory=lambda: os.environ.get("FB_PAGE_ACCESS_TOKEN", ""))
-    freepik_api_key: str = field(default_factory=lambda: os.environ.get("FREEPIK_API_KEY", ""))
     capsulehub_api_key: str = field(default_factory=lambda: os.environ.get("CAPSULEHUB_API_KEY", ""))
     meta_ad_library_token: str = field(default_factory=lambda: os.environ.get("META_AD_LIBRARY_TOKEN", ""))
     browser_act_proxy_region: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_PROXY_REGION", ""))
@@ -54,9 +50,7 @@ class AgencyConfig:
             "anthropic_api_key": self.anthropic_api_key,
             "apify_token": self.apify_token,
             "fb_page_access_token": self.fb_page_access_token,
-            "freepik_api_key": self.freepik_api_key,
             "perplexity_api_key": self.perplexity_api_key,
-            "firecrawl_api_key": self.firecrawl_api_key,
             "capsulehub_api_key": self.capsulehub_api_key,
             "hermes_agent_path": self.hermes_agent_path,  # New validation key
         }

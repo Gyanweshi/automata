@@ -90,7 +90,6 @@ make one concise Memory update. Never update Memory during ongoing research or r
 Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use these MCPs when deeper live research is needed:
 
 - **Playwright** - browser automation for public pages, screenshots, form flows, and page extraction.
-- **Firecrawl** (`FIRECRAWL_API_KEY`) - search, scrape, crawl, and structured web extraction.
 - **Chrome DevTools** - inspect live pages, console output, network requests, screenshots, and performance.
 - **Apify** (`APIFY_API_TOKEN`) - managed Actor-backed scraping for social and web workflows.
 - **NotebookLM** - optional source-grounded synthesis when `--notebooklm` is used and the user has logged in.

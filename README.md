@@ -128,7 +128,6 @@ cp env.example .env
 ```
 Export your core keys in your shell profile (`~/.bashrc` or `~/.zshrc`):
 ```bash
-export FIRECRAWL_API_KEY="your_firecrawl_key"
 export APIFY_API_TOKEN="your_apify_token"
 export OPENAI_API_KEY="your_openai_key"       # or ANTHROPIC_API_KEY
 source ~/.bashrc
@@ -166,7 +165,6 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 #### 4. Configure API Keys
 ```powershell
 Copy-Item env.example .env
-[Environment]::SetEnvironmentVariable("FIRECRAWL_API_KEY", "your_firecrawl_key", "User")
 [Environment]::SetEnvironmentVariable("APIFY_API_TOKEN", "your_apify_token", "User")
 [Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "your_openai_key", "User")
 ```
@@ -313,7 +311,6 @@ Automata connects agents directly to external browsers, design tools, and AI gen
 | Server | Agent Scope | Required Auth | Purpose |
 |---|---|---|---|
 | `playwright` | Research | None | Headless browser automation and page scraping |
-| `firecrawl` | Research | `FIRECRAWL_API_KEY` | Deep web crawling, search, and Markdown extraction |
 | `chrome-devtools` | Research | None | Console inspection, network monitoring, screenshots |
 | `notebooklm` | Research | Google Login | Grounded Q&A against source documents |
 | `apify` | Research | `APIFY_API_TOKEN` | Actor-backed social media extraction (Instagram, LinkedIn) |
@@ -332,7 +329,6 @@ Automata connects agents directly to external browsers, design tools, and AI gen
 |---|---|---|
 | `OPENAI_API_KEY` | GPT models + Sora video | ✅ Yes (or Anthropic) |
 | `ANTHROPIC_API_KEY` | Claude 3.5 / 3.7 models | ✅ Yes (or OpenAI) |
-| `FIRECRAWL_API_KEY` | Web crawling and scraping | Recommended for research |
 | `APIFY_API_TOKEN` | Social media scrapers | Recommended for social research |
 | `GOOGLE_API_KEY` | Gemini and Veo models | Optional |
 | `COMPOSIO_API_KEY` | 10,000+ app integrations (Slack, Gmail, HubSpot) | Optional (for Virtual Assistant) |
@@ -404,7 +400,6 @@ On Linux, if system libraries are missing, Playwright will print the exact `apt-
 
 Check that your environment variable is loaded in your current shell:
 ```bash
-echo "$FIRECRAWL_API_KEY"
 echo "$APIFY_API_TOKEN"
 ```
 Ensure keys are exported in `.env` or your shell configuration (`~/.bashrc`, `~/.zshrc`).

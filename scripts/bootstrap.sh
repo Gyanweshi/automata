@@ -96,7 +96,6 @@ ok "MCP configs are valid JSON"
 echo ""
 echo "==> Checking npm MCP packages"
 npm view @playwright/mcp@0.0.73 version >/dev/null
-npm view firecrawl-mcp@3.14.1 version >/dev/null
 npm view chrome-devtools-mcp@0.23.0 version >/dev/null
 npm view @roomi-fields/notebooklm-mcp@1.5.9 version >/dev/null
 npm view @apify/actors-mcp-server@0.9.20 version >/dev/null
@@ -113,7 +112,7 @@ fi
 
 echo ""
 echo "==> Checking API key environment variables"
-for var in FIRECRAWL_API_KEY APIFY_API_TOKEN; do
+for var in APIFY_API_TOKEN; do
   if [[ -n "${!var:-}" ]]; then
     ok "$var is set"
   else

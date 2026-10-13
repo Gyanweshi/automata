@@ -24,7 +24,7 @@ class StoryboardAgent:
         brand: BrandProfile,
         content_type: str,
         topic: str,
-        tool: str = "freepik_image",
+        tool: str = "magnific_image",
         slide_count: int = 7,
         duration_seconds: int = 30,
         aspect_ratio: str | None = None,
@@ -44,13 +44,13 @@ class StoryboardAgent:
             brand:          Brand profile
             content_type:   carousel | reel | post | mood_board
             topic:          Content topic/campaign name
-            tool:           AI gen tool: freepik_image | freepik_video | blender | generic
+            tool:           AI gen tool: magnific_image | magnific_video | blender | generic
             slide_count:    For carousels — number of slides
             duration_seconds: For reels — length in seconds
             aspect_ratio:   Override default aspect ratio for the tool
             content_type:   carousel | reel | post | mood_board | image
             topic:          Content topic/campaign name (for "image", the subject)
-            tool:           AI gen tool: freepik_image | freepik_video | blender | generic |
+            tool:           AI gen tool: magnific_image | magnific_video | blender | generic |
                             nano_banana_2 | nano_banana_pro | gpt_image_2 |
                             seedance | kling_3 | veo
             slide_count:    For carousels — number of slides
@@ -75,7 +75,7 @@ class StoryboardAgent:
             prompts = prompt_writer.storyboard_prompts(scenes, tool=tool, aspect_ratio=aspect_ratio or "4:5")
         elif content_type == "reel":
             scenes = scene_builder.breakdown_reel(topic, duration_seconds=duration_seconds)
-            prompts = prompt_writer.storyboard_prompts(scenes, tool=tool or "freepik_video", aspect_ratio=aspect_ratio or "9:16")
+            prompts = prompt_writer.storyboard_prompts(scenes, tool=tool or "magnific_video", aspect_ratio=aspect_ratio or "9:16")
         elif content_type == "post":
             scenes = scene_builder.breakdown_single_post(topic)
             prompts = prompt_writer.storyboard_prompts(scenes, tool=tool, aspect_ratio=aspect_ratio or "1:1")

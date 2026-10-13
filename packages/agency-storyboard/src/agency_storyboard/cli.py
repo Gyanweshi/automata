@@ -30,11 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--tool",
         choices=[
-            "freepik_image", "freepik_video", "blender", "generic",
+            "magnific_image", "magnific_video", "blender", "generic",
             "nano_banana_2", "nano_banana_pro", "gpt_image_2",
             "seedance", "kling_3", "veo",
         ],
-        default="freepik_image",
+        default="magnific_image",
         help="AI generation tool to format prompts for",
     )
     p.add_argument(
@@ -126,7 +126,7 @@ def main():
         print("Error: --topic is required", file=sys.stderr)
         sys.exit(1)
 
-    if args.content_type == "image" and args.tool in ("freepik_image", "freepik_video", "blender", "generic"):
+    if args.content_type == "image" and args.tool in ("magnific_image", "magnific_video", "blender", "generic"):
         args.tool = "nano_banana_2"
 
     # Load research if available

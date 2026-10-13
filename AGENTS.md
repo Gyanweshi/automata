@@ -158,7 +158,6 @@ Use the CDP helper when rendered Instagram post pages hit a login wall. It opens
 Research agent:
 
 - `playwright`
-- `firecrawl`
 - `chrome-devtools`
 - `notebooklm`
 - `apify`

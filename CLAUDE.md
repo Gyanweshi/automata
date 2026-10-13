@@ -103,7 +103,6 @@ Defined in `.mcp.json` (aggregate) and `mcp/agents/*.json` (agent-scoped). Keep 
 | Server | Assigned to | Key env var |
 |---|---|---|
 | `playwright` | research | — |
-| `firecrawl` | research | `FIRECRAWL_API_KEY` |
 | `chrome-devtools` | research | — |
 | `notebooklm` | research | Google login/session |
 | `apify` | research | `APIFY_API_TOKEN` |

@@ -79,11 +79,6 @@ if ($LASTEXITCODE -ne 0) { Fail "Skill registration requires review" }
 Ok "repo skills registered for Codex and Claude"
 
 Write-Host ""
-Write-Host "==> Preparing vendored MCP dependencies"
-uv sync --directory packages/freepik-fastmcp
-Ok "vendored MCP dependencies ready"
-
-Write-Host ""
 Write-Host "==> Validating MCP JSON files"
 python -m json.tool .mcp.json | Out-Null
 python -m json.tool mcp/agents/research.json | Out-Null
@@ -94,7 +89,6 @@ Write-Host ""
 Write-Host "==> Checking npm MCP packages"
 npm view @perplexity-ai/mcp-server@0.9.0 version | Out-Null
 npm view @playwright/mcp@0.0.73 version | Out-Null
-npm view firecrawl-mcp@3.14.1 version | Out-Null
 npm view chrome-devtools-mcp@0.23.0 version | Out-Null
 npm view @roomi-fields/notebooklm-mcp@1.5.9 version | Out-Null
 npm view mcp-remote@0.1.38 version | Out-Null
@@ -112,7 +106,7 @@ if (-not $SkipPlaywrightBrowser) {
 
 Write-Host ""
 Write-Host "==> Checking API key environment variables"
-foreach ($Var in @("FREEPIK_API_KEY", "PERPLEXITY_API_KEY", "FIRECRAWL_API_KEY", "CAPSULEHUB_API_KEY", "APIFY_API_TOKEN")) {
+foreach ($Var in @("PERPLEXITY_API_KEY", "CAPSULEHUB_API_KEY", "APIFY_API_TOKEN")) {
     if ([Environment]::GetEnvironmentVariable($Var)) {
         Ok "$Var is set"
     } else {

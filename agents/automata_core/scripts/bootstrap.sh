@@ -91,11 +91,6 @@ echo "==> Installing agency packages into .venv"
 ok "agency CLIs installed"
 
 echo ""
-echo "==> Preparing vendored MCP dependencies"
-uv sync --directory packages/freepik-fastmcp
-ok "vendored MCP dependencies ready"
-
-echo ""
 echo "==> Validating MCP JSON files"
 python3 -m json.tool .mcp.json >/dev/null
 python3 -m json.tool mcp/agents/research.json >/dev/null
@@ -106,7 +101,6 @@ echo ""
 echo "==> Checking npm MCP packages"
 npm view @perplexity-ai/mcp-server@0.9.0 version >/dev/null
 npm view @playwright/mcp@0.0.73 version >/dev/null
-npm view firecrawl-mcp@3.14.1 version >/dev/null
 npm view chrome-devtools-mcp@0.23.0 version >/dev/null
 npm view @roomi-fields/notebooklm-mcp@1.5.9 version >/dev/null
 npm view mcp-remote@0.1.38 version >/dev/null
@@ -133,7 +127,7 @@ fi
 
 echo ""
 echo "==> Checking API key environment variables"
-for var in FREEPIK_API_KEY PERPLEXITY_API_KEY FIRECRAWL_API_KEY CAPSULEHUB_API_KEY APIFY_API_TOKEN; do
+for var in PERPLEXITY_API_KEY CAPSULEHUB_API_KEY APIFY_API_TOKEN; do
   if [[ -n "${!var:-}" ]]; then
     ok "$var is set"
   else

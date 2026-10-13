@@ -5,7 +5,7 @@
 set -e
 
 if ! command -v uv &>/dev/null; then
-  echo "uv is required for the Blender and Freepik MCP servers."
+  echo "uv is required for the Blender MCP server."
   echo "Install it with:"
   echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"
   exit 1
@@ -24,9 +24,6 @@ if [[ -z "$MCP_NODE_VERSION" ]]; then
   exit 1
 fi
 
-echo "==> Preparing vendored MCP dependencies..."
-uv sync --directory packages/freepik-fastmcp
-
 if [[ -x .venv/bin/scrapling ]]; then
   echo "==> Checking Scrapling MCP command..."
   .venv/bin/scrapling --version >/dev/null
@@ -40,15 +37,12 @@ fi
 echo "==> Checking pinned npm MCP packages..."
 npm view @perplexity-ai/mcp-server@0.9.0 version >/dev/null
 npm view @playwright/mcp@0.0.73 version >/dev/null
-npm view firecrawl-mcp@3.14.1 version >/dev/null
 npm view chrome-devtools-mcp@0.23.0 version >/dev/null
 npm view @roomi-fields/notebooklm-mcp@1.5.9 version >/dev/null
 npm view mcp-remote@0.1.38 version >/dev/null
 npm view @apify/actors-mcp-server@0.9.20 version >/dev/null
 
 echo "==> Done. Make sure ~/.local/bin is in your PATH, then set any API keys you use:"
-echo "    export FREEPIK_API_KEY=your_key_here"
 echo "    export PERPLEXITY_API_KEY=your_key_here"
-echo "    export FIRECRAWL_API_KEY=your_key_here"
 echo "    export CAPSULEHUB_API_KEY=your_key_here"
 echo "    export APIFY_API_TOKEN=your_token_here"

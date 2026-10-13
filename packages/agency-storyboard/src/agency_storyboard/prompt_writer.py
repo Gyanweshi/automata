@@ -7,12 +7,12 @@ from agency_common.models import VisualDNA
 
 # Supported tool schemas
 TOOL_SCHEMAS = {
-    "freepik_image": {
+    "magnific_image": {
         "fields": ["positive_prompt", "negative_prompt", "aspect_ratio", "style"],
         "aspect_ratios": ["1:1", "4:5", "9:16", "16:9", "3:4"],
         "default_aspect": "4:5",
     },
-    "freepik_video": {
+    "magnific_video": {
         "fields": ["positive_prompt", "aspect_ratio", "duration"],
         "aspect_ratios": ["9:16", "16:9", "1:1"],
         "default_aspect": "9:16",
@@ -173,7 +173,7 @@ class PromptWriter:
     def scene_to_prompt(
         self,
         scene: Scene,
-        tool: str = "freepik_image",
+        tool: str = "magnific_image",
         aspect_ratio: str | None = None,
         bible: ConsistencyBible | None = None,
         reference_id: str | None = None,
@@ -226,7 +226,7 @@ class PromptWriter:
         ).strip(", ")
 
         additional: dict = {}
-        if tool == "freepik_video" and scene.duration_seconds:
+        if tool == "magnific_video" and scene.duration_seconds:
             additional["duration"] = scene.duration_seconds
         if tool == "blender" and scene.shots:
             additional["camera_angle"] = scene.shots[0].camera_angle
@@ -246,7 +246,7 @@ class PromptWriter:
     def storyboard_prompts(
         self,
         scenes: list[Scene],
-        tool: str = "freepik_image",
+        tool: str = "magnific_image",
         aspect_ratio: str | None = None,
         bible: ConsistencyBible | None = None,
         hero_reference_id: str | None = None,

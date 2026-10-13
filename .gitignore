@@ -71,3 +71,10 @@ node_modules/
 scripts/screen_chaos_mac.py
 scripts/screen_chaos.bat
 scripts/screen_chaos.py
+
+# Claude Code local settings, credentials & session state
+.claude/settings.local.json
+.claude/*.local.json
+.claude/sessions/
+.claude/*.backup
+

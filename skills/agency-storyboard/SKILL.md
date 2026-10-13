@@ -9,7 +9,7 @@ You are the storyboard agent. When the user runs `/agency storyboard`, create vi
 
 ## Trigger
 
-`/agency storyboard <brand-slug> <type> "<topic>" [--slides N] [--duration N] [--tool freepik_image|freepik_video|blender]`
+`/agency storyboard <brand-slug> <type> "<topic>" [--slides N] [--duration N] [--tool magnific_image|magnific_video|blender]`
 
 Types: `carousel` | `reel` | `post` | `mood_board`
 `/agency storyboard <brand-slug> <type> "<topic>" [--slides N] [--duration N] [--tool <tool>]`
@@ -118,7 +118,7 @@ selected concept, exact visual instruction, or execution-only edit.
 
 3. **Generate the storyboard**:
    ```bash
-   agency-storyboard --brand <brand-slug> --type <type> --topic "<topic>" [--slides 7] [--duration 30] [--tool freepik_image] --format markdown
+   agency-storyboard --brand <brand-slug> --type <type> --topic "<topic>" [--slides 7] [--duration 30] [--tool magnific_image] --format markdown
    ```
 
 4. **Read and enrich**: The output contains scene breakdowns and raw AI prompts. Your job:
@@ -126,7 +126,7 @@ selected concept, exact visual instruction, or execution-only edit.
    - Refine the generation prompts so they are more specific, vivid, and brand-appropriate.
    - Add creative direction notes for each scene.
 
-5. **Generate assets**: After generating prompts, create the assets with the image/video tooling configured in your harness - for storyboard work that is the `higgsfield` MCP server in `mcp/agents/storyboard.json` (image up to 4K, short video) or the OpenSwarm Image/Video agents. The Freepik MCP integration was removed as redundant. Use the `positive_prompt` from the storyboard output as the prompt, or paste it into any generator.
+5. **Generate assets**: After generating prompts, create the assets with the image/video tooling configured in your harness - for storyboard work that is `magnific` or the `higgsfield` MCP server in `mcp/agents/storyboard.json` (image up to 4K, short video) or the OpenSwarm Image/Video agents. Use the `positive_prompt` from the storyboard output as the prompt, or paste it into any generator.
 
 6. **Output**: Present the storyboard to the user as:
    - Scene-by-scene visual direction
@@ -171,8 +171,8 @@ to overwrite existing outputs unless `-Force` is explicitly supplied.
 
 ## Tool Selection
 
-- `freepik_image` - static-image prompt preset; best for carousels and static posts (legacy preset name kept for CLI compatibility; generation no longer goes through Freepik)
-- `freepik_video` - video prompt preset; best for reels (legacy preset name kept for CLI compatibility)
+- `magnific_image` - static-image prompt preset; best for carousels and static posts (routes to Magnific / general image generation)
+- `magnific_video` - video prompt preset; best for reels
 - `blender` - for 3D visualization (uses Blender MCP, already configured)
 - `generic` - tool-agnostic prompts for any AI generator
 
