@@ -65,7 +65,7 @@ process.stdin.on('end', () => {
         permissionDecisionReason:
           `Blocked: "${offender}" would write an image directly into the automata repo root (${REPO_ROOT}). ` +
           'Per CLAUDE.md, screenshots/images never go there. Save to the session scratchpad directory instead, ' +
-          'or D:\\Brainiac2\\Research\\<topic>\\ (or Brands\\<slug>\\) if it is a keeper deliverable.',
+          'or the Obsidian vault (Research/<topic>/ or Brands/<slug>/) if it is a keeper deliverable.',
       },
     };
     console.log(JSON.stringify(out));
