@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "r=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; p=\"$r/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$r/scripts/hooks/skill_routing_context.py\" session",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "r=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; p=\"$r/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$r/scripts/hooks/skill_routing_context.py\" prompt",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

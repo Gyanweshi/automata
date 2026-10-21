@@ -13,6 +13,28 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
