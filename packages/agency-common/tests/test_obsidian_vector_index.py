@@ -3,16 +3,20 @@ import pytest
 
 from agency_common.obsidian_vector_index import (
     VectorIndexError,
+    chunk_markdown,
     get_related_notes,
     _load_chroma_dependencies,
     _upsert_batches,
     file_is_stable,
+    find_stale_chunk_ids,
     metadatas_to_wikilinks,
     process_session_file,
     process_unlinked_sessions,
     prepare_chroma_records,
+    prepare_chunk_records,
     search_second_brain,
     search_second_brain_notes,
+    split_markdown_sections,
 )
 
 
@@ -127,7 +131,7 @@ def test_get_related_notes_queries_collection_and_formats_results(monkeypatch, t
             assert path == str(tmp_path)
 
         def get_collection(self, *, name, embedding_function):
-            assert name == "second_brain"
+            assert name == "second_brain_v2"
             return FakeCollection()
 
     class FakeChroma:
@@ -196,7 +200,7 @@ def test_search_second_brain_notes_returns_structured_note_results(monkeypatch, 
             assert path == str(tmp_path)
 
         def get_collection(self, *, name, embedding_function):
-            assert name == "second_brain"
+            assert name == "second_brain_v2"
             return FakeCollection()
 
     class FakeChroma:
@@ -487,3 +491,198 @@ def test_load_chroma_dependencies_reports_missing_dependency(monkeypatch):
 
     with pytest.raises(VectorIndexError, match="chromadb is not installed"):
         _load_chroma_dependencies()
+
+
+def test_split_markdown_sections_keeps_preamble_and_ignores_headings_in_code():
+    content = "Intro line\n## First\nbody one\n```\n# not a heading\n```\n### Second ###\nbody two\n## Empty\n"
+
+    assert split_markdown_sections(content) == [
+        ("", "Intro line"),
+        ("First", "body one\n```\n# not a heading\n```"),
+        ("Second", "body two"),
+    ]
+
+
+def test_chunk_markdown_overlaps_within_a_section_and_never_crosses_headings():
+    words = " ".join(f"w{i}" for i in range(10))
+    chunks = chunk_markdown(f"## A\n{words}\n## B\nshort", max_words=4, overlap_words=1)
+
+    assert chunks == [
+        ("A", "w0 w1 w2 w3"),
+        ("A", "w3 w4 w5 w6"),
+        ("A", "w6 w7 w8 w9"),
+        ("B", "short"),
+    ]
+
+
+def test_chunk_markdown_rejects_overlap_not_smaller_than_chunk():
+    with pytest.raises(ValueError, match="overlap_words"):
+        chunk_markdown("text", max_words=3, overlap_words=3)
+
+
+def test_prepare_chunk_records_prefixes_title_and_heading(tmp_path):
+    note_path = tmp_path / "Concept.md"
+
+    ids, texts, metadatas = prepare_chunk_records(
+        [
+            {"filename": "Concept.md", "filepath": str(note_path), "content": "Lead\n## Why\nreason here"},
+            {"filename": "Empty.md", "filepath": str(tmp_path / "Empty.md"), "content": " "},
+        ]
+    )
+
+    resolved = str(note_path.resolve())
+    assert ids == [f"{resolved}::0", f"{resolved}::1"]
+    assert texts == ["Concept\nLead", "Concept > Why\nreason here"]
+    assert metadatas[1] == {"filename": "Concept.md", "filepath": resolved, "heading": "Why", "chunk": 1}
+
+
+class FakeChunkedCollection:
+    """Chunked collection whose query returns several chunks per note, best first."""
+
+    metadata = {"chunked": True}
+
+    def __init__(self):
+        self.queries = []
+        self.deletes = []
+        self.upserts = []
+
+    def query(self, *, query_texts, n_results, include):
+        self.queries.append({"query_texts": query_texts, "n_results": n_results})
+        hits = [
+            ({"filename": "A.md", "filepath": "/v/A.md", "heading": "Pricing [draft]"}, "a1", 0.1),
+            ({"filename": "A.md", "filepath": "/v/A.md", "heading": "Other"}, "a2", 0.2),
+            ({"filename": "B.md", "filepath": "/v/B.md", "heading": ""}, "b1", 0.3),
+            ({"filename": "C.md", "filepath": "/v/C.md", "heading": "Late"}, "c1", 0.4),
+        ]
+        return {
+            "metadatas": [[hit[0] for hit in hits]],
+            "documents": [[hit[1] for hit in hits]],
+            "distances": [[hit[2] for hit in hits]],
+        }
+
+    def delete(self, *, where):
+        self.deletes.append(where)
+
+    def upsert(self, *, documents, metadatas, ids):
+        self.upserts.append({"documents": documents, "metadatas": metadatas, "ids": ids})
+
+
+def _patch_chroma_with(monkeypatch, collection):
+    class FakeEmbeddingFunctions:
+        class DefaultEmbeddingFunction:
+            pass
+
+    class FakeClient:
+        def __init__(self, path):
+            pass
+
+        def get_collection(self, *, name, embedding_function):
+            return collection
+
+    class FakeChroma:
+        PersistentClient = FakeClient
+
+    monkeypatch.setattr(
+        "agency_common.obsidian_vector_index._load_chroma_dependencies",
+        lambda: (FakeChroma, FakeEmbeddingFunctions),
+    )
+
+
+def test_chunked_search_collapses_chunks_to_unique_notes_with_section_links(monkeypatch, tmp_path):
+    collection = FakeChunkedCollection()
+    _patch_chroma_with(monkeypatch, collection)
+
+    notes = search_second_brain_notes("pricing", num_results=2, db_path=tmp_path)
+
+    assert collection.queries[0]["n_results"] == 10
+    assert [note["wikilink"] for note in notes] == ["[[A#Pricing draft]]", "[[B]]"]
+    assert notes[0]["content"] == "a1\n\na2"
+    assert notes[0]["distance"] == 0.1
+    assert get_related_notes("pricing", n_results=2, db_path=tmp_path) == ["[[A]]", "[[B]]"]
+
+
+def test_chunked_search_second_brain_returns_matched_sections_not_whole_notes(monkeypatch, tmp_path):
+    _patch_chroma_with(monkeypatch, FakeChunkedCollection())
+
+    context = search_second_brain("pricing", num_results=1, db_path=tmp_path, vault_path=tmp_path)
+
+    assert context == (
+        "Found 1 related notes in the Second Brain:\n\n"
+        "### SOURCE NOTE: A.md ([[A#Pricing draft]])\na1\n\n[...]\n\na2"
+    )
+
+
+def test_missing_collection_handles_chroma_not_found_error(monkeypatch, tmp_path):
+    class NotFoundError(Exception):
+        pass
+
+    class FakeEmbeddingFunctions:
+        class DefaultEmbeddingFunction:
+            pass
+
+    class FakeClient:
+        def __init__(self, path):
+            pass
+
+        def get_collection(self, *, name, embedding_function):
+            raise NotFoundError(name)
+
+    class FakeChroma:
+        PersistentClient = FakeClient
+
+        class errors:
+            pass
+
+    FakeChroma.errors.NotFoundError = NotFoundError
+    monkeypatch.setattr(
+        "agency_common.obsidian_vector_index._load_chroma_dependencies",
+        lambda: (FakeChroma, FakeEmbeddingFunctions),
+    )
+
+    assert search_second_brain_notes("anything", db_path=tmp_path) == []
+    assert get_related_notes("anything", db_path=tmp_path) == []
+
+
+def test_process_session_file_replaces_chunks_in_chunked_collection(tmp_path):
+    note_path = tmp_path / "Session.md"
+    note_path.write_text("Session transcript", encoding="utf-8")
+    collection = FakeChunkedCollection()
+
+    assert process_session_file(
+        note_path,
+        collection,
+        n_results=2,
+        stability_seconds=0,
+        commit_vault=True,
+        commit_reason="approved test output",
+    )
+
+    assert "### Related Concepts\n- [[A]]\n- [[B]]" in note_path.read_text(encoding="utf-8")
+    resolved = str(note_path.resolve())
+    assert collection.deletes == [{"filepath": resolved}]
+    upsert = collection.upserts[0]
+    assert upsert["ids"][0] == f"{resolved}::0"
+    assert all(metadata["filepath"] == resolved for metadata in upsert["metadatas"])
+
+
+def test_find_stale_chunk_ids_prunes_rebuilt_deleted_and_whole_note_records(tmp_path):
+    session = tmp_path / "Session.md"
+    session.write_text("kept", encoding="utf-8")
+    rebuilt = str(tmp_path / "Note.md")
+    conflict = tmp_path / "Note.sync-conflict-20260908-215239-S2YGRUF.md"
+    conflict.write_text("dup", encoding="utf-8")
+    existing = {
+        "ids": [f"{rebuilt}::0", f"{rebuilt}::5", f"{session}::0", "/gone/Old.md::0", "/legacy/Whole.md", f"{conflict}::0"],
+        "metadatas": [
+            {"filepath": rebuilt, "chunk": 0},
+            {"filepath": rebuilt, "chunk": 5},
+            {"filepath": str(session), "chunk": 0},
+            {"filepath": "/gone/Old.md", "chunk": 0},
+            {"filepath": "/legacy/Whole.md"},
+            {"filepath": str(conflict), "chunk": 0},
+        ],
+    }
+
+    stale = find_stale_chunk_ids(existing, [f"{rebuilt}::0"], [{"filepath": rebuilt, "chunk": 0}])
+
+    assert stale == [f"{rebuilt}::5", "/gone/Old.md::0", "/legacy/Whole.md", f"{conflict}::0"]

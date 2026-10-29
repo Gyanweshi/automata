@@ -1,4 +1,4 @@
-.PHONY: install install-skills check-skills list-workflows install-housekeeper-watchdog uninstall test pipeline clean help
+.PHONY: install install-skills check-skills list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval pipeline clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -15,6 +15,7 @@ PLATFORMS ?=
 VENV ?= .venv
 RETENTION_DAYS ?= 7
 DAILY_AT ?= 03:00
+VAULT_INDEX_AT ?= 02:30
 COMMIT_VAULT ?= 0
 COMMIT_REASON ?=
 
@@ -72,13 +73,17 @@ help:
 	@echo "Other:"
 	@echo "  make dry-run        Validate all agent configs without API calls"
 	@echo "  make test           Run the automated test suite"
-	@echo "  make clean          Remove workspace outputs"
+	@echo "  make vault-index    Rebuild the chunked vault search index now"
+	@echo "  make install-vault-index  Schedule the nightly index rebuild"
+	@echo "  make vault-search Q=\"...\"  Search the vault index"
+	@echo "  make rag-eval       Score vault retrieval: legacy index vs v2"
+	@echo "  make clean         Remove workspace outputs"
 	@echo "  make status         Show installed packages"
 
 install:
 	$(PYTHON_CMD) -m venv $(VENV)
 	$(PYTHON) -m pip install --upgrade "pip>=26.2" "setuptools>=83.0.0"
-	$(PIP) install -e ./packages/agency-common[test]
+	$(PIP) install -e ./packages/agency-common[test,vector]
 	$(PIP) install -e ./packages/agency-research[test]
 	$(PIP) install -e ./packages/agency-storyboard
 	$(PIP) install -e ./packages/agency-content
@@ -136,6 +141,18 @@ status:
 
 test:
 	$(PYTHON) -m pytest packages/*/tests -v
+
+vault-index:
+	bash scripts/run-vault-index.sh
+
+install-vault-index:
+	bash scripts/install-vault-index.sh --daily-at $(VAULT_INDEX_AT)
+
+vault-search:
+	$(PYTHON) -m agency_common.vault_search $(Q)
+
+rag-eval:
+	$(PYTHON) -m agency_common.rag_eval --collection second_brain --collection second_brain_v2 --verbose
 
 clean:
 	$(PYTHON) -m agency_common.housekeeping clear-workspace --repo . --confirm quarantine-workspace --retention-days $(RETENTION_DAYS)

@@ -50,7 +50,7 @@ dependencies = [
     "pydantic-settings>=2.14.2",
     "setuptools>=83.0.0",
     "tornado>=6.5.8",
-    "agency-common[test]",
+    "agency-common[test,vector]",
     "agency-research[test]",
     "agency-storyboard",
     "agency-content",

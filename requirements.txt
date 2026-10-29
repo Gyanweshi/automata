@@ -60,7 +60,7 @@ setuptools>=83.0.0
 tornado>=6.5.8
 
 # Automata dependencies
--e ./packages/agency-common[test]
+-e ./packages/agency-common[test,vector]
 -e ./packages/agency-research[test]
 -e ./packages/agency-storyboard
 -e ./packages/agency-content

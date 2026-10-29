@@ -32,6 +32,7 @@ agency-autonomous = "agency_common.autonomous_cli:main"
 agency-housekeeper = "agency_common.housekeeping:main"
 agency-decisions = "agency_common.decisions_cli:main"
 agency-housekeeper-install = "agency_common.watchdog_installer:main"
+agency-vault-search = "agency_common.vault_search:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

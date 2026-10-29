@@ -46,6 +46,10 @@ make dry-run BRAND=my-client    # Validate config, zero API calls
 
 # Tests
 make test                       # pytest packages/*/tests -v
+make vault-index                # Rebuild the chunked vault search index now
+make install-vault-index        # Schedule the nightly rebuild (02:30)
+make vault-search Q="..."       # Search the vault index from the shell
+make rag-eval                   # Score retrieval: legacy whole-note index vs v2
 .venv/bin/python -m pytest packages/agency-common/tests/test_brand_loader.py -v
 
 # Utilities
@@ -120,7 +124,7 @@ There are three layers of context. Use all three, in order, before doing any bra
 
 **Do not call `search_second_brain` for brand-specific context.** The `## Memory` section in the brand note already contains what matters — past decisions, research findings, what worked, what was rejected. It is always current. Vault RAG is for broad queries only: topic research, general knowledge, things genuinely not in the brand file.
 
-**3. Vault RAG** (`search_second_brain` tool) — use only for broad, non-brand-specific queries: competitor landscape, topic research, industry trends. Not for "what do I know about this brand."
+**3. Vault RAG** (`search_second_brain` tool, or `.venv/bin/agency-vault-search "query"` from the shell) — use only for broad, non-brand-specific queries: competitor landscape, topic research, industry trends. Not for "what do I know about this brand." Results cite `[[Note#Heading]]` sections from the chunked `second_brain_v2` index, rebuilt nightly per machine (`make vault-index` to refresh now). Score retrieval changes with `make rag-eval` against the vault question set at `Operations/RAG_Eval/rag-eval-questions.yaml`.
 
 **What each layer is for:**
 - Memory files = always-on rules that never change session to session

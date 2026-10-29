@@ -114,6 +114,15 @@ storyboard.
 
 **Do not call `search_second_brain` for brand-specific context.** The brand `.md` contains everything already. Vault RAG is reserved for broad queries — topic research, general knowledge — where the answer is not already in the brand file.
 
+**2. Vault search (RAG)** — for broad questions across past research ("what did we find about insurance ads on Threads?"), search the chunked vault index from the shell instead of grepping the vault:
+
+```bash
+.venv/bin/agency-vault-search "ethanol petrol motor insurance claims" -n 3     # Linux
+.venv\Scripts\agency-vault-search.exe "ethanol petrol motor insurance claims"   # Windows
+```
+
+It prints the best-matching note sections with `[[Note#Heading]]` citations; cite those, then open the note if you need more than the excerpt. The index (`chroma_db/`, collection `second_brain_v2`) is per machine and rebuilt nightly, so notes edited today may not appear until tomorrow — run `make vault-index` (or `scripts\run-vault-index.ps1`) first if freshness matters. After changing chunking, the embedder, or search code, run `make rag-eval` and compare against the last score; add a question to `Operations/RAG_Eval/rag-eval-questions.yaml` in the vault whenever search misses a note it should have found.
+
 **Note for Claude Code sessions:** a third layer exists — memory files at `~/.claude/projects/.../memory/` — which are loaded automatically and contain always-on rules and preferences. Codex does not have this layer; `AGENTS.md` serves the same purpose.
 
 ## OS Commands
@@ -142,6 +151,8 @@ powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
 .\scripts\run-agent.ps1 storyboard -Brand example-brand -Type carousel -Topic "5 tips"
 .\scripts\run-agent.ps1 content -Brand example-brand -Type carousel -Topic "5 tips"
 .\scripts\run-agent.ps1 pipeline -Brand example-brand -Type carousel -Topic "5 tips"
+.\scripts\run-vault-index.ps1                     # rebuild the vault search index now
+.\scripts\install-vault-index.ps1 -DailyAt 02:30  # schedule the nightly rebuild (Task Scheduler)
 ```
 
 Instagram login/session helpers:
