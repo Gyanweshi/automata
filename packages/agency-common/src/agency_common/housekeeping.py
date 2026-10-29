@@ -260,8 +260,12 @@ def _walk_files(root: Path, excluded_dirs: set[str]) -> Iterable[Path]:
         )
         for filename in sorted(filenames):
             candidate = Path(current) / filename
-            if not candidate.is_symlink():
-                yield candidate
+            try:
+                if candidate.is_symlink():
+                    continue
+            except OSError:
+                continue
+            yield candidate
 
 
 def _frontmatter_keys(text: str) -> set[str]:
