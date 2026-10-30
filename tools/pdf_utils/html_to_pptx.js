@@ -16,6 +16,9 @@
 //   --wait <ms>          Delay after activating each slide, default 350
 //   --selector <css>     Slide selector, default ".slide"
 //   --keep-shots         Don't delete the intermediate screenshot folder
+//   --links              Overlay each external <a href> as a clickable hotspot on its slide
+//   --videos             Embed each <video data-pptx="file.mp4" data-cover="poster.jpg"> as a playable
+//                        video in its slide (paths relative to the HTML file)
 
 const fs = require("fs");
 const path = require("path");
@@ -30,6 +33,14 @@ function parseArgs(argv) {
     const key = arg.slice(2);
     if (key === "keep-shots") {
       out.keepShots = true;
+      continue;
+    }
+    if (key === "links") {
+      out.links = true;
+      continue;
+    }
+    if (key === "videos") {
+      out.videos = true;
       continue;
     }
     out[key] = argv[i + 1];
@@ -102,6 +113,8 @@ async function main() {
   console.log(`Found ${count} slides — screenshotting at ${SCALE}x (${FORMAT}, q${QUALITY})...`);
 
   const shots = [];
+  const slideLinks = [];
+  const slideVideos = [];
   for (let i = 0; i < count; i += 1) {
     await page.evaluate(({ index, selector }) => {
       const slides = [...document.querySelectorAll(selector)];
@@ -117,6 +130,24 @@ async function main() {
     await page.screenshot(screenshotOpts);
     shots.push(shot);
 
+    slideLinks.push(args.links ? await page.evaluate(({ index, selector }) => {
+      const slide = [...document.querySelectorAll(selector)][index];
+      const top = slide.getBoundingClientRect();
+      return [...slide.querySelectorAll('a[href^="http"]')].map((a) => {
+        const r = a.getBoundingClientRect();
+        return { url: a.href, x: r.left - top.left, y: r.top - top.top, w: r.width, h: r.height };
+      }).filter((l) => l.w >= 8 && l.h >= 8 && l.x >= 0 && l.y >= 0 && l.x < top.width && l.y < top.height);
+    }, { index: i, selector: SELECTOR }) : []);
+
+    slideVideos.push(args.videos ? await page.evaluate(({ index, selector }) => {
+      const slide = [...document.querySelectorAll(selector)][index];
+      const top = slide.getBoundingClientRect();
+      return [...slide.querySelectorAll("video[data-pptx]")].map((v) => {
+        const r = v.getBoundingClientRect();
+        return { file: v.dataset.pptx, cover: v.dataset.cover || "", x: r.left - top.left, y: r.top - top.top, w: r.width, h: r.height };
+      });
+    }, { index: i, selector: SELECTOR }) : []);
+
     if ((i + 1) % 20 === 0) console.log(`  ${i + 1}/${count} done`);
   }
 
@@ -127,10 +158,54 @@ async function main() {
   pptx.defineLayout({ name: "CUSTOM_WIDE", width: 13.333, height: 7.5 });
   pptx.layout = "CUSTOM_WIDE";
 
-  for (const shot of shots) {
+  let linkCount = 0;
+  const pptSlides = [];
+  shots.forEach((shot, i) => {
     const slide = pptx.addSlide();
+    pptSlides.push(slide);
     slide.addImage({ path: shot, x: 0, y: 0, w: 13.333, h: 7.5 });
-  }
+    for (const l of slideLinks[i]) {
+      slide.addText(" ", {
+        x: (l.x / WIDTH) * 13.333,
+        y: (l.y / HEIGHT) * 7.5,
+        w: (l.w / WIDTH) * 13.333,
+        h: (l.h / HEIGHT) * 7.5,
+        hyperlink: { url: l.url },
+        fill: { color: "FFFFFF", transparency: 100 },
+        line: { color: "FFFFFF", transparency: 100 },
+      });
+      linkCount += 1;
+    }
+  });
+  if (args.links) console.log(`Added ${linkCount} link hotspots.`);
+  let videoCount = 0;
+  slideVideos.forEach((vids, i) => {
+    for (const v of vids) {
+      const file = path.resolve(path.dirname(HTML), v.file);
+      if (!fs.existsSync(file)) {
+        console.warn(`Video not found, skipped: ${file}`);
+        continue;
+      }
+      const media = {
+        type: "video",
+        path: file,
+        x: (v.x / WIDTH) * 13.333,
+        y: (v.y / HEIGHT) * 7.5,
+        w: (v.w / WIDTH) * 13.333,
+        h: (v.h / HEIGHT) * 7.5,
+      };
+      if (v.cover) {
+        const coverFile = path.resolve(path.dirname(HTML), v.cover);
+        if (fs.existsSync(coverFile)) {
+          const ext = path.extname(coverFile).slice(1).toLowerCase() === "png" ? "png" : "jpeg";
+          media.cover = `data:image/${ext};base64,${fs.readFileSync(coverFile).toString("base64")}`;
+        }
+      }
+      pptSlides[i].addMedia(media);
+      videoCount += 1;
+    }
+  });
+  if (args.videos) console.log(`Embedded ${videoCount} videos.`);
 
   await pptx.writeFile({ fileName: OUT });
 

@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session",
+            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\"; [ -x \"$p\" ] || p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session",
             "timeout": 15
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt",
+            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\"; [ -x \"$p\" ] || p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt",
             "timeout": 10
           }
         ]
