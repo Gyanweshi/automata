@@ -65,6 +65,7 @@ This is an agency multi-agent monorepo for:
 - Keep machine-readable interchange JSON, browser dumps, logs, screenshots, cookies, browser profiles, masks, previews, generated variants, and other disposable or high-volume artifacts in `workspace/`.
 - Repo `workspace/` outputs and root working copies are temporary. Remove agent-created duplicates after verifying any approved asset or human-readable note in the vault.
 - Final vault notes require YAML frontmatter with `type`, `status`, `created` or `updated`, and relevant `tags`.
+- Frontmatter must be valid YAML: quote any value containing `[[wikilinks]]`, `: `, or `#`, and write multiple links as a list, e.g. `related: ["[[Brands/a|A]]", "[[Brands/b|B]]"]`. Unquoted wikilink values break parsing and the note is silently dropped from the vault search index.
 - Ongoing research/project notes require a concise `## Memory` section of no more than 10 bullets covering decisions, useful findings, rejected directions, current state, and next step.
 - Brand work updates `Brands/<slug>.md` memory. Non-brand research maintains memory in its research note and records durable policy in `memory/DECISIONS.md`.
 - Raw browser dumps, logs, screenshots, and extraction artifacts are not vault notes. Keep them in `workspace/`; never leave misleading scratch files at the repo root.

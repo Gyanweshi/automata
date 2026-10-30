@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 
+import yaml
+
 from .vault_write_gate import require_vault_write
 
 
@@ -281,6 +283,21 @@ def _frontmatter_keys(text: str) -> set[str]:
     return set()
 
 
+def _frontmatter_unparseable(text: str) -> bool:
+    """True when a frontmatter block exists but is not valid YAML (the vault index skips such notes)."""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return False
+    for end, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            try:
+                yaml.safe_load("\n".join(lines[1:end]))
+            except yaml.YAMLError:
+                return True
+            return False
+    return False
+
+
 def _protected_vault_note(relative: Path) -> bool:
     return bool(relative.parts and relative.parts[0] in PROTECTED_VAULT_PREFIXES)
 
@@ -499,6 +516,10 @@ def audit_housekeeping(
 
         if not text.strip():
             decision, reason = DECISION_REVIEW, "empty vault note"
+        elif _frontmatter_unparseable(text):
+            # Checked before the protected-note exemption: Brands/ notes are indexed too.
+            decision = DECISION_REVIEW
+            reason = "frontmatter is not valid YAML (quote [[wikilinks]]); vault search skips this note"
         elif _protected_vault_note(relative_path):
             decision, reason = DECISION_KEEP_VAULT, "protected brand, memory, or session provenance"
         else:

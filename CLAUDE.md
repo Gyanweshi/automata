@@ -99,6 +99,7 @@ Use `brands/_template.yaml` as the schema reference for frontmatter. When onboar
 - Session notes → `[[Agent_Sessions/Session_...|view session]]`
 - Competitor handles, Instagram pages, external accounts → plain external links `[@handle](https://instagram.com/handle)`
 - Never wikilink handles, hashtags, or external accounts — Obsidian creates empty stubs
+- In frontmatter, always quote wikilinks and write several as a YAML list (`related: ["[[Brands/a|A]]", "[[Brands/b|B]]"]`); unquoted ones make the note unparseable and it drops out of vault search
 
 ## MCP Servers
 

@@ -91,6 +91,24 @@ def test_vault_notes_are_never_safe_delete(sandbox_path):
     )
 
 
+def test_unparseable_frontmatter_is_flagged_even_in_protected_brands(sandbox_path):
+    repo = sandbox_path / "repo"
+    vault = sandbox_path / "vault"
+    repo.mkdir()
+    (vault / "Brands").mkdir(parents=True)
+    bad = "---\ntype: research\nrelated: [[A|a]], [[B|b]]\n---\nBody\n"
+    good = 'type: research\nrelated: ["[[A|a]]", "[[B|b]]"]\n'
+    (vault / "Brands" / "bad.md").write_text(bad, encoding="utf-8")
+    (vault / "Brands" / "good.md").write_text(f"---\n{good}---\nBody\n", encoding="utf-8")
+
+    report = audit_housekeeping(repo, vault, now=NOW)
+
+    flagged = _finding(report, "vault", "Brands/bad.md")
+    assert flagged.decision == DECISION_REVIEW
+    assert "not valid YAML" in flagged.reason
+    assert _finding(report, "vault", "Brands/good.md").decision == DECISION_KEEP_VAULT
+
+
 def test_old_cache_is_safe_delete_but_recent_cache_is_review(sandbox_path):
     repo = sandbox_path / "repo"
     vault = sandbox_path / "vault"
