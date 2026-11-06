@@ -1,6 +1,6 @@
 ---
 name: image-compositing-repair
-description: Deterministically composite, mask, alpha-key, color-match, crop, enhance, or repair generated image regions with local Python tooling while preserving untouched source pixels. Use for OpenCV/Pillow post-processing, face-repair composites, subject replacement from an existing generated plate, chroma-key extraction, and architectural frame construction; do not use for creative generative image editing itself.
+description: Edit, retouch, composite, mask, alpha-key, color-match, crop, enhance, or repair images locally (GIMP MCP for interactive edits, Python/OpenCV/Pillow for scripted ones) while preserving untouched source pixels. Use for any image editing task, GIMP work, layered XCF handoff, OpenCV/Pillow post-processing, face-repair composites, subject replacement from an existing generated plate, chroma-key extraction, and architectural frame construction; do not use for creative generative image editing itself.
 ---
 
 # Image Compositing Repair
@@ -21,8 +21,19 @@ Use deterministic local pixel operations to integrate an existing edit or repair
 ## Routing
 
 - Use this skill when the edit can be expressed as deterministic pixel operations over supplied images.
+- **GIMP MCP is the default editor for local, non-generative edits** (`gimp` server in `.mcp.json`): retouch/clone/heal, selections and masks, layer compositing, color/tone/curves, transforms and perspective, text and logo placement, filters, and layered XCF handoff. See [GIMP MCP](#gimp-mcp) below. Use the Python recipes instead for batch runs, measured-coordinate scripts, or pixel-exact compositing that must be reproducible from a script.
 - For creative generation or semantic changes that require inventing pixels, use an available image-generation/editing workflow first, then use this skill only for deterministic integration or cleanup.
 - Use `render-upscale-crop` for pure resize, crop, or still-to-motion work that does not require masks or compositing.
+
+## GIMP MCP
+
+1. Preflight: call a cheap GIMP tool (e.g. list images). If it can't connect, ask the user to open GIMP and run **Tools > MCP > Start MCP Server**. Don't silently fall back to Python for an edit that was meant for GIMP. If the plugin is missing, run `scripts/install-gimp-mcp.ps1`.
+2. Copy the source into `workspace/<project>/` and open the copy, never the original.
+3. Do non-destructive work: a new layer per edit, masks rather than erasing, adjustments on duplicates.
+4. Call `get_state_snapshot` after every edit step. Use `region` to zoom in on faces, text, edges and seams before moving on.
+5. Save a layered `.xcf` next to the flattened export whenever the asset may be edited again. Export finals to `workspace/` and promote approved assets per the vault policy.
+6. Brand rules still apply. GIMP is local pixel editing, not generation. Anything that invents pixels goes to the brand's generator (Purva: Magnific only), and the result comes back to GIMP for finishing.
+7. The plugin runs Python that the server sends inside GIMP, and it listens on localhost only. Stop the MCP server in GIMP when you're done.
 
 ## Invariants
 

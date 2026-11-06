@@ -114,6 +114,7 @@ Defined in `.mcp.json` (aggregate) and `mcp/agents/*.json` (agent-scoped). Keep 
 | `blender` | storyboard | requires external Blender + addon |
 | `higgsfield` | storyboard | Higgsfield OAuth |
 | `magnific` | storyboard | Magnific OAuth |
+| `gimp` | storyboard | GIMP 3.2 running with Tools > MCP > Start MCP Server (install plugin: `scripts/install-gimp-mcp.ps1`) |
 
 ## Context Layers — How to Use Them
 

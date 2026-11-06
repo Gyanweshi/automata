@@ -183,6 +183,10 @@ Agent-scoped MCP configuration is stored in `mcp/agents/storyboard.json`.
 - **Higgsfield** (remote `https://mcp.higgsfield.ai/mcp`, OAuth) - image generation up to 4K and short video generation.
 - **Magnific** (remote `https://mcp.magnific.com`, OAuth) - upscaling and image editing.
 - **Blender** - create and inspect 3D storyboard scenes when Blender and its MCP addon are running.
+- **GIMP** (`gimp`, local, requires GIMP 3.2 with Tools > MCP > Start MCP Server) - default for every
+  non-generative edit of a generated or supplied image: retouching, masking, compositing, color/tone,
+  text/logo layers, and layered XCF handoff (a local alternative to the Photoshop step in the
+  Final-Asset Workflow). Follow the GIMP MCP section of `skills/image-compositing-repair/SKILL.md`.
 - **Figma** (`.mcp.json`, local Figma desktop server at `http://127.0.0.1:3845/mcp`,
   requires the Figma desktop app running) - read Figma file/frame context and write new
   layers/frames back to the canvas. Use this for the "Recommended Final-Asset

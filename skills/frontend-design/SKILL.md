@@ -21,7 +21,7 @@ user can tweak layout and text directly in the browser — no code editing requi
 Before writing any HTML, run:
 
 ```
-Read /home/gyanweshi/automata/skills/frontend-design/inline-editor.js
+Read skills/frontend-design/inline-editor.js (relative to the repo root)
 ```
 
 You will embed that file **verbatim** inside a `<script>` tag at the very end of `<body>`,

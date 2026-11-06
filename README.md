@@ -301,6 +301,8 @@ Automata includes modular agent skills under `skills/`. Every agent checks avail
 - **`frontend-design` & `superdesign`**: Token-driven slide design and UI architecture.
 - **`html-preview`**: Headless Playwright screenshot verification of local HTML files.
 - **`visual-image` & `visual-video`**: Curated prompt libraries for AI image/video models.
+- **`image-gen`**: OpenAI GPT Image generation/edits and local animated-GIF assembly via portable Python CLIs.
+- **`image-compositing-repair`**: Local, non-generative image editing (GIMP MCP or Python/OpenCV/Pillow) that preserves untouched pixels.
 
 ---
 
@@ -318,6 +320,7 @@ Automata connects agents directly to external browsers, design tools, and AI gen
 | `higgsfield` | Storyboard / Content | Higgsfield OAuth | Up to 4K image and video generation |
 | `magnific` | Storyboard / Content | Magnific OAuth | AI upscaling, restyling, and generation history |
 | `blender` | Storyboard / 3D | Blender + Addon | Programmatic 3D scene creation and rendering |
+| `gimp` | Storyboard / Image editing | GIMP 3.2 + plugin (`scripts/install-gimp-mcp.ps1`) | Local image editing: retouch, masks, layers, color, text, XCF export |
 
 *Project-wide MCP configuration is managed in [.mcp.json](.mcp.json); agent-specific configurations live in `mcp/agents/`.*
 

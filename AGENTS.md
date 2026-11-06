@@ -49,7 +49,7 @@ This is an agency multi-agent monorepo for:
 ## Source Of Truth
 
 - Human setup and usage guide: `README.md`
-- Project-level MCP config: `.mcp.json` (shared servers: `figma`, `playwright`, `blender`, `higgsfield`)
+- Project-level MCP config: `.mcp.json` (shared servers: `figma`, `playwright`, `blender`, `higgsfield`, `magnific`, `gimp`)
 - Agent-scoped MCP maps: `mcp/agents/research.json`, `mcp/agents/storyboard.json`
 - Canonical agent skills: `skills/*/SKILL.md`
 - Skill discovery shims: `.agents/skills/` for Codex and `.claude/skills/` for Claude Code
@@ -179,6 +179,7 @@ Storyboard agent:
 - `blender`
 - `higgsfield`
 - `magnific`
+- `gimp` (default for all local, non-generative image editing; see `skills/image-compositing-repair/SKILL.md`)
 
 Content agent:
 
@@ -214,6 +215,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -SkipP
 - `README.md` uses collapsible sections as README-safe OS selection buttons. GitHub Markdown does not allow arbitrary JavaScript buttons.
 - `.mcp.json` carries the shared servers (`figma`, `playwright`, `blender`, `higgsfield`). Use `mcp/agents/*.json` as the source for agent-scoped server registration.
 - Blender MCP requires Blender and the MCP addon to be installed and running outside this repo.
+- GIMP MCP requires GIMP 3.2 running with Tools > MCP > Start MCP Server (localhost:9877). Install or refresh the plugin with `scripts/install-gimp-mcp.ps1`, and re-run it after a GIMP minor upgrade. The server commit is pinned in `.mcp.json` and the plugin commit in the script, so bump both together.
 - API keys belong in environment variables or local `.env`, never in committed config.
 - `.agents` and `.codex` directories may be read-only in some harnesses. Use repo-owned `AGENTS.md`, `skills/`, and `mcp/agents/` as portable context.
 

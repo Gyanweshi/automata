@@ -15,6 +15,15 @@
       "type": "http",
       "url": "https://mcp.magnific.com",
       "purpose": "Upscale and edit images, generate image/video/audio/3D assets, and browse Magnific creations. Authenticates via OAuth to your Magnific account and uses its credit balance."
+    },
+    "gimp": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/gimp-mcp/gimp-mcp@7325865385541a01aaf336ebc93b00332297f77f",
+        "gimp-mcp-server"
+      ],
+      "purpose": "Local, credit-free image editing in the user's live GIMP 3.2: layers, selections, masks, color/tone, transforms, text, filters, layered XCF and exports, with get_state_snapshot for visual verification. Requires GIMP open with Tools > MCP > Start MCP Server (localhost:9877); plugin installed by scripts/install-gimp-mcp.ps1."
     }
   }
 }

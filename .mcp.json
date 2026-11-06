@@ -26,6 +26,14 @@
     "magnific": {
       "type": "http",
       "url": "https://mcp.magnific.com"
+    },
+    "gimp": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/gimp-mcp/gimp-mcp@7325865385541a01aaf336ebc93b00332297f77f",
+        "gimp-mcp-server"
+      ]
     }
   }
 }
