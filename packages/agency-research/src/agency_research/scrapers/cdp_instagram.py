@@ -35,6 +35,17 @@ IG_RESEARCH_DIR = Path.home() / "ig-research"
 # Location of the ig-research tool. Ships in-repo; override with IG_RESEARCH_DIR
 # for a custom install.
 _REPO_IG_RESEARCH_DIR = Path(__file__).resolve().parents[5] / "agents" / "automata_core" / "ig-research"
+
+
+def _compatible_node() -> str:
+    """The newest Node the repo's launcher accepts (puppeteer-core needs >= 22.12), else plain `node`."""
+    launcher = _REPO_IG_RESEARCH_DIR.parents[2] / "scripts" / "mcp-npx.mjs"
+    try:
+        out = subprocess.run(["node", str(launcher), "--which"], capture_output=True, text=True, timeout=30)
+        parts = out.stdout.split()
+        return parts[-1] if out.returncode == 0 and parts else "node"
+    except (OSError, subprocess.TimeoutExpired):
+        return "node"
 IG_RESEARCH_DIR = Path(os.environ.get("IG_RESEARCH_DIR", str(_REPO_IG_RESEARCH_DIR)))
 SCRAPE_SCRIPT = IG_RESEARCH_DIR / "scripts" / "scrape.js"
 
@@ -171,7 +182,7 @@ class CDPInstagramScraper:
             )
 
             result = subprocess.run(
-                ["node", str(SCRAPE_SCRIPT), str(project_dir)],
+                [_compatible_node(), str(SCRAPE_SCRIPT), str(project_dir)],
                 cwd=str(IG_RESEARCH_DIR),
                 capture_output=True,
                 text=True,

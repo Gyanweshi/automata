@@ -163,8 +163,12 @@ def main(argv: list[str] | None = None) -> int:
     default_node = run(["node", "--version"], capture_output=True, text=True).stdout.strip()
     parts = tuple(int(x) for x in default_node.lstrip("v").split(".")[:2] if x.isdigit())
     if parts and parts < (22, 12):
-        warn(f"the default `node` is {default_node}, older than 22.12: sharp and the slide exporters need a newer one. "
-             "See the `node` entry in docs/DEPENDENCIES.md (Linux with fnm: load fnm in ~/.bashrc).")
+        good = which.stdout.split()[-1] if which.stdout.split() else ""
+        if good:  # use the compatible Node for every step of this run (npm ci, browser installs, checks)
+            os.environ["PATH"] = os.pathsep.join([str(Path(good).parent), os.environ.get("PATH", "")])
+        warn(f"this terminal's default `node` is {default_node}, older than 22.12; this setup run uses {good or 'it anyway'}. "
+             "Fix the terminal: Linux with fnm, load fnm in ~/.bashrc and open a new terminal (restart Claude Code); "
+             "see the `node` entry in docs/DEPENDENCIES.md.")
 
     step("Python environment")
     if not VENV_PYTHON.exists():
