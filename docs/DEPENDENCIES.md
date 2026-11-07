@@ -150,7 +150,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
 | **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | 0.0.84 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
-| **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | 0.23.0 | `mcp/agents/research.json`, `dependencies.toml` |
+| **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | 1.12.0 | `mcp/agents/research.json`, `dependencies.toml` |
 | **@roomi-fields/notebooklm-mcp** (`notebooklm-mcp`) | Grounded Q&A against NotebookLM sources. | no | 1.5.9 | `mcp/agents/research.json`, `dependencies.toml` |
 | **@apify/actors-mcp-server** (`apify-mcp`) | Apify actors (Instagram, LinkedIn extraction). | no | 0.21.4 | `mcp/agents/research.json`, `dependencies.toml` |
 | **blender-mcp** (`blender-mcp`) | Drive Blender from the storyboard agent (asset prep, Blender-only shots). | no | 2.0.0 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
