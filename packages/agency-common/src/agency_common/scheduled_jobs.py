@@ -291,6 +291,54 @@ def apply_plan(plan: Plan, job: Job) -> None:
         subprocess.run(command, check=True)  # nosec B603
 
 
+# ---------------------------------------------------------------- which checkout a registration points at
+
+_SCRIPT_PATH = re.compile(r"""([A-Za-z]:[\\/][^"'\s]*?|/[^"'\s]*?)[\\/]scripts[\\/](?:schedule\.py|run-[\w-]+\.(?:sh|ps1))""")
+
+
+def repo_from_command(text: str) -> Path | None:
+    """The checkout a scheduler command runs from: the folder holding scripts/schedule.py or a legacy launcher."""
+    match = _SCRIPT_PATH.search(text or "")
+    return Path(match.group(1)) if match else None
+
+
+def registered_repo(job_name: str, system_name: str | None = None) -> Path | None | bool:
+    """Path of the checkout this job is registered for; None when not registered; True when registered by
+    something we can't attribute (e.g. a system-wide unit we don't manage)."""
+    job = JOBS[job_name]
+    system = normalize_system(system_name)
+    if system == "windows":
+        out = subprocess.run(["schtasks", "/Query", "/TN", job.task, "/XML"], capture_output=True, text=True,  # nosec B603 B607
+                             errors="replace")
+        return repo_from_command(out.stdout) if out.returncode == 0 else None
+    if job.linux_system_unit and Path(job.linux_system_unit).exists():
+        text = Path(job.linux_system_unit).read_text(encoding="utf-8", errors="ignore")
+        found = re.search(r"^WorkingDirectory=(.+)$", text, re.M)
+        return Path(found.group(1).strip()) if found else True
+    unit = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "systemd" / "user" / f"{job.unit}.service"
+    if unit.exists():
+        return repo_from_command(unit.read_text(encoding="utf-8", errors="ignore")) or True
+    if shutil.which("crontab"):
+        cron = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout  # nosec B603 B607
+        line = next((l for l in cron.splitlines() if l.rstrip().endswith(f"# {job.unit}")), None)
+        if line:
+            return repo_from_command(line) or True
+    return None
+
+
+def should_install_here(job_name: str, repo: Path = REPO, system_name: str | None = None) -> tuple[bool, str]:
+    """For automatic updates: install when unregistered or registered for this checkout; never steal a job
+    that another checkout owns."""
+    target = registered_repo(job_name, system_name)
+    if target is None:
+        return True, "not registered yet"
+    if target is True:
+        return False, "registered by a scheduler entry this repo does not manage"
+    if Path(target).resolve() == Path(repo).resolve():
+        return True, "registered for this checkout"
+    return False, f"registered for another checkout at {target}"
+
+
 # ---------------------------------------------------------------- cli
 
 def main(argv: list[str] | None = None) -> int:

@@ -43,6 +43,14 @@ def main() -> None:
         event, context = "UserPromptSubmit", PROMPT_REMINDER
     else:
         event, context = "SessionStart", f"{FIRST_ACTION}\n\n{catalog_text()}"
+        try:
+            sys.path.insert(0, str(ROOT / "scripts"))
+            from setup_state import stale_message
+            stale = stale_message(ROOT)
+            if stale:
+                context = f"{stale}\n\n{context}"
+        except Exception:  # never block a session over the freshness check
+            pass
     print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": context}}))
 
 

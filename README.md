@@ -8,7 +8,6 @@
 
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
 [![MCP Powered](https://img.shields.io/badge/MCP-Enabled-orange?style=flat-square)](https://modelcontextprotocol.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 *One prompt → complete deliverables. Market research, pitch decks, copy, storyboards, and multi-platform automation.*
 
@@ -112,8 +111,17 @@ Last step: copy `env.example` to `.env` and add your API keys.
 
 ```bash
 git pull
-python scripts/bootstrap.py          # repair / update after a pull (Windows: python scripts\bootstrap.py)
-python scripts/doctor.py             # only check, changes nothing (or: make doctor)
+```
+
+That is all: the setup script installs git hooks, so a pull that changes dependencies, MCP config or the setup
+itself re-runs the setup automatically (it also removes leftovers of removed components and re-registers scheduled
+jobs that belong to this copy, never ones registered for another copy). A clone made before those hooks existed
+gets them the first time the setup runs: Claude Code flags it at the start of a session, and `run-agent.py` warns.
+
+```bash
+python scripts/setup_state.py --check   # is this machine in step with the checkout?
+python scripts/bootstrap.py             # repair / update by hand (Windows: python scripts\bootstrap.py)
+python scripts/doctor.py                # only check, changes nothing (or: make doctor)
 ```
 
 <details>
@@ -345,4 +353,4 @@ Ensure keys are exported in `.env` or your shell configuration (`~/.bashrc`, `~/
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+Private repository. All rights reserved; not licensed for redistribution.

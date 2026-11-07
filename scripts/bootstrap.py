@@ -52,6 +52,39 @@ def run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run([exe, *command[1:]], cwd=ROOT, **kwargs)  # nosec B603
 
 
+# Untracked leftovers git cannot remove when a tracked folder is deleted (OpenSwarm was removed 2026-11-07).
+LEGACY_DIRS = ("agents/openedswarm_core",)
+LEGACY_JUNK = (".venv", "node_modules", "server_background.log", "__pycache__", ".pytest_cache")
+KEEP_FOR_USER = (".env",)  # may hold API keys: report, never delete
+
+
+def clean_legacy(root: Path = ROOT) -> list[str]:
+    """Remove disposable leftovers of removed components; report anything the user should look at."""
+    import shutil as _shutil
+
+    notes = []
+    for rel in LEGACY_DIRS:
+        folder = root / rel
+        if not folder.is_dir():
+            continue
+        for name in (".venv", "node_modules"):  # the big ones: delete whole, don't walk them
+            _shutil.rmtree(folder / name, ignore_errors=True)
+        for junk in sorted(folder.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+            if junk.name in LEGACY_JUNK:
+                _shutil.rmtree(junk, ignore_errors=True) if junk.is_dir() else junk.unlink(missing_ok=True)
+        leftovers = [p for p in folder.rglob("*") if p.is_file()]
+        kept = [p for p in leftovers if p.name in KEEP_FOR_USER]
+        if leftovers and len(kept) == len(leftovers):
+            notes.append(f"{rel} only holds {', '.join(str(p.relative_to(root)) for p in kept)} from the removed "
+                         "component; copy any keys you still need into the repo's .env, then delete the folder")
+        elif not leftovers:
+            _shutil.rmtree(folder, ignore_errors=True)
+            notes.append(f"removed leftover folder {rel}")
+        else:
+            notes.append(f"{rel} still has {len(leftovers)} untracked file(s) from the removed component; review and delete")
+    return notes
+
+
 def refresh_path() -> None:
     """Pick up PATH changes an installer just made, without opening a new terminal."""
     if WINDOWS:
@@ -101,6 +134,9 @@ def main(argv: list[str] | None = None) -> int:
     schedules.add_argument("--schedules", dest="schedules", action="store_true", default=None,
                            help="register the nightly jobs without asking")
     schedules.add_argument("--no-schedules", dest="schedules", action="store_false")
+    schedules.add_argument("--auto-schedules", dest="schedules", action="store_const", const="auto",
+                           help="register jobs that are missing or already belong to this checkout; never take over "
+                                "jobs registered for another checkout (used by the post-pull update)")
     args = parser.parse_args(argv)
 
     step("Checking required tools")
@@ -189,11 +225,39 @@ def main(argv: list[str] | None = None) -> int:
         jobs = ["vault-index", "housekeeper"] + (["vault-watchdog"] if vault_configured() else [])
         if "vault-watchdog" not in jobs:
             warn("no vault configured (OBSIDIAN_VAULT_PATH), so the vault watchdog is not installed")
+        if wanted == "auto":
+            probe = ("import sys, json; sys.path.insert(0, 'packages/agency-common/src');"
+                     "from agency_common.scheduled_jobs import should_install_here;"
+                     "print(json.dumps({j: should_install_here(j) for j in sys.argv[1:]}))")
+            out = run([str(VENV_PYTHON), "-c", probe, *jobs], capture_output=True, text=True)
+            decisions = json.loads(out.stdout) if out.returncode == 0 else {}
+            for job in list(jobs):
+                install, why = decisions.get(job, (False, "could not check the current registration"))
+                if not install:
+                    warn(f"{job}: left as is ({why})")
+                    jobs.remove(job)
         for job in jobs:
             done = run([str(VENV_PYTHON), "scripts/schedule.py", "install", job]).returncode == 0
             (ok if done else warn)(f"{job} {'scheduled' if done else 'not scheduled (see message above)'}")
     else:
         warn("nightly jobs not registered (python scripts/schedule.py install vault-index / housekeeper)")
+
+    step("Leftovers from removed components")
+    notes = clean_legacy()
+    for note in notes:
+        warn(note)
+    if not notes:
+        ok("nothing to clean")
+
+    step("Keeping this machine up to date after each git pull")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import setup_state
+
+    setup_state.record()
+    hook_notes = setup_state.install_hooks()
+    for note in hook_notes:
+        warn(note)
+    ok("setup stamp recorded; post-pull hooks installed (a pull that changes the setup re-runs this bootstrap)")
 
     step("Checking everything, one step at a time (scripts/doctor.py)")
     doctor = run([sys.executable, "scripts/doctor.py"]).returncode

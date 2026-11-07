@@ -106,6 +106,11 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("--commit-reason is required with --commit-vault")
     if a.command != "status" and not venv_python().exists():
         raise SystemExit("The .venv is missing. Run the bootstrap first: python scripts/bootstrap.py")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from setup_state import stale_message
+    stale = stale_message(ROOT)
+    if stale:
+        print(f"WARNING: {stale}", file=sys.stderr)
     if a.command == "status":
         status()
     elif a.command == "dry-run":

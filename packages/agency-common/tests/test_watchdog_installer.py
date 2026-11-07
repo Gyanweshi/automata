@@ -99,3 +99,24 @@ def test_cron_runs_background_jobs_at_reboot(tmp_path):
     line = cron_line(JOBS["vault-watchdog"], tmp_path, "", 7)
     assert line.startswith("@reboot cd ")
     assert line.endswith("# automata-vault-watchdog")
+
+
+def test_ownership_never_steals_another_checkouts_job(monkeypatch, tmp_path):
+    from agency_common import scheduled_jobs as sj
+
+    here, other = tmp_path / "here", tmp_path / "other"
+    monkeypatch.setattr(sj, "registered_repo", lambda job, system_name=None: other)
+    assert sj.should_install_here("vault-index", here)[0] is False
+    monkeypatch.setattr(sj, "registered_repo", lambda job, system_name=None: here)
+    assert sj.should_install_here("vault-index", here)[0] is True
+    monkeypatch.setattr(sj, "registered_repo", lambda job, system_name=None: None)
+    assert sj.should_install_here("vault-index", here) == (True, "not registered yet")
+
+
+def test_repo_from_command_reads_unit_task_and_legacy_lines():
+    from agency_common.scheduled_jobs import repo_from_command
+
+    assert str(repo_from_command('ExecStart="/h/a/.venv/bin/python" "/h/a/scripts/schedule.py" "run" "x"')) == "/h/a"
+    assert repo_from_command(r'<Arguments>"D:\work\automata\scripts\schedule.py" run x</Arguments>') is not None
+    assert str(repo_from_command('/usr/bin/env bash "/h/a/scripts/run-vault-index.sh"')) == "/h/a"
+    assert repo_from_command("something else") is None
