@@ -91,8 +91,6 @@ Update one dependency per commit, so a break points at exactly one change.
 - **MCP servers are behind upstream** (2026-11-07): chrome-devtools-mcp 0.23.0 (latest 1.12.0),
   notebooklm-mcp 1.5.9 (4.6.0), apify-mcp 0.9.20 (0.21.4), playwright-mcp 0.0.73 (0.0.84), browser-act 0.1.23
   (1.6.2). Update one at a time with the steps above.
-- **PyMuPDF** is used by `tools/pdf_utils/extract_furlove_pdf_assets.py` but is not declared in any
-  pyproject or lock file.
 - **ImageMagick** is not installed on the Linux machine; the slides agent's raster conversion and the
   higgsfield brand kit need it there.
 - **Three Playwright versions** coexist: Node 1.61 (package-lock), Python 1.59 (uv.lock), and the MCP server's
@@ -167,7 +165,7 @@ Update one dependency per commit, so a break points at exactly one change.
 
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
-| **Third-party agent skills** (`external-skills`) | browser-act, superdesign and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | hashes in lock | `skills-lock.json` |
+| **Third-party agent skills** (`external-skills`) | browser-act and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | hashes in lock | `skills-lock.json` |
 | **GitHub Actions** (`github-actions`) | actions/checkout, setup-python and setup-node in the Security and Cross-platform workflows. | no | tag in workflow | `.github/workflows/security.yml`, `.github/workflows/cross-platform.yml` |
 
 ### Install, update, and what to do when it breaks

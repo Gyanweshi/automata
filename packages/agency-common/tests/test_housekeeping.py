@@ -42,16 +42,16 @@ def _finding(report, scope: str, path: str):
 def test_exact_workspace_copy_is_safe_delete(sandbox_path):
     repo = sandbox_path / "repo"
     vault = sandbox_path / "vault"
-    (repo / "workspace" / "maple" / "content").mkdir(parents=True)
+    (repo / "workspace" / "brand-a" / "content").mkdir(parents=True)
     (vault / "Deliverables").mkdir(parents=True)
-    body = "---\ntype: caption\nstatus: final\ncreated: 2026-08-21\ntags: [maple]\n---\nDone\n"
-    source = repo / "workspace" / "maple" / "content" / "caption.md"
+    body = "---\ntype: caption\nstatus: final\ncreated: 2026-08-21\ntags: [brand-a]\n---\nDone\n"
+    source = repo / "workspace" / "brand-a" / "content" / "caption.md"
     source.write_text(body, encoding="utf-8")
     (vault / "Deliverables" / "caption.md").write_text(body, encoding="utf-8")
 
     report = audit_housekeeping(repo, vault, now=NOW)
 
-    finding = _finding(report, "repo", "workspace/maple/content/caption.md")
+    finding = _finding(report, "repo", "workspace/brand-a/content/caption.md")
     assert finding.decision == DECISION_SAFE_DELETE
     assert finding.duplicate_of == "Deliverables/caption.md"
     assert finding.fingerprint
@@ -77,12 +77,12 @@ def test_vault_notes_are_never_safe_delete(sandbox_path):
     repo.mkdir()
     (vault / "Brands").mkdir(parents=True)
     (vault / "Notes").mkdir()
-    (vault / "Brands" / "maple.md").write_text("# Maple", encoding="utf-8")
+    (vault / "Brands" / "brand-a.md").write_text("# Brand A", encoding="utf-8")
     (vault / "Notes" / "loose.md").write_text("# No frontmatter", encoding="utf-8")
 
     report = audit_housekeeping(repo, vault, now=NOW)
 
-    assert _finding(report, "vault", "Brands/maple.md").decision == DECISION_KEEP_VAULT
+    assert _finding(report, "vault", "Brands/brand-a.md").decision == DECISION_KEEP_VAULT
     assert _finding(report, "vault", "Notes/loose.md").decision == DECISION_REVIEW
     assert all(
         item.decision != DECISION_SAFE_DELETE
@@ -250,13 +250,13 @@ def test_clear_workspace_preserves_tracked_scaffolding_and_quarantines_rest(
     workspace = repo / "workspace"
     (workspace / "content" / "example-brand").mkdir(parents=True)
     (workspace / "research").mkdir()
-    (workspace / "shriram").mkdir()
+    (workspace / "brand-b").mkdir()
     (workspace / "content" / ".gitkeep").write_text("", encoding="utf-8")
     (workspace / "research" / ".gitkeep").write_text("", encoding="utf-8")
     (workspace / "content" / "example-brand" / "draft.md").write_text(
         "draft", encoding="utf-8"
     )
-    (workspace / "shriram" / "qa.png").write_bytes(b"qa")
+    (workspace / "brand-b" / "qa.png").write_bytes(b"qa")
     monkeypatch.setattr(
         housekeeping,
         "_git_tracked_files",
@@ -271,10 +271,10 @@ def test_clear_workspace_preserves_tracked_scaffolding_and_quarantines_rest(
     assert (workspace / "content" / ".gitkeep").exists()
     assert (workspace / "research" / ".gitkeep").exists()
     assert not (workspace / "content" / "example-brand").exists()
-    assert not (workspace / "shriram").exists()
+    assert not (workspace / "brand-b").exists()
     batch = Path(result["batch"])
     assert (batch / "workspace" / "content" / "example-brand" / "draft.md").exists()
-    assert (batch / "workspace" / "shriram" / "qa.png").exists()
+    assert (batch / "workspace" / "brand-b" / "qa.png").exists()
     assert sorted(result["preserved"]) == [
         "workspace/content/.gitkeep",
         "workspace/research/.gitkeep",

@@ -10,7 +10,7 @@ from agency_common.housekeeping_triage import classify, triage_findings, triage_
     "path,bucket",
     [
         ("workspace/pool-people/final/pool-final-v3.jpg", "final"),
-        ("workspace/purva-parkhill/amenities-2026-09-10/gym-approved-hero.png", "final"),
+        ("workspace/brand-c-site/amenities-2026-09-10/gym-approved-hero.png", "final"),
         ("workspace/pool-people/candidates/opt-b.png", "candidate"),
         ("workspace/gym-figure-repair/crops8k/face.png", "candidate"),
         ("workspace/pool-people/source/base.png", "input"),
@@ -20,7 +20,7 @@ from agency_common.housekeeping_triage import classify, triage_findings, triage_
         ("workspace/pool-people/video/render.mp4", "media"),
         ("workspace/video-inspection/watermark-review/a.jpg", "diagnostic"),
         ("workspace/pool-people/build_final.py", "code"),
-        ("workspace/maple/research/facts.json", "data"),
+        ("workspace/brand-a/research/facts.json", "data"),
         ("workspace/city-night/shot.png", "image"),
         ("workspace/autopilot-offices/storyboards/x/session.db-wal", "tool-state"),
         ("clipfarming-and-distribution.md", "non-workspace"),

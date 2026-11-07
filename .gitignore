@@ -78,3 +78,6 @@ scripts/screen_chaos.py
 .claude/sessions/
 .claude/*.backup
 
+
+# Runtime vector store written by memory/vector_db.py (per machine, not shared)
+memory/automata_db/

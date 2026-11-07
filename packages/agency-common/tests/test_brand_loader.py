@@ -63,21 +63,21 @@ def test_load_brand_from_md_includes_memory(tmp_path, monkeypatch):
     monkeypatch.setenv("OBSIDIAN_VAULT_PATH", str(tmp_path))
     brands_dir = tmp_path / "Brands"
     brands_dir.mkdir()
-    (brands_dir / "maple.md").write_text(
+    (brands_dir / "brand-a.md").write_text(
         "---\n"
-        "slug: maple\n"
-        "name: Maple\n"
+        "slug: brand-a\n"
+        "name: Brand A\n"
         "---\n\n"
-        "# Maple\n\n"
+        "# Brand A\n\n"
         "## Memory\n\n"
         "- 2026-05-06: instagram/carousel brief for '5 tips'.\n"
         "- 2026-05-06: research — @cashify leads at 3.2% engagement.\n",
         encoding="utf-8",
     )
 
-    brand = load_brand("maple")
+    brand = load_brand("brand-a")
 
-    assert brand.slug == "maple"
+    assert brand.slug == "brand-a"
     assert len(brand.memory) == 2
     assert "carousel" in brand.memory[0]
     assert "cashify" in brand.memory[1]
@@ -87,12 +87,12 @@ def test_load_brand_from_md_with_no_memory_section(tmp_path, monkeypatch):
     monkeypatch.setenv("OBSIDIAN_VAULT_PATH", str(tmp_path))
     brands_dir = tmp_path / "Brands"
     brands_dir.mkdir()
-    (brands_dir / "maple.md").write_text(
-        "---\nslug: maple\nname: Maple\n---\n\n# Maple\n\nJust the body.\n",
+    (brands_dir / "brand-a.md").write_text(
+        "---\nslug: brand-a\nname: Brand A\n---\n\n# Brand A\n\nJust the body.\n",
         encoding="utf-8",
     )
 
-    brand = load_brand("maple")
+    brand = load_brand("brand-a")
 
     assert brand.memory == []
 

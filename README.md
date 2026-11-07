@@ -258,7 +258,7 @@ Automata includes modular agent skills under `skills/`. Every agent checks avail
 - **`agency-content`**: Brand voice copywriting, captions, carousels, and calendars.
 - **`agency-housekeeper`**: Retention policies and workspace/vault cleanup decisions.
 - **`higgsfield-*` suite**: Image generation, product photoshoots, brand kits, and video explainers.
-- **`frontend-design` & `superdesign`**: Token-driven slide design and UI architecture.
+- **`frontend-design`**: Token-driven slide decks with an inline editor for spacing and type.
 - **`html-preview`**: Headless Playwright screenshot verification of local HTML files.
 - **`visual-image` & `visual-video`**: Curated prompt libraries for AI image/video models.
 - **`image-gen`**: OpenAI GPT Image generation/edits and local animated-GIF assembly via portable Python CLIs.

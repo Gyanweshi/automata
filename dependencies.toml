@@ -473,7 +473,7 @@ id = "external-skills"
 name = "Third-party agent skills"
 kind = "external-skills"
 category = "Skills and CI"
-purpose = "browser-act, superdesign and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json."
+purpose = "browser-act and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json."
 used_by = [".agents/skills"]
 required = false
 pin_files = [{ file = "skills-lock.json" }]

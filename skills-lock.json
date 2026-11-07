@@ -54,12 +54,6 @@
       "sourceType": "github",
       "skillPath": "higgsfield-youtube-thumbnail/SKILL.md",
       "computedHash": "ebd5911481f73c90a3e931a6f7660b0e7a7e80d0d2fac82fe3e8d817239a4975"
-    },
-    "superdesign": {
-      "source": "superdesigndev/superdesign-skill",
-      "sourceType": "github",
-      "skillPath": "skills/superdesign/SKILL.md",
-      "computedHash": "7208b5e2e1145d76abcd698b2a9085952d986022ec2d5d8b9f972106b1b2447b"
     }
   }
 }
