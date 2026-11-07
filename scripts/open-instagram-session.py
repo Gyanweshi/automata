@@ -72,16 +72,32 @@ def open_cdp(port: int, profile: Path, wait: bool) -> int:
     return 0
 
 
-def open_browser_act(session: str, wait: bool) -> int:
+def open_browser_act(browser: str, session: str, wait: bool) -> int:
+    """Open the saved browser-act browser in a visible window on the Instagram login page (browser-act 1.x)."""
+    import json
+
     if not shutil.which("browser-act"):
         print("browser-act is not installed: python scripts/deps.py install browser-act", file=sys.stderr)
         return 1
-    for args in (["navigate", LOGIN_URL], ["wait", "stable", "--timeout", "15000"], ["state"]):
-        subprocess.run(["browser-act", "--session", session, *args], check=False)  # nosec B603 B607
-    print(f"[instagram-session] After login, reuse with: --scraper browser-act --browser-act-mode session "
-          f"--browser-act-session-name {session}")
+    listed = subprocess.run(["browser-act", "browser", "list", "--format", "json"], capture_output=True, text=True)  # nosec B603 B607
+    browsers = json.loads(listed.stdout or "{}").get("browsers", []) if listed.returncode == 0 else []
+    match = next((b for b in browsers if browser in (b.get("id"), b.get("name"))), None)
+    if not match:
+        names = ", ".join(f"{b.get('name')} ({b.get('id')})" for b in browsers) or "none"
+        print(f"browser-act browser '{browser}' not found; saved browsers: {names}", file=sys.stderr)
+        return 1
+    opened = subprocess.run(["browser-act", "--session", session, "browser", "open", match["id"], LOGIN_URL,  # nosec B603 B607
+                             "--headed"], check=False)
+    if opened.returncode:
+        return opened.returncode
+    print(f"[instagram-session] Log into Instagram in the '{match['name']}' window; the login is saved in that browser.")
     if wait:
         input("Press Enter after Instagram login is complete ")
+        subprocess.run(["browser-act", "session", "close", session], check=False)  # nosec B603 B607
+    else:
+        print(f"[instagram-session] When done, close it with: browser-act session close {session}")
+    print("[instagram-session] Research reuses it with: --scraper browser-act --browser-act-mode session "
+          f"--browser-act-browser {match['name']}")
     return 0
 
 
@@ -90,13 +106,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=["cdp", "browser-act", "playwright"], default="cdp")
     parser.add_argument("--cdp-port", type=int, default=9224)
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
-    parser.add_argument("--browser-act-session-name", default="instagram-main")
+    parser.add_argument("--browser-act-session-name", default="instagram-login")
+    parser.add_argument("--browser-act-browser", default="instagram-research",
+                        help="saved browser-act browser (id or name) that should hold the Instagram login")
     parser.add_argument("--wait", action="store_true")
     args = parser.parse_args(argv)
     if args.mode == "cdp":
         return open_cdp(args.cdp_port, args.profile.expanduser(), args.wait)
     if args.mode == "browser-act":
-        return open_browser_act(args.browser_act_session_name, args.wait)
+        return open_browser_act(args.browser_act_browser, args.browser_act_session_name, args.wait)
     print(f"[instagram-session] Playwright manual login saves state to {Path.home() / '.agency' / 'ig_session.json'}")
     print("[instagram-session] Run: python scripts/run-agent.py research --brand <brand> --scraper playwright "
           "--instagram-login-mode manual --platforms ig")

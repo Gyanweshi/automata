@@ -17,7 +17,8 @@ class AgencyConfig:
         CAPSULEHUB_API_KEY    — CapsuleHub / Tilantra API key
         META_AD_LIBRARY_TOKEN — Facebook/Meta access token for Ad Library API
         BROWSER_ACT_MODE      — browser-act Instagram mode: stealth or session
-        BROWSER_ACT_SESSION_NAME — named browser-act session to reuse in session mode
+        BROWSER_ACT_SESSION_NAME — prefix for the short-lived browser-act sessions opened in session mode
+        BROWSER_ACT_BROWSER   — saved browser-act browser (id or name) holding the Instagram login; default instagram-research
         HERMES_AGENT_PATH     — path to Hermes agent executable
     """
 
@@ -41,6 +42,7 @@ class AgencyConfig:
     browser_act_proxy_region: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_PROXY_REGION", ""))
     browser_act_mode: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_MODE", "stealth"))
     browser_act_session_name: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_SESSION_NAME", ""))
+    browser_act_browser: str = field(default_factory=lambda: os.environ.get("BROWSER_ACT_BROWSER", ""))
     hermes_agent_path: str = field(default_factory=lambda: os.environ.get("HERMES_AGENT_PATH", ""))
 
 

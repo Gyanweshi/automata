@@ -196,25 +196,20 @@ def test_browser_act_marks_login_gate_as_gated(monkeypatch):
     assert "gate" in analysis.bio.lower()
 
 
-def test_browser_act_session_mode_uses_persistent_session(monkeypatch):
+def test_browser_act_session_mode_opens_a_session_on_the_saved_browser(monkeypatch):
     calls = []
+
+    class Completed:
+        def __init__(self, stdout=""):
+            self.stdout = stdout
 
     def fake_run(args, **kwargs):
         calls.append(args)
-        command = args[-2:]
-        if command == ["get", "markdown"]:
-            class Completed:
-                stdout = (
-                    "42K followers 12 following 99 posts\n"
-                    "Bio line\n"
-                    "https://www.instagram.com/brandstudio/p/ABC123/"
-                )
-
-            return Completed()
-
-        class Completed:
-            stdout = ""
-
+        if args[1:3] == ["browser", "list"]:
+            return Completed('{"ok": true, "browsers": [{"id": "chrome_local_1", "name": "instagram-research"}]}')
+        if args[-2:] == ["get", "markdown"]:
+            return Completed("42K followers 12 following 99 posts\nBio line\n"
+                             "https://www.instagram.com/brandstudio/p/ABC123/")
         return Completed()
 
     monkeypatch.setattr("agency_research.scrapers.browser_act_instagram.subprocess.run", fake_run)
@@ -222,11 +217,24 @@ def test_browser_act_session_mode_uses_persistent_session(monkeypatch):
 
     analysis = scraper.build_competitor_analysis("@brandstudio", post_count=3)
 
-    assert calls[0] == ["browser-act", "--session", "ig-main", "navigate", "https://www.instagram.com/brandstudio/"]
-    assert calls[1] == ["browser-act", "--session", "ig-main", "wait", "stable"]
-    assert calls[2] == ["browser-act", "--session", "ig-main", "get", "markdown"]
+    assert calls[0] == ["browser-act", "browser", "list", "--format", "json"]
+    assert calls[1] == ["browser-act", "--session", "ig-main-1", "browser", "open", "chrome_local_1",
+                        "https://www.instagram.com/brandstudio/"]
+    assert calls[2] == ["browser-act", "--session", "ig-main-1", "wait", "stable"]
+    assert calls[3] == ["browser-act", "--session", "ig-main-1", "get", "markdown"]
+    assert calls[4] == ["browser-act", "session", "close", "ig-main-1"]  # never leaks a session
     assert analysis.scrape_status == "ok"
     assert analysis.top_posts[0].post_id == "ABC123"
+
+
+def test_browser_act_session_mode_reports_a_missing_browser(monkeypatch):
+    class Completed:
+        stdout = '{"ok": true, "browsers": [{"id": "x", "name": "other"}]}'
+
+    monkeypatch.setattr("agency_research.scrapers.browser_act_instagram.subprocess.run", lambda *a, **k: Completed())
+    scraper = BrowserActInstagramScraper(mode="session", browser="instagram-research")
+    document = scraper._attempt_session_extract("https://www.instagram.com/x/", content_type="markdown")
+    assert document.status == "error" and "BROWSER_ACT_BROWSER" in document.error
 
 
 def test_browser_act_profile_dry_run_marks_status():
@@ -250,3 +258,16 @@ def test_browser_act_research_brand_dry_run_returns_competitor_shells():
         CompetitorAnalysis(handle="first", platform="instagram"),
         CompetitorAnalysis(handle="second", platform="instagram"),
     ]
+
+
+def test_browser_act_bio_skips_logged_in_navigation():
+    page = "\n".join([
+        "Instagram", "[Home", "Home](https://www.instagram.com/)", "[Reels", "Reels](https://www.instagram.com/reels/)",
+        "[Search", "Search](https://www.instagram.com/explore/)", "[brandstudio", "---------](https://www.instagram.com/brandstudio/)",
+        "Verified", "Options", "1,200 posts", "[42k followers](https://www.instagram.com/brandstudio/)",
+        "[12 following](https://www.instagram.com/brandstudio/)", "Handmade ceramics from Pune, shipped across India",
+        "Link icon", "Follow", "Message", "[Posts", "Posts](https://www.instagram.com/brandstudio/)",
+        "[Reels", "Reels](https://www.instagram.com/brandstudio/reels/)",
+    ])
+    scraper = BrowserActInstagramScraper()
+    assert scraper._extract_bio(page, "brandstudio") == "Handmade ceramics from Pune, shipped across India"

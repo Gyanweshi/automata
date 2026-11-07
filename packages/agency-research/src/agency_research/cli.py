@@ -67,7 +67,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--browser-act-session-name",
         default=None,
-        help="Named browser-act session to reuse when --browser-act-mode session is selected.",
+        help="Prefix for the short-lived browser-act sessions opened in session mode.",
+    )
+    p.add_argument(
+        "--browser-act-browser",
+        default=None,
+        help="Saved browser-act browser (id or name) that holds the Instagram login (default: instagram-research).",
     )
     p.add_argument(
         "--playwright-post-dwell-seconds",
@@ -256,6 +261,7 @@ def main():
         browser_act_mode=browser_act_mode or "stealth",
         browser_act_session_name=browser_act_session_name or None,
         playwright_post_dwell_seconds=args.playwright_post_dwell_seconds,
+        browser_act_browser=args.browser_act_browser or None,
     )
     parallel_note = f", parallel: {args.max_workers} workers" if args.parallel else ""
     print(f"Running research for '{brand.name}' (scraper: {args.scraper}{parallel_note})...")

@@ -50,6 +50,8 @@ def research_args(a: argparse.Namespace) -> list[str]:
     args = ["--brand", a.brand, "--workspace", a.workspace, "--brands-dir", a.brands_dir, "--scraper", a.scraper,
             "--instagram-login-mode", a.instagram_login_mode, "--browser-act-mode", a.browser_act_mode,
             "--browser-act-session-name", a.browser_act_session_name]
+    if a.browser_act_browser:
+        args += ["--browser-act-browser", a.browser_act_browser]
     if a.platforms:
         args += ["--platforms", a.platforms]
     if a.parallel:
@@ -93,6 +95,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--instagram-login-mode", default="auto", choices=["auto", "manual"])
     p.add_argument("--browser-act-mode", default="stealth", choices=["stealth", "session"])
     p.add_argument("--browser-act-session-name", default="")
+    p.add_argument("--browser-act-browser", default="", help="saved browser-act browser for session mode (default instagram-research)")
     p.add_argument("--parallel", action="store_true")
     p.add_argument("--max-workers", type=int, default=4)
     p.add_argument("--commit-vault", action="store_true")

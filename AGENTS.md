@@ -184,8 +184,9 @@ python3 scripts/open-instagram-session.py --mode browser-act --wait       # brow
 
 Use the CDP helper when rendered Instagram post pages hit a login wall. It opens the persistent profile
 `~/.agency/chrome-instagram-cdp` (the same profile the Playwright MCP uses); log in once and keep the browser
-open while CDP research runs. Use browser-act session mode with `--browser-act-mode session
---browser-act-session-name instagram-main` after its login helper has been completed.
+open while CDP research runs. Use browser-act session mode with `--browser-act-mode session --browser-act-browser instagram-research`
+after logging in once with `python3 scripts/open-instagram-session.py --mode browser-act --wait` (free; no proxy
+unless `BROWSER_ACT_PROXY_REGION` is set, which costs BrowserAct credits).
 
 ## MCP Assignments
 

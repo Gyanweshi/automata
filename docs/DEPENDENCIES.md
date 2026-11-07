@@ -114,10 +114,6 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 ## Known gaps
 
-- **browser-act 1.x migration** (pinned 0.1.25, the version its skill is verified against; latest 1.6.2): 1.x
-  attaches sessions to named browsers (`browser open <id>`), so the research scraper's session mode and
-  `scripts/open-instagram-session.py --mode browser-act` need adapting, the `browser-act` skill needs its upstream
-  1.x version, and a real run needs the browser-act account (cloud proxies may cost credits). Plan it as one change.
 - **notebooklm-mcp** is pinned at 4.4.0, two weeks behind latest on purpose (newer releases were days old); its
   Google login has expired and needs a one-time re-login (see its entry below).
 - **Three Playwright versions** coexist: Node 1.61 (package-lock), Python 1.59 (uv.lock), and the MCP server's
@@ -167,7 +163,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
 | **raea (Render Anything Engine)** (`raea`) | Local GPU renderer for 3D previz (greybox keyframes and camera-move clips). | no | 0.1.0-canary.2 | `dependencies.toml` |
-| **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | 0.1.25 | `dependencies.toml` |
+| **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | 1.6.2 | `dependencies.toml` |
 
 ### System tools
 
@@ -289,9 +285,9 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **If it breaks:** Canary software. Roll back: `python scripts/deps.py set-pin raea OLD && python scripts/deps.py install raea`. Upstream's own installer can pick a web-* release and 404; use deps.py instead.
 
 #### browser-act CLI (`browser-act`)
-- **Install:** all: `uv tool install browser-act-cli==0.1.25`
+- **Install:** all: `uv tool install --python 3.12 --force browser-act-cli==1.6.2`
 - **Update:** python scripts/deps.py set-pin browser-act NEW && python scripts/deps.py install browser-act
-- **If it breaks:** uv tool install --force browser-act-cli=={version}
+- **If it breaks:** Reinstall: `uv tool install --python 3.12 --force browser-act-cli==PIN` (1.x ships only Python 3.12 wheels). Session mode needs the saved browser named in BROWSER_ACT_BROWSER (default instagram-research; `browser-act browser list`). Free for local Chrome browsers, stealth-extract and captcha solving; only BrowserAct proxies and more than 5 stealth browsers cost credits, and the scraper uses a proxy only when BROWSER_ACT_PROXY_REGION is set.
 
 #### ffmpeg / ffprobe (`ffmpeg`)
 - **Install:** linux: `sudo apt-get install -y ffmpeg`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Gyan.FFmpeg`; macos: `brew install ffmpeg`

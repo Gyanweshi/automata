@@ -13,9 +13,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import Counter, defaultdict
+import itertools
+import json
 import logging
 import re
 import subprocess
+import threading
 import time
 
 from bs4 import BeautifulSoup
@@ -62,13 +65,19 @@ class BrowserActInstagramScraper:
         proxy_region: str | None = None,
         mode: str = "stealth",
         session_name: str | None = None,
+        browser: str | None = None,
     ):
         self.dry_run = dry_run
         self.timeout_seconds = timeout_seconds
         self.max_workers = max_workers
         self.proxy_region = (proxy_region or "").strip()
         self.mode = (mode or "stealth").strip().lower()
-        self.session_name = (session_name or "").strip()
+        self.session_name = (session_name or "").strip() or "automata-research"
+        # Saved browser-act browser (id or name) that holds the logged-in Instagram state; session mode only.
+        self.browser = (browser or "").strip() or "instagram-research"
+        self._browser_id: str | None = None
+        self._lock = threading.Lock()
+        self._counter = itertools.count(1)
 
     def research_brand(
         self,
@@ -233,38 +242,42 @@ class BrowserActInstagramScraper:
             return ExtractedDocument("", content_type, "empty", last_error)
         return ExtractedDocument("", content_type, "error", last_error or f"browser-act extraction failed for {url}")
 
+    def _resolve_browser_id(self) -> str:
+        """Find the saved browser by id or name (browser-act 1.x opens sessions on a named browser)."""
+        with self._lock:
+            if self._browser_id:
+                return self._browser_id
+            completed = subprocess.run(["browser-act", "browser", "list", "--format", "json"], check=True,
+                                       capture_output=True, text=True, timeout=self.timeout_seconds)
+            browsers = json.loads(completed.stdout or "{}").get("browsers", [])
+            match = next((b for b in browsers if self.browser in (b.get("id"), b.get("name"))), None)
+            if not match:
+                names = ", ".join(f"{b.get('name')} ({b.get('id')})" for b in browsers) or "none"
+                raise LookupError(f"browser-act browser '{self.browser}' not found; saved browsers: {names}. "
+                                  "Set BROWSER_ACT_BROWSER to one of them.")
+            self._browser_id = match["id"]
+            return self._browser_id
+
     def _attempt_session_extract(self, url: str, *, content_type: str) -> ExtractedDocument:
-        if not self.session_name:
-            return ExtractedDocument(
-                "",
-                content_type,
-                "error",
-                "browser-act session mode requires a session name",
-            )
+        """Open a short-lived session on the saved logged-in browser, read the page, close the session.
+
+        Each page gets its own session (parallel workers never share one); all sessions share the browser's
+        login state, which is how browser-act runs parallel work on one account.
+        """
+        try:
+            browser_id = self._resolve_browser_id()
+        except (LookupError, subprocess.SubprocessError, OSError, ValueError) as exc:
+            return ExtractedDocument("", content_type, "error", str(exc))
 
         last_error = ""
-        commands = [
-            ["browser-act", "--session", self.session_name, "navigate", url],
-            ["browser-act", "--session", self.session_name, "wait", "stable"],
-            ["browser-act", "--session", self.session_name, "get", content_type],
-        ]
         for attempt in range(1, 3):
+            session = f"{self.session_name}-{next(self._counter)}"
             try:
-                for command in commands[:-1]:
-                    subprocess.run(
-                        command,
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                        timeout=self.timeout_seconds,
-                    )
-                completed = subprocess.run(
-                    commands[-1],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=self.timeout_seconds,
-                )
+                for command in (["browser-act", "--session", session, "browser", "open", browser_id, url],
+                                ["browser-act", "--session", session, "wait", "stable"]):
+                    subprocess.run(command, check=True, capture_output=True, text=True, timeout=self.timeout_seconds)
+                completed = subprocess.run(["browser-act", "--session", session, "get", content_type], check=True,
+                                           capture_output=True, text=True, timeout=self.timeout_seconds)
                 stdout = (completed.stdout or "").strip()
                 if not stdout:
                     return ExtractedDocument("", content_type, "empty", "No content extracted")
@@ -279,6 +292,9 @@ class BrowserActInstagramScraper:
                     return ExtractedDocument("", content_type, "empty", last_error)
             except subprocess.TimeoutExpired as exc:
                 last_error = f"timed out after {exc.timeout} seconds"
+            finally:
+                subprocess.run(["browser-act", "session", "close", session], capture_output=True, text=True,
+                               timeout=self.timeout_seconds, check=False)
 
             if attempt == 1:
                 time.sleep(1)
@@ -421,22 +437,32 @@ class BrowserActInstagramScraper:
             "related accounts",
             "see all",
             "follow",
+            "message",
             "sign up",
             "log in",
             "close",
+            "link icon",
+            "instagram",
         }
-        for line in stripped_lines:
+        stats = re.compile(r"\b(posts|followers|following)\b")
+        # a stats line carries a number ("8,640 posts", "686m followers"); the "Posts" tab further down does not
+        stats_line = re.compile(r"\d[\d.,]*\s*[kmb]?\s+(posts|followers|following)\b")
+        # The bio follows the stats lines; everything above them is navigation (logged-in pages start with
+        # Home / Reels / Messages / Search ...), so start after the last stats line near the top.
+        start = 0
+        for index, line in enumerate(stripped_lines[:80]):
+            if stats_line.search(line.lower()):
+                start = index + 1
+        for line in stripped_lines[start:]:
             clean = re.sub(r"[*_`#\[\]()>-]+", "", line).strip()
             if not clean:
                 continue
             lower = clean.lower()
-            if lower in skipped:
+            if lower in skipped or lower == handle.lower().lstrip("@"):
                 continue
-            if re.search(r"\b(posts|followers|following)\b", lower):
+            if stats.search(lower):
                 continue
-            if handle.lower() in lower or "instagram" in lower:
-                continue
-            if POST_URL_RE.search(clean):
+            if POST_URL_RE.search(clean) or lower.startswith("http") or "https://" in lower:
                 continue
             return clean[:500]
         return ""

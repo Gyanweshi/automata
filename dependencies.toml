@@ -315,12 +315,12 @@ category = "Tools"
 purpose = "Stealth browser extraction for research (--scraper browser-act)."
 used_by = ["agency-research", "browser-act skill"]
 required = false
-pin = "0.1.25"
+pin = "1.6.2"
 check = ["browser-act", "--version"]
 version_regex = '(\d+\.\d+\.\d+)'
-install = { all = "uv tool install browser-act-cli=={version}" }
+install = { all = "uv tool install --python 3.12 --force browser-act-cli=={version}" }
 update = "python scripts/deps.py set-pin browser-act NEW && python scripts/deps.py install browser-act"
-on_break = "uv tool install --force browser-act-cli=={version}"
+on_break = "Reinstall: `uv tool install --python 3.12 --force browser-act-cli==PIN` (1.x ships only Python 3.12 wheels). Session mode needs the saved browser named in BROWSER_ACT_BROWSER (default instagram-research; `browser-act browser list`). Free for local Chrome browsers, stealth-extract and captcha solving; only BrowserAct proxies and more than 5 stealth browsers cost credits, and the scraper uses a proxy only when BROWSER_ACT_PROXY_REGION is set."
 upstream = "pypi:browser-act-cli"
 
 [[dependency]]

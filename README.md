@@ -178,7 +178,7 @@ make research BRAND=example-brand PARALLEL=1 MAX_WORKERS=4
 make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig PARALLEL=1 MAX_WORKERS=4
 
 # Authenticated persistent browser session
-make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig BROWSER_ACT_MODE=session BROWSER_ACT_SESSION_NAME=instagram-main
+make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig BROWSER_ACT_MODE=session BROWSER_ACT_BROWSER=instagram-research
 ```
 
 </details>

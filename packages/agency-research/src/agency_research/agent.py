@@ -73,6 +73,7 @@ class ResearchAgent:
         browser_act_mode: str = "stealth",
         browser_act_session_name: str | None = None,
         playwright_post_dwell_seconds: float = 1.5,
+        browser_act_browser: str | None = None,
     ):
         self.config = config or AgencyConfig.from_env()
         self.dry_run = dry_run
@@ -80,6 +81,7 @@ class ResearchAgent:
         self.instagram_login_mode = instagram_login_mode
         self.browser_act_mode = browser_act_mode or self.config.browser_act_mode or "stealth"
         self.browser_act_session_name = browser_act_session_name or self.config.browser_act_session_name or ""
+        self.browser_act_browser = browser_act_browser or self.config.browser_act_browser or ""
 
         ig_cls = INSTAGRAM_SCRAPERS.get(scraper, CDPInstagramScraper)
         if ig_cls is ApifyInstagramScraper:
@@ -90,6 +92,7 @@ class ResearchAgent:
                 proxy_region=self.browser_act_proxy_region or None,
                 mode=self.browser_act_mode,
                 session_name=self.browser_act_session_name or None,
+                browser=self.browser_act_browser or None,
             )
         elif ig_cls is CDPInstagramScraper:
             self.ig = ig_cls(dry_run=dry_run)

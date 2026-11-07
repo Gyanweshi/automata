@@ -107,9 +107,9 @@ Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use thes
 - `--scraper cdp` - use a Chrome DevTools Protocol session opened by `scripts/open-instagram-session.py` (default)
 - `--scraper playwright` - use local browser-based scraping
 - `--scraper browser-act` - use browser-act extraction for public or session-backed Instagram pages; best combined with `--parallel`
-- `--browser-act-proxy-region US` - pass a dynamic proxy region to browser-act for Instagram discovery pages that are more aggressively gated
-- `--browser-act-mode session` - reuse a named browser-act browser session that you log into manually once
-- `--browser-act-session-name instagram-main` - the browser-act session name to reuse in session mode
+- `--browser-act-proxy-region US` - pass a dynamic proxy region to browser-act for Instagram discovery pages that are more aggressively gated. **Paid** (BrowserAct proxy credits); everything else in browser-act is free, so use it only when asked
+- `--browser-act-mode session` - read pages through a saved, logged-in browser-act browser (free; the reliable choice for Instagram, since logged-out stealth extraction hits the login wall)
+- `--browser-act-browser instagram-research` - which saved browser holds the Instagram login (default `instagram-research`; list them with `browser-act browser list`). Log in once with `python scripts/open-instagram-session.py --mode browser-act --wait`
 - `--instagram-login-mode manual` - for Playwright Instagram runs, open a visible browser for one manual login and reuse the saved session afterward
 - `--parallel` - run independent platform/source/analyzer jobs concurrently
 - `--max-workers 4` - cap parallel research workers

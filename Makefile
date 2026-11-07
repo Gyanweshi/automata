@@ -11,6 +11,7 @@ SCRAPER ?= apify
 INSTAGRAM_LOGIN_MODE ?= auto
 BROWSER_ACT_MODE ?= stealth
 BROWSER_ACT_SESSION_NAME ?=
+BROWSER_ACT_BROWSER ?=
 PLATFORMS ?=
 VENV ?= .venv
 RETENTION_DAYS ?= 7
@@ -123,7 +124,7 @@ uninstall:
 RUN_AGENT = $(PYTHON) scripts/run-agent.py
 AGENT_FLAGS = --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) \
 	--scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) \
-	--browser-act-session-name "$(BROWSER_ACT_SESSION_NAME)" --platforms "$(PLATFORMS)" $(RUN_AGENT_PARALLEL) $(VAULT_FLAGS)
+	--browser-act-session-name "$(BROWSER_ACT_SESSION_NAME)" --browser-act-browser "$(BROWSER_ACT_BROWSER)" --platforms "$(PLATFORMS)" $(RUN_AGENT_PARALLEL) $(VAULT_FLAGS)
 
 research storyboard content pipeline week dry-run:
 	$(RUN_AGENT) $@ $(AGENT_FLAGS)
