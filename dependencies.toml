@@ -315,7 +315,7 @@ category = "Tools"
 purpose = "Stealth browser extraction for research (--scraper browser-act)."
 used_by = ["agency-research", "browser-act skill"]
 required = false
-pin = "0.1.23"
+pin = "0.1.25"
 check = ["browser-act", "--version"]
 version_regex = '(\d+\.\d+\.\d+)'
 install = { all = "uv tool install browser-act-cli=={version}" }

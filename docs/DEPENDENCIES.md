@@ -114,9 +114,12 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 ## Known gaps
 
-- **MCP servers are behind upstream** (2026-11-07): chrome-devtools-mcp 0.23.0 (latest 1.12.0),
-  notebooklm-mcp 1.5.9 (4.6.0), apify-mcp 0.9.20 (0.21.4), playwright-mcp 0.0.73 (0.0.84), browser-act 0.1.23
-  (1.6.2). Update one at a time with the steps above, after the cross-platform branch is merged.
+- **browser-act 1.x migration** (pinned 0.1.25, the version its skill is verified against; latest 1.6.2): 1.x
+  attaches sessions to named browsers (`browser open <id>`), so the research scraper's session mode and
+  `scripts/open-instagram-session.py --mode browser-act` need adapting, the `browser-act` skill needs its upstream
+  1.x version, and a real run needs the browser-act account (cloud proxies may cost credits). Plan it as one change.
+- **notebooklm-mcp** is pinned at 4.4.0, two weeks behind latest on purpose (newer releases were days old); its
+  Google login has expired and needs a one-time re-login (see its entry below).
 - **Three Playwright versions** coexist: Node 1.61 (package-lock), Python 1.59 (uv.lock), and the MCP server's
   own. Each needs its own Chromium build; the bootstrap installs both library builds.
 - **npm overrides:** `image-size` is forced to `^2.1.0` in `package.json` because pptxgenjs still asks
@@ -164,7 +167,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
 | **raea (Render Anything Engine)** (`raea`) | Local GPU renderer for 3D previz (greybox keyframes and camera-move clips). | no | 0.1.0-canary.2 | `dependencies.toml` |
-| **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | 0.1.23 | `dependencies.toml` |
+| **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | 0.1.25 | `dependencies.toml` |
 
 ### System tools
 
@@ -286,7 +289,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **If it breaks:** Canary software. Roll back: `python scripts/deps.py set-pin raea OLD && python scripts/deps.py install raea`. Upstream's own installer can pick a web-* release and 404; use deps.py instead.
 
 #### browser-act CLI (`browser-act`)
-- **Install:** all: `uv tool install browser-act-cli==0.1.23`
+- **Install:** all: `uv tool install browser-act-cli==0.1.25`
 - **Update:** python scripts/deps.py set-pin browser-act NEW && python scripts/deps.py install browser-act
 - **If it breaks:** uv tool install --force browser-act-cli=={version}
 
