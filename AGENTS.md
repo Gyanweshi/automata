@@ -150,7 +150,8 @@ The same commands work on both machines; only the Python launcher differs (`pyth
 `python` or `py` on Windows). Make targets are shortcuts for the Linux side.
 
 ```bash
-python3 scripts/bootstrap.py                          # set up or repair this machine
+uv run --no-project --python 3.12 scripts/bootstrap.py   # set up or repair this machine (fresh machine: see README Quick Start)
+python3 scripts/doctor.py                             # check everything, step by step (read-only)
 python3 scripts/deps.py check                         # every external dependency (dependencies.toml)
 python3 scripts/run-agent.py status
 python3 scripts/run-agent.py dry-run --brand example-brand

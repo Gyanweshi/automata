@@ -1,4 +1,4 @@
-.PHONY: install install-skills bootstrap deps deps-install deps-outdated check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval research storyboard content pipeline week dry-run clean help
+.PHONY: install install-skills bootstrap doctor deps deps-install deps-outdated check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval research storyboard content pipeline week dry-run clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -47,6 +47,7 @@ help:
 	@echo "  make install-skills Register repo skills for Codex and Claude"
 	@echo "  make check-skills   Check skill discovery coverage"
 	@echo "  make bootstrap      Set up this machine (Linux or Windows): venv, packages, browsers, checks"
+	@echo "  make doctor         Check that everything on this machine works, step by step"
 	@echo "  make deps           Check every external dependency (dependencies.toml)"
 	@echo "  make deps-install ID=raea  Install one dependency the right way for this OS"
 	@echo "  make deps-outdated  Show newer upstream versions of pinned dependencies"
@@ -99,7 +100,10 @@ deps-outdated:
 	$(PYTHON_CMD) scripts/deps.py outdated
 
 bootstrap:
-	$(PYTHON_CMD) scripts/bootstrap.py
+	uv run --no-project --python 3.12 scripts/bootstrap.py
+
+doctor:
+	$(PYTHON_CMD) scripts/doctor.py
 
 check-cross-platform:
 	$(PYTHON_CMD) scripts/check-cross-platform.py

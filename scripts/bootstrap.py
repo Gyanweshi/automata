@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Set up this repo on a fresh Linux, macOS or Windows machine (replaces bootstrap.sh / bootstrap.ps1 / bootstrap.cmd).
 
-    python3 scripts/bootstrap.py                         # Linux / macOS
-    py scripts\\bootstrap.py                             # Windows
-    ... --skip-browsers                                  # skip Playwright Chromium downloads
+    uv run --no-project --python 3.12 scripts/bootstrap.py    # any machine with uv; downloads Python if needed
+    python3 scripts/bootstrap.py                              # Linux / macOS with Python 3.12+
+    py scripts\\bootstrap.py                                  # Windows with Python 3.12+
+    ... --yes              install missing tools without asking
+    ... --skip-browsers    skip Playwright Chromium downloads
+    ... --schedules / --no-schedules   register the nightly jobs without asking / skip them
 
 Steps: check git/uv/Node and install any that are missing (winget on Windows, the manifest's command on
 Linux/macOS; asks first unless --yes), create .venv, `uv sync --locked`, `npm ci`, register skills, validate MCP JSON,
 check dependency pins, install the Playwright browsers each playwright version needs, report API keys,
-then run `scripts/deps.py check` so you see anything optional that is still missing.
+offer to register the nightly jobs, then run scripts/doctor.py, which checks everything one step at a time.
 Standard library only: it runs before the venv exists.
 """
 from __future__ import annotations
@@ -94,11 +97,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skip-browsers", "--skip-playwright-browser", action="store_true")
     parser.add_argument("--yes", "-y", action="store_true", help="install missing tools without asking")
+    schedules = parser.add_mutually_exclusive_group()
+    schedules.add_argument("--schedules", dest="schedules", action="store_true", default=None,
+                           help="register the nightly jobs without asking")
+    schedules.add_argument("--no-schedules", dest="schedules", action="store_false")
     args = parser.parse_args(argv)
 
     step("Checking required tools")
     if sys.version_info < (3, 12):
-        fail(f"Python 3.12+ is required; this is {sys.version.split()[0]}")
+        fail(f"Python 3.12+ is required; this is {sys.version.split()[0]}. "
+             "Run it through uv instead, which downloads Python 3.12: uv run --no-project --python 3.12 scripts/bootstrap.py")
     ok(f"Python {sys.version.split()[0]}")
     refresh_path()
     ensure("git", "git", args.yes, "repo sync and the cross-platform checks")
@@ -119,12 +127,12 @@ def main(argv: list[str] | None = None) -> int:
 
     step("Python environment")
     if not VENV_PYTHON.exists():
-        if run([sys.executable, "-m", "venv", ".venv"]).returncode != 0:
-            fail("could not create .venv")
+        # uv makes the venv (no python3-venv package needed on Debian/Ubuntu); --seed adds pip for make targets
+        if run(["uv", "venv", "--seed", "--python", "3.12", ".venv"]).returncode != 0:
+            fail("could not create .venv with uv")
         ok("created .venv")
     else:
         ok(".venv already exists")
-    run([str(VENV_PYTHON), "-m", "pip", "install", "--quiet", "--upgrade", "pip>=26.2", "setuptools>=83.0.0"])
     if run(["uv", "sync", "--locked", "--cache-dir", str(ROOT / ".uv-cache")]).returncode != 0:
         fail("uv sync --locked failed (is uv.lock out of date? run `uv lock --check`)")
     ok("agency packages installed from uv.lock")
@@ -166,12 +174,24 @@ def main(argv: list[str] | None = None) -> int:
                                            for line in dotenv.splitlines())
         (ok if found else warn)(f"{key} {'is set' if found else 'is not set (add it to .env; see env.example)'}")
 
-    step("Everything else (optional tools show as warn)")
-    run([sys.executable, "scripts/deps.py", "check"])
+    step("Nightly jobs (vault index rebuild 02:30, housekeeper purge 03:00)")
+    wanted = args.schedules
+    if wanted is None:
+        wanted = input("     Register them with this machine's scheduler now? [Y/n] ").strip().lower() in ("", "y", "yes")
+    if wanted:
+        for job in ("vault-index", "housekeeper"):
+            done = run([str(VENV_PYTHON), "scripts/schedule.py", "install", job]).returncode == 0
+            (ok if done else warn)(f"{job} {'scheduled' if done else 'not scheduled (see message above)'}")
+    else:
+        warn("nightly jobs not registered (python scripts/schedule.py install vault-index / housekeeper)")
+
+    step("Checking everything, one step at a time (scripts/doctor.py)")
+    doctor = run([sys.executable, "scripts/doctor.py"]).returncode
 
     activate = r".\.venv\Scripts\Activate.ps1" if WINDOWS else "source .venv/bin/activate"
-    print(f"\nBootstrap complete. Activate the environment with:  {activate}")
-    return 0
+    print(f"\nBootstrap {'complete' if doctor == 0 else 'finished with failures (see the summary above)'}. "
+          f"Activate the environment with:  {activate}")
+    return doctor
 
 
 if __name__ == "__main__":

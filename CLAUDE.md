@@ -29,7 +29,8 @@ Use `D:\automata\workspace\` for machine-readable JSON, browser dumps, logs, scr
 
 ```bash
 # First-time setup
-python3 scripts/bootstrap.py    # Set up this machine (Windows: py scripts\bootstrap.py)
+uv run --no-project --python 3.12 scripts/bootstrap.py   # Set up/repair this machine (any OS)
+python3 scripts/doctor.py       # Check everything step by step (read-only)
 python3 scripts/deps.py check   # Every external dependency; register in docs/DEPENDENCIES.md
 make install                    # Install all packages in editable mode
 make install-skills             # Register repo skills for Codex and Claude
