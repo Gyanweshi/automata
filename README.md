@@ -93,7 +93,7 @@ if (-not (Test-Path automata)) { gh repo clone Gyanweshi/automata }; Set-Locatio
 uv run --no-project --python 3.12 scripts\bootstrap.py --yes
 ```
 
-**Linux** (Ubuntu, Mint, Debian; macOS: replace the first line with `xcode-select --install; brew install gh`):
+**Linux** (Ubuntu, Mint, Debian):
 ```bash
 sudo apt-get update && sudo apt-get install -y git curl gh
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh; export PATH="$HOME/.local/bin:$PATH"
@@ -101,6 +101,19 @@ gh auth status >/dev/null 2>&1 || gh auth login --web --git-protocol https; gh a
 [ -d automata ] || gh repo clone Gyanweshi/automata; cd automata
 uv run --no-project --python 3.12 scripts/bootstrap.py --yes
 ```
+
+**macOS** (Terminal app; Apple silicon or Intel):
+```bash
+command -v brew >/dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"; grep -qs 'brew shellenv' ~/.zprofile || echo 'eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"' >> ~/.zprofile
+brew install git gh uv
+gh auth status >/dev/null 2>&1 || gh auth login --web --git-protocol https; gh auth setup-git
+[ -d automata ] || gh repo clone Gyanweshi/automata; cd automata
+uv run --no-project --python 3.12 scripts/bootstrap.py --yes
+```
+The first line installs Homebrew, the Mac's package manager, if it is missing: it asks for the Mac's login
+password once (nothing shows while you type) and may install Apple's Command Line Tools. The second line puts
+Homebrew on PATH now and for every new terminal.
 
 What happens: Git, the GitHub CLI and uv are installed; you log in to GitHub once in the browser; the repo is
 cloned; then the setup script downloads Python 3.12 if the machine has none, installs Node.js and the rest,

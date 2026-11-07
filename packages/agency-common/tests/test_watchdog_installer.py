@@ -120,3 +120,27 @@ def test_repo_from_command_reads_unit_task_and_legacy_lines():
     assert repo_from_command(r'<Arguments>"D:\work\automata\scripts\schedule.py" run x</Arguments>') is not None
     assert repo_from_command('/usr/bin/env bash "/h/a/scripts/run-vault-index.sh"') == Path("/h/a")
     assert repo_from_command("something else") is None
+
+
+def test_macos_daily_job_is_a_launch_agent(repo):
+    import plistlib
+
+    plan = build_plan("vault-index", repo=repo, system_name="Darwin", daily_at="02:30")
+    assert plan.adapter == "macos-launchd"
+    path, content = next(iter(plan.files.items()))
+    assert Path(path).parts[-3:] == ("Library", "LaunchAgents", "com.automata.automata-vault-index.plist")
+    spec = plistlib.loads(content.encode())
+    assert spec["StartCalendarInterval"] == {"Hour": 2, "Minute": 30}
+    assert Path(spec["ProgramArguments"][0]).parts[-3:] == (".venv", "bin", "python")
+    assert spec["ProgramArguments"][1:] == [str(repo.resolve() / "scripts" / "schedule.py"), "run", "vault-index"]
+    assert spec["WorkingDirectory"] == str(repo.resolve()) and spec["Nice"] == 10
+    assert plan.commands == [["launchctl", "<reload>", "com.automata.automata-vault-index", path]]
+
+
+def test_macos_watchdog_starts_at_login_and_restarts(repo):
+    import plistlib
+
+    plan = build_plan("vault-watchdog", repo=repo, system_name="macOS")
+    spec = plistlib.loads(next(iter(plan.files.values())).encode())
+    assert spec["RunAtLoad"] is True and spec["KeepAlive"] == {"SuccessfulExit": False}
+    assert "StartCalendarInterval" not in spec

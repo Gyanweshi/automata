@@ -9,8 +9,8 @@ The short version: **paste one block, answer three questions, read the summary a
 
 ## 1. Fresh machine (nothing installed, not even Python)
 
-Open a terminal: **PowerShell** on Windows (Start menu, then "PowerShell"; not the old Command Prompt) or
-**Terminal** on Linux. `cd` to the folder where the repo should live, e.g. `cd D:\` on Windows, then paste the
+Open a terminal: **PowerShell** on Windows (Start menu, then "PowerShell"; not the old Command Prompt),
+**Terminal** on Linux, or **Terminal** on macOS (Spotlight: Cmd+Space, type Terminal). `cd` to the folder where the repo should live, e.g. `cd D:\` on Windows, then paste the
 block for your OS.
 
 **Windows**
@@ -22,7 +22,7 @@ if (-not (Test-Path automata)) { gh repo clone Gyanweshi/automata }; Set-Locatio
 uv run --no-project --python 3.12 scripts\bootstrap.py --yes
 ```
 
-**Linux** (Ubuntu, Mint, Debian; on macOS replace the first line with `xcode-select --install; brew install gh`)
+**Linux** (Ubuntu, Mint, Debian)
 ```bash
 sudo apt-get update && sudo apt-get install -y git curl gh
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh; export PATH="$HOME/.local/bin:$PATH"
@@ -30,6 +30,19 @@ gh auth status >/dev/null 2>&1 || gh auth login --web --git-protocol https; gh a
 [ -d automata ] || gh repo clone Gyanweshi/automata; cd automata
 uv run --no-project --python 3.12 scripts/bootstrap.py --yes
 ```
+
+**macOS** (Terminal app; Apple silicon or Intel)
+```bash
+command -v brew >/dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"; grep -qs 'brew shellenv' ~/.zprofile || echo 'eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"' >> ~/.zprofile
+brew install git gh uv
+gh auth status >/dev/null 2>&1 || gh auth login --web --git-protocol https; gh auth setup-git
+[ -d automata ] || gh repo clone Gyanweshi/automata; cd automata
+uv run --no-project --python 3.12 scripts/bootstrap.py --yes
+```
+The first line installs Homebrew, the Mac's package manager, if it is missing: it asks for the Mac's login
+password once (nothing shows while you type) and may install Apple's Command Line Tools. The second line puts
+Homebrew on PATH now and for every new terminal.
 
 A browser opens once for the GitHub login: approve it. The rest takes about 5–10 minutes, longer with all the
 optional tools (LibreOffice alone is a large download). Running the block again is safe; it skips what is
@@ -76,6 +89,7 @@ Run these from the repo folder. On Windows, write `scripts\...` instead of `scri
 | `python scripts/setup_state.py --check` | Whether this machine is in step with the checkout. |
 
 If `python` is not found on Windows, use the repo's own: `.venv\Scripts\python.exe scripts\doctor.py`.
+On macOS, `python` may not exist: use `python3`, or the repo's own `.venv/bin/python scripts/doctor.py`.
 
 ## 3. Keeping it up to date
 
@@ -109,6 +123,18 @@ PATH until you **restart the whole IDE**.
 | The setup ran on a strange branch, or MCP versions look old | The clone was on another branch | `git switch main`, `git pull`, then the last line of the block again. |
 | `gh auth login` fails, or `git push` says permission denied | Not logged in, or the login lacks the `workflow` scope | `gh auth login --web --git-protocol https --scopes workflow`, then `gh auth setup-git`. **Never paste a token into chat or a command**; if one leaked, revoke it on GitHub. |
 
+### macOS
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `brew: command not found` right after installing Homebrew | Homebrew is not on this terminal's PATH yet | Run the second line of the macOS block, or open a new terminal. |
+| The setup stops with "Homebrew is needed on macOS" | Homebrew was never installed | Paste the macOS block from the top (its first line installs Homebrew). |
+| A dialog asks to install "command line developer tools" | `git` is Apple's stub until those tools are installed | Click Install, wait for it to finish, then paste the block again. |
+| `raea` shows `-` "no raea build for this machine (macos-x86_64)" | raea only ships an Apple-silicon Mac build | Expected on Intel Macs: 3D previz runs on another machine. |
+| "cannot be opened because the developer cannot be verified" for a downloaded tool | macOS quarantines downloaded binaries | `python3 scripts/deps.py install <id>` clears the quarantine flag for tools it downloads; for others: System Settings > Privacy & Security > Open Anyway. |
+| Nightly jobs | On macOS they are LaunchAgents | `python scripts/schedule.py install vault-index`; they live in `~/Library/LaunchAgents/com.automata.*.plist`. A job missed while the Mac slept runs when it wakes. |
+| An MCP server says no compatible Node | The MCP client was started from the Dock without Homebrew's PATH | Nothing to do: the launcher also looks in `/opt/homebrew/bin` and `/usr/local/bin`; if it persists, `brew install node`. |
+
 ### After setup
 
 | Symptom | Cause | Fix |
@@ -135,8 +161,8 @@ it is for, how to update it and what to do when it breaks.
 
 ## For maintainers: how this stays fixed
 
-- **Fresh setup CI** (`.github/workflows/fresh-setup.yml`) runs this guide's steps on clean Windows and Ubuntu
-  runners: the paste-block tools, the bootstrap with every role, then the checks from a new terminal
+- **Fresh setup CI** (`.github/workflows/fresh-setup.yml`) runs this guide's steps on clean Windows, Ubuntu and
+  macOS (Apple silicon) runners, the only macOS testing the repo gets: the paste-block tools, the bootstrap with every role, then the checks from a new terminal
   (`deps.py check --strict`, the doctor). It runs weekly and whenever a setup file changes. If it goes red,
   a fresh laptop would have failed the same way.
 - **Cross-platform CI** runs the tests on both OSes on every push.

@@ -127,9 +127,18 @@ def vault_configured() -> bool:
     return bool(value) and Path(value).expanduser().is_dir()
 
 
+def launch_agent(job_unit: str) -> bool:
+    """macOS: the LaunchAgent is installed and loaded for this user."""
+    label = f"com.automata.{job_unit}"
+    return (Path.home() / "Library" / "LaunchAgents" / f"{label}.plist").exists() and \
+        run(["launchctl", "print", f"gui/{os.getuid()}/{label}"])[0] == 0
+
+
 def watchdog_running() -> bool:
     if WINDOWS:
         return run(["schtasks", "/Query", "/TN", "Automata Vault Watchdog"])[0] == 0
+    if sys.platform == "darwin":
+        return launch_agent("automata-vault-watchdog")
     if shutil.which("systemctl"):
         if run(["systemctl", "is-active", "vault-watchdog"])[0] == 0:  # system-wide service
             return True
@@ -141,6 +150,8 @@ def watchdog_running() -> bool:
 def scheduled(job_unit: str, task: str) -> bool:
     if WINDOWS:
         return run(["schtasks", "/Query", "/TN", task])[0] == 0
+    if sys.platform == "darwin":
+        return launch_agent(job_unit)
     if shutil.which("systemctl") and run(["systemctl", "--user", "is-enabled", f"{job_unit}.timer"])[0] == 0:
         return True
     return shutil.which("crontab") is not None and f"# {job_unit}" in run(["crontab", "-l"])[1]

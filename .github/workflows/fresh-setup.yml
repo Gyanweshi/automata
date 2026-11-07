@@ -1,9 +1,11 @@
 name: Fresh setup
 
-# Does what a new laptop does, the way docs/SETUP.md says: the README paste-block tools, then the full bootstrap with
-# every machine role, then the checks from a NEW step (a new process, like opening a new terminal, so PATH problems
-# show). Catches first-run bugs before a person hits them. Slow (~20-30 min), so weekly and when setup files change.
-# Hosted runners come with some tools preinstalled, so this is close to a fresh machine, not identical.
+# Does what a new laptop does, the way docs/SETUP.md says: the paste-block tools, then the full bootstrap with
+# every machine role, then the checks and tests from a NEW step (a new process, like opening a new terminal, so PATH
+# problems show). Catches first-run bugs before a person hits them. Linux, Windows and macOS (Apple silicon): this
+# is the only place macOS is tested, since nobody on the team has a Mac. Slow (~20-30 min; macOS minutes count 10x
+# on a private repo), so weekly and when setup files change. Hosted runners come with some tools preinstalled
+# (on macOS: Homebrew), so this is close to a fresh machine, not identical.
 on:
   schedule:
     - cron: "0 4 * * 1"   # Mondays 04:00 UTC
@@ -17,6 +19,8 @@ on:
       - scripts/setup_state.py
       - scripts/schedule.py
       - scripts/mcp-npx.mjs
+      - scripts/open-instagram-session.py
+      - packages/agency-common/src/agency_common/scheduled_jobs.py
       - dependencies.toml
       - uv.lock
       - package-lock.json
@@ -35,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-2025]   # windows-2025 ships winget, like Windows 10/11
+        os: [ubuntu-latest, windows-2025, macos-latest]   # windows-2025 ships winget, like Windows 10/11
     runs-on: ${{ matrix.os }}
     timeout-minutes: 75
     env:
@@ -60,6 +64,12 @@ jobs:
           sudo apt-get update -qq
           command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 
+      - name: Paste-block tools (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew --version
+          brew install gh uv
+
       - name: Bootstrap with every role (README command, Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -69,8 +79,8 @@ jobs:
           uv run --no-project --python 3.12 scripts\bootstrap.py --yes --roles all --no-schedules
           exit $LASTEXITCODE
 
-      - name: Bootstrap with every role (README command, Linux)
-        if: runner.os == 'Linux'
+      - name: Bootstrap with every role (README command, Linux and macOS)
+        if: runner.os != 'Windows'
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv run --no-project --python 3.12 scripts/bootstrap.py --yes --roles all --no-schedules
@@ -82,3 +92,18 @@ jobs:
           "$py" scripts/deps.py check --strict
           "$py" scripts/doctor.py
           "$py" scripts/setup_state.py --check
+          "$py" scripts/schedule.py install housekeeper --dry-run
+
+      - name: Register a nightly job for real (macOS launchd)
+        if: runner.os == 'macOS'
+        run: |
+          .venv/bin/python scripts/schedule.py install housekeeper
+          launchctl print "gui/$(id -u)/com.automata.automata-housekeeper" | head -20
+          .venv/bin/python -c "import sys; sys.path.insert(0, 'scripts'); import doctor; print('doctor sees it:', doctor.scheduled('automata-housekeeper', 'x')); sys.exit(0 if doctor.scheduled('automata-housekeeper', 'x') else 1)"
+          launchctl bootout "gui/$(id -u)/com.automata.automata-housekeeper"
+
+      - name: Tests on this OS
+        shell: bash
+        run: |
+          py=.venv/bin/python; [ -x "$py" ] || py=.venv/Scripts/python.exe
+          "$py" -m pytest -q packages/agency-common/tests packages/agency-research/tests

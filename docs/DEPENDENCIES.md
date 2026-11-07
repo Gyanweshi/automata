@@ -170,6 +170,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | **Python** (`python`) | Runs every agent package, script and test. | yes | all | >= 3.12 | - |
 | **uv** (`uv`) | Installs the locked Python environment (uv sync) and runs uvx MCP servers and uv tools. | yes | all | OS package manager | - |
 | **Node.js** (`node`) | Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper. | yes | all | >= 22.12 | - |
+| **Homebrew (macOS)** (`brew`) | macOS package manager: installs Node.js, gh and the optional tools (ffmpeg, LibreOffice, ...). | yes | all | OS package manager | - |
 | **Git** (`git`) | Repo sync between the two machines; the cross-platform checker lists files with it. | yes | all | OS package manager | - |
 | **GitHub CLI (gh)** (`gh`) | Browser login to GitHub for cloning and pushing the private repo; lets agents read CI results. | no | - | OS package manager | - |
 
@@ -242,10 +243,15 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **If it breaks:** uv self update; if uv sync fails, run `uv lock --check` to see whether uv.lock is stale.
 
 #### Node.js (`node`)
-- **Install:** linux: `fnm install 22`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id OpenJS.NodeJS.LTS`; macos: `brew install node@22`
+- **Install:** linux: `fnm install 22`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id OpenJS.NodeJS.LTS`; macos: `brew install node`
   The default `node` on PATH must be 22.12+ (sharp, the slide exporters). Linux with fnm: `fnm install 22 && fnm default 22`, and load fnm in ~/.bashrc: `export PATH="$HOME/.local/share/fnm:$PATH"; eval "$(fnm env --shell bash)"`. A distro's nodejs 22 package also works.
 - **Update:** Install a newer LTS (fnm install 24 / winget upgrade OpenJS.NodeJS.LTS). mcp-npx.mjs picks the newest compatible one automatically.
 - **If it breaks:** `node --version` must print v22.12 or newer; if it shows an older system Node, load fnm in your shell (see install note). `node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH).
+
+#### Homebrew (macOS) (`brew`)
+- **Install:** macos: `manual: install Homebrew from https://brew.sh (the docs/SETUP.md macOS block does it; it asks for your Mac password once), then open a new terminal`
+- **Update:** brew update && brew upgrade (Homebrew also updates itself before installs).
+- **If it breaks:** `brew` not found after installing: run `eval "$(/opt/homebrew/bin/brew shellenv)"` (Intel Macs: /usr/local/bin/brew) and add that line to ~/.zprofile; `brew doctor` explains the rest.
 
 #### Git (`git`)
 - **Install:** linux: `sudo apt-get install -y git`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Git.Git`; macos: `xcode-select --install`

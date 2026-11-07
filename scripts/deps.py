@@ -116,7 +116,9 @@ def refresh_path(manifest: dict | None = None) -> None:
                  Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "nodejs", home / ".raea" / "bin"]
     else:  # login-shell additions: uv/pipx tools, cargo, raea, and fnm's default Node ahead of a system Node
         known = [home / ".local" / "share" / "fnm" / "aliases" / "default" / "bin", home / ".local" / "bin",
-                 home / ".cargo" / "bin", home / ".raea" / "bin"]
+                 home / ".cargo" / "bin", home / ".raea" / "bin",
+                 # macOS: Homebrew (Apple silicon, then Intel), which apps started from the Dock don't see
+                 Path("/opt/homebrew/bin"), Path("/opt/homebrew/sbin"), Path("/usr/local/bin")]
     try:
         known += [d for dep in (manifest or load())["dependency"] for d in path_dirs(dep)]
     except (OSError, KeyError, ValueError):
@@ -142,7 +144,10 @@ def machine_roles() -> set[str]:
 
 
 def needed_here(dep: dict, roles: set[str] | None = None) -> bool:
-    """Required deps always; role-tagged optional deps only when this machine has one of their roles."""
+    """Required deps always; role-tagged optional deps only when this machine has one of their roles.
+    `only_on` limits a dependency to some operating systems (e.g. Homebrew on macOS)."""
+    if dep.get("only_on") and os_key() not in dep["only_on"]:
+        return False
     if dep.get("required") or not dep.get("roles"):
         return True
     return bool(set(dep["roles"]) & (machine_roles() if roles is None else roles))
@@ -231,6 +236,8 @@ def run_check(dep: dict, os_name: str | None = None, release: dict | None = None
     """(state, detail): state is ok | missing | old | n/a."""
     os_name = os_name or os_key()
     command = dep.get(f"check_{os_name}") or dep.get("check")
+    if dep["kind"] == "github-release" and release and detect_platform() not in release.get("assets", {}):
+        return "n/a", f"no {dep['id']} build for this machine ({detect_platform()})"
     if dep["kind"] == "github-release":
         marker = Path.home() / f".{dep['id']}" / ".installed-version"
         installed = marker.read_text(encoding="utf-8").strip() if marker.exists() else None
@@ -331,7 +338,9 @@ def install_github_release(dep: dict, release: dict, version: str | None = None,
     plat = detect_platform()
     template = release["assets"].get(plat)
     if not template:
-        raise SystemExit(f"deps: {dep['id']} has no build for {plat}")
+        print(f"deps: {dep['id']} has no build for this machine ({plat}); builds exist for: "
+              f"{', '.join(release['assets'])}. Skipped.")
+        return
     version = version or pin_for(dep, release, plat)
     asset = template.format(version=version)
     url = f"https://github.com/{release['repo']}/releases/download/v{version}/{asset}"
@@ -475,9 +484,13 @@ def cmd_check(manifest: dict, pins_only: bool, only: list[str], strict: bool = F
     for dep in manifest["dependency"]:
         if only and dep["id"] not in only:
             continue
-        if not only and not pins_only and not needed_here(dep, roles):
-            print(f"-     {dep['id']:22} not needed here (roles: {', '.join(dep['roles'])}; this machine: "
-                  f"{', '.join(sorted(roles)) or 'none'})")
+        wrong_os = bool(dep.get("only_on")) and os_key() not in dep["only_on"]
+        if not pins_only and (wrong_os or (not only and not needed_here(dep, roles))):
+            if dep.get("only_on") and os_key() not in dep["only_on"]:
+                print(f"-     {dep['id']:22} not needed on {os_key()} (only {', '.join(dep['only_on'])})")
+            else:
+                print(f"-     {dep['id']:22} not needed here (roles: {', '.join(dep['roles'])}; this machine: "
+                      f"{', '.join(sorted(roles)) or 'none'})")
             for problem in pin_problems(dep):
                 print(f"PIN   {dep['id']:22} {problem}")
                 errors += 1

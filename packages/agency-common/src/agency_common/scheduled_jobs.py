@@ -1,7 +1,8 @@
 """Scheduled jobs: nightly (vault index rebuild, housekeeper purge) and background (vault watchdog).
 
 One implementation for both machines. `run` executes a job with logging under .housekeeper/logs; `install`
-registers it with the native scheduler (systemd user timer, else cron, on Linux; Task Scheduler on Windows),
+registers it with the native scheduler (systemd user timer, else cron, on Linux; Task Scheduler on Windows;
+a launchd LaunchAgent on macOS),
 always calling `scripts/schedule.py run JOB` with the repo's venv Python, so no shell script is involved.
 
     python scripts/schedule.py run vault-index
@@ -17,6 +18,7 @@ import datetime as dt
 import json
 import os
 import platform
+import plistlib
 import re
 import shlex
 import shutil
@@ -97,8 +99,10 @@ def normalize_system(system_name: str | None = None) -> str:
     detected = (system_name or platform.system()).strip().lower()
     if detected in ("windows", "linux"):
         return detected
+    if detected in ("darwin", "macos"):
+        return "macos"
     raise ScheduleError(f"Unsupported operating system: {system_name or platform.system()}. "
-                        "Supported systems are Windows and Linux.")
+                        "Supported systems are Windows, Linux and macOS.")
 
 
 def validate(daily_at: str, retention_days: int) -> None:
@@ -237,6 +241,32 @@ def windows_plan(job: Job, repo: Path, daily_at: str, retention_days: int) -> Pl
     return Plan("windows-task-scheduler", {}, [[powershell, "-NoProfile", "-NonInteractive", "-Command", script]])
 
 
+def launchd_label(job: Job) -> str:
+    return f"com.automata.{job.unit}"
+
+
+def launchd_plist_path(job: Job) -> Path:
+    return Path.home() / "Library" / "LaunchAgents" / f"{launchd_label(job)}.plist"
+
+
+def macos_plan(job: Job, repo: Path, daily_at: str, retention_days: int) -> Plan:
+    """A per-user LaunchAgent: daily at a time, or (background jobs) at login and restarted if it stops."""
+    log = str(repo / ".housekeeper" / "logs" / f"launchd-{job.name}.log")
+    spec: dict = {"Label": launchd_label(job), "ProgramArguments": job_command(job, repo, "macos", retention_days),
+                  "WorkingDirectory": str(repo), "StandardOutPath": log, "StandardErrorPath": log,
+                  "ProcessType": "Background"}
+    if job.background:
+        spec.update(RunAtLoad=True, KeepAlive={"SuccessfulExit": False})
+    else:
+        hour, minute = (int(x) for x in daily_at.split(":"))
+        spec["StartCalendarInterval"] = {"Hour": hour, "Minute": minute}  # missed while asleep: runs on wake
+        if job.nice:
+            spec["Nice"] = 10
+    plist = launchd_plist_path(job)
+    return Plan("macos-launchd", {str(plist): plistlib.dumps(spec).decode("utf-8")},
+                [["launchctl", "<reload>", launchd_label(job), str(plist)]])
+
+
 def systemd_user_available() -> bool:
     if not shutil.which("systemctl"):
         return False
@@ -263,6 +293,8 @@ def build_plan(job_name: str, *, repo: Path = REPO, system_name: str | None = No
     system = normalize_system(system_name)
     if system == "windows":
         return windows_plan(job, repo, daily_at, retention_days)
+    if system == "macos":
+        return macos_plan(job, repo, daily_at, retention_days)
     if job.linux_system_unit and Path(system_unit_path or job.linux_system_unit).exists():
         return Plan("linux-system-service (already installed; nothing to do)")
     if use_systemd is None:
@@ -280,6 +312,14 @@ def apply_plan(plan: Plan, job: Job) -> None:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         Path(path).write_text(content, encoding="utf-8")
     for command in plan.commands:
+        if command[:2] == ["launchctl", "<reload>"]:
+            domain = f"gui/{os.getuid()}"
+            log = plistlib.loads(Path(command[3]).read_bytes()).get("StandardOutPath")
+            if log:
+                Path(log).parent.mkdir(parents=True, exist_ok=True)  # launchd will not create the log folder
+            subprocess.run(["launchctl", "bootout", f"{domain}/{command[2]}"], capture_output=True)  # nosec B603 B607
+            subprocess.run(["launchctl", "bootstrap", domain, command[3]], check=True)  # nosec B603 B607
+            continue
         if command[:2] == ["crontab", "<add>"]:
             current = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout  # nosec B603 B607
             lines = [line for line in current.splitlines() if not line.rstrip().endswith(f"# {job.unit}")]
@@ -311,6 +351,15 @@ def registered_repo(job_name: str, system_name: str | None = None) -> Path | Non
         out = subprocess.run(["schtasks", "/Query", "/TN", job.task, "/XML"], capture_output=True, text=True,  # nosec B603 B607
                              errors="replace")
         return repo_from_command(out.stdout) if out.returncode == 0 else None
+    if system == "macos":
+        plist = launchd_plist_path(job)
+        if not plist.exists():
+            return None
+        try:
+            spec = plistlib.loads(plist.read_bytes())
+        except (plistlib.InvalidFileException, ValueError, OSError):
+            return True
+        return Path(spec["WorkingDirectory"]) if spec.get("WorkingDirectory") else True
     if job.linux_system_unit and Path(job.linux_system_unit).exists():
         text = Path(job.linux_system_unit).read_text(encoding="utf-8", errors="ignore")
         found = re.search(r"^WorkingDirectory=(.+)$", text, re.M)

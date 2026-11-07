@@ -48,6 +48,10 @@ function candidateNodes() {
   for (const dir of (process.env.PATH || "").split(delimiter)) {
     if (dir) found.push(join(dir, nodeExe));
   }
+  // macOS: Homebrew's Node, which MCP clients started from the Dock don't have on PATH
+  for (const dir of ["/opt/homebrew/bin", "/usr/local/bin", "/opt/homebrew/opt/node@22/bin", "/usr/local/opt/node@22/bin"]) {
+    if (!isWindows) found.push(join(dir, nodeExe));
+  }
   const fnmRoots = [
     process.env.FNM_DIR,
     join(home, ".local", "share", "fnm"),

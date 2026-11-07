@@ -86,27 +86,13 @@ def clean_legacy(root: Path = ROOT) -> list[str]:
 
 
 def refresh_path() -> None:
-    """Pick up PATH changes an installer just made, without opening a new terminal."""
-    if WINDOWS:
-        import winreg
+    """Pick up PATH changes an installer just made, without opening a new terminal (same logic as deps.py)."""
+    import importlib.util
 
-        parts = []
-        for hive, key in ((winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
-                          (winreg.HKEY_CURRENT_USER, "Environment")):
-            try:
-                with winreg.OpenKey(hive, key) as handle:
-                    parts.append(os.path.expandvars(winreg.QueryValueEx(handle, "Path")[0]))
-            except OSError:
-                continue
-        # where winget links portable tools (uv), Astral's own installer, cargo, and the Node.js MSI put binaries
-        local = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
-        known = [local / "Microsoft" / "WinGet" / "Links", Path.home() / ".local" / "bin", Path.home() / ".cargo" / "bin",
-                 Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "nodejs"]
-        parts += [str(d) for d in known if d.is_dir()]
-        os.environ["PATH"] = os.pathsep.join([*parts, os.environ.get("PATH", "")])
-    else:
-        extra = [str(Path.home() / d) for d in (".local/bin", ".cargo/bin") if (Path.home() / d).is_dir()]
-        os.environ["PATH"] = os.pathsep.join([*extra, os.environ.get("PATH", "")])
+    spec = importlib.util.spec_from_file_location("deps_for_bootstrap", ROOT / "scripts" / "deps.py")
+    deps = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(deps)
+    deps.refresh_path()
 
 
 def ensure(tool: str, dep_id: str, assume_yes: bool, why: str) -> None:
@@ -147,6 +133,9 @@ def main(argv: list[str] | None = None) -> int:
              "Run it through uv instead, which downloads Python 3.12: uv run --no-project --python 3.12 scripts/bootstrap.py")
     ok(f"Python {sys.version.split()[0]}")
     refresh_path()
+    if sys.platform == "darwin" and not shutil.which("brew"):
+        fail("Homebrew is needed on macOS (it installs Node.js and the optional tools). Install it with the macOS "
+             "block in docs/SETUP.md (or https://brew.sh), open a new terminal, then run this again.")
     ensure("git", "git", args.yes, "repo sync and the cross-platform checks")
     ensure("uv", "uv", args.yes, "installs the locked Python packages")
     ensure("node", "node", args.yes, "runs the MCP servers and HTML-to-PPTX")
