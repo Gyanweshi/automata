@@ -192,10 +192,10 @@ category = "MCP servers"
 purpose = "Grounded Q&A against NotebookLM sources."
 used_by = ["research agent"]
 required = false
-pin = "1.5.9"
+pin = "4.4.0"
 pin_files = [{ file = "mcp/agents/research.json", pattern = "@roomi-fields/notebooklm-mcp@{version}" }]
 update = "python scripts/deps.py set-pin notebooklm-mcp NEW"
-on_break = "Usually an expired Google session: log in again through the MCP's auth flow."
+on_break = "Usually an expired Google session (check with its server_health tool: authenticated false). Log in once in a terminal: `node scripts/mcp-npx.mjs -y -p @roomi-fields/notebooklm-mcp@PIN notebooklm-mcp-setup-auth` (a visible Chrome opens). Since 4.x every tool is renamed (ask_question -> notebook_ask, list_notebooks -> notebook_list, ...); the saved library in ~/.local/share/notebooklm-mcp carries over. Needs Node 22."
 upstream = "npm:@roomi-fields/notebooklm-mcp"
 
 [[dependency]]

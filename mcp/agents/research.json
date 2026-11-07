@@ -14,7 +14,7 @@
     },
     "notebooklm": {
       "command": "node",
-      "args": ["scripts/mcp-npx.mjs", "-y", "@roomi-fields/notebooklm-mcp@1.5.9"],
+      "args": ["scripts/mcp-npx.mjs", "-y", "@roomi-fields/notebooklm-mcp@4.4.0"],
       "purpose": "Interact with Google NotebookLM notebooks for source-grounded Q&A and notebook workflows."
     },
     "apify": {
