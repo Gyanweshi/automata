@@ -163,7 +163,7 @@ it is for, how to update it and what to do when it breaks.
 
 - **Fresh setup CI** (`.github/workflows/fresh-setup.yml`) runs this guide's steps on clean Windows, Ubuntu and
   macOS (Apple silicon) runners, the only macOS testing the repo gets: the paste-block tools, the bootstrap with every role, then the checks from a new terminal
-  (`deps.py check --strict`, the doctor). It runs weekly and whenever a setup file changes. If it goes red,
+  (`deps.py check --strict`, the doctor). It runs monthly (on the 1st) and whenever a setup file changes. If it goes red,
   a fresh laptop would have failed the same way.
 - **Cross-platform CI** runs the tests on both OSes on every push.
 - When a new setup problem turns up, fix it in the setup scripts (not on the one machine), and add a row here.

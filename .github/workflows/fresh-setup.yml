@@ -4,11 +4,11 @@ name: Fresh setup
 # every machine role, then the checks and tests from a NEW step (a new process, like opening a new terminal, so PATH
 # problems show). Catches first-run bugs before a person hits them. Linux, Windows and macOS (Apple silicon): this
 # is the only place macOS is tested, since nobody on the team has a Mac. Slow (~20-30 min; macOS minutes count 10x
-# on a private repo), so weekly and when setup files change. Hosted runners come with some tools preinstalled
+# on a private repo), so monthly and when setup files change. Hosted runners come with some tools preinstalled
 # (on macOS: Homebrew), so this is close to a fresh machine, not identical.
 on:
   schedule:
-    - cron: "0 4 * * 1"   # Mondays 04:00 UTC
+    - cron: "0 4 1 * *"   # monthly: the 1st at 04:00 UTC
   workflow_dispatch:
   push:
     branches: [main]
