@@ -89,7 +89,7 @@ class HarnessRunner:
             }
         ]
         for name, description, properties, required in [
-            ("discover_workflows", "List local skills, specialist instruction paths and the repo routing policy.", {}, []),
+            ("discover_workflows", "List local skills and the repo routing policy.", {}, []),
             ("read_workflow", "Read a discovered skill, agent instruction, or required text reference.",
              {"path": {"type": "string", "description": "Absolute or repo-relative instruction/reference path."}}, ["path"]),
         ]:

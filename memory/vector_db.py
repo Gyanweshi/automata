@@ -1,6 +1,6 @@
 """
 Centralized Vector Database Connection Layer.
-Shared between both OpenedSwarm and Automata agents.
+Used by the Automata agents.
 """
 from pathlib import Path
 import os

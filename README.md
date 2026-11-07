@@ -7,7 +7,6 @@
 **A production-grade multi-agent AI system for brand research, visual storyboards, content generation, and autonomous task execution.**
 
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
-[![Built on Agency Swarm](https://img.shields.io/badge/Built%20on-Agency%20Swarm-7c3aed?style=flat-square)](https://github.com/VRSEN/agency-swarm)
 [![MCP Powered](https://img.shields.io/badge/MCP-Enabled-orange?style=flat-square)](https://modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
@@ -19,10 +18,9 @@
 
 ## 🗺️ What is Automata?
 
-**Automata** unites two powerful agent paradigms in one clean monorepo:
-
-1. **The Agency Pipeline**: A structured brand automation pipeline that takes a brand profile through competitive research, creative ideation, visual storyboarding, and platform-ready social content.
-2. **OpenSwarm Specialists**: A swarm of 8 coordinated AI agents running under a single orchestrator. Agents autonomously delegate tasks to each other, execute code, generate documents, and access 10,000+ external tools.
+**Automata** is a brand automation system: a structured pipeline that takes a brand profile through competitive
+research, creative ideation, visual storyboarding (including local 3D previz), and platform-ready social content,
+driven by coding agents (Claude Code, Codex) through repo skills and MCP servers, with the Obsidian vault as memory.
 
 ---
 
@@ -31,19 +29,8 @@
 ```
 automata/
 │
-├── 🤖 agents/
-│   └── openedswarm_core/          ← 8-agent swarm built on Agency Swarm
-│       ├── orchestrator/          ← Master router; delegates every incoming task
-│       ├── deep_research/         ← Deep web research and source-cited reports
-│       ├── data_analyst_agent/    ← Data science, statistics, and visualization
-│       ├── docs_agent/            ← Polished documents (Word, PDF, Markdown)
-│       ├── slides_agent/          ← Presentation slides exported to .pptx
-│       ├── image_generation_agent/← AI image generation & editing
-│       ├── video_generation_agent/← AI video generation & assembly
-│       └── virtual_assistant/     ← 10,000+ external app actions via Composio
-│
 ├── 🧩 packages/                   ← Installable core Python packages
-│   ├── agency-common/             ← Shared models, workspace paths, and workflow discovery
+│   ├── agency-common/             ← Shared models, workspace paths, vault search, scheduled jobs
 │   ├── agency-research/           ← Research pipeline (scrapers, competitor analysis)
 │   ├── agency-storyboard/         ← Storyboard & visual scene composition
 │   └── agency-content/            ← Copywriting, carousels, and calendars
@@ -54,12 +41,16 @@ automata/
 │   ├── agency-ideation/           ← Sourced creative frameworks (IDEO, Strategyzer, Blue Ocean)
 │   ├── agency-storyboard/         ← Scene planning & visual prompts
 │   ├── agency-content/            ← Brand-aligned social copy & calendars
+│   ├── previz-3d/                 ← Greybox 3D previz with raea before AI video
 │   ├── agency-housekeeper/        ← Workspace & vault retention hygiene
-│   └── [higgsfield, design...]    ← Dedicated image, video, and design skills
+│   └── [image, video, design...]  ← Image editing, generation, upscaling, slides
 │
+├── 🤖 agents/automata_core/       ← Autonomous agent loop and the CDP Instagram scraper
 ├── ⚙️ core/                       ← Unified CLI runner and session logging
 ├── 🔌 mcp/                        ← Agent-scoped Model Context Protocol manifests
-├── 🏷️ brands/                     ← Brand configuration templates and profiles
+├── 🛠️ scripts/                    ← One cross-platform toolchain: bootstrap, doctor, deps, schedule, run-agent
+├── 🏷️ brands/                     ← Brand configuration template
+├── 📚 docs/                       ← Dependency register (docs/DEPENDENCIES.md)
 └── 📁 workspace/                  ← Disposable run data and scratch files (gitignored)
 ```
 
@@ -67,22 +58,19 @@ automata/
 
 ## 🤖 Meet the Agents
 
-| Agent | 🎯 Role | What It Delivers |
+| Agent / skill | 🎯 Role | What It Delivers |
 |---|---|---|
-| 🎛️ **Orchestrator** | Traffic Controller | Dispatches requests to the right specialist. Never answers directly. |
-| 🔬 **Deep Research** | Evidence Researcher | Competitor audits, market analysis, and source-cited briefings. |
-| 📊 **Data Analyst** | Data Scientist | Number crunching, chart generation, and dataset statistics. |
-| 📑 **Slides Agent** | Presentation Designer | Slide architecture and polished decks exported to `.pptx`. |
-| 📄 **Docs Agent** | Document Engineer | Comprehensive reports, Word documents, PDFs, and Markdown. |
-| 🎨 **Image Agent** | Visual Creator | Image generation, mockups, restyling, and visual assets. |
-| 🎬 **Video Agent** | Video Producer | Script breakdown, scene generation, and video montage assembly. |
-| 🤝 **Virtual Assistant** | Tool Executor | Email, Slack, GitHub, calendar, and 10,000+ Composio integrations. |
+| 🎛️ **Orchestrator** | Router | Onboards brands and routes research, storyboard, content, calendar and full-pipeline requests. |
+| 🔬 **Research** | Evidence Researcher | Competitor audits, social trends, audience sentiment, engagement benchmarks. |
+| 💡 **Ideation** | Strategist | Problem framing, propositions and campaign concepts from sourced frameworks. |
+| 🎬 **Storyboard** | Visual Director | Scene plans, visual direction, image/video prompts, and 3D previz. |
+| ✍️ **Content** | Copywriter | Brand-voice captions, carousels, posts, articles and weekly calendars. |
+| 🧹 **Housekeeper** | Librarian | Keeps the repo lean and the vault the single home for durable work. |
 
-### Example Multi-Agent Flows
+### Example Flows
 
-- **Investor Pitch Deck**: Deep Research gathers market stats → Slides Agent designs the deck → Docs Agent writes the executive summary.
-- **Competitor Strategy**: Deep Research audits top competitors → Agency Ideation crafts differentiated positioning → Agency Content drafts launch campaigns.
-- **Quarterly Business Review**: Data Analyst crunches financial CSVs → Slides Agent generates visualizations → Virtual Assistant shares the draft in Slack.
+- **Brand launch**: Research audits competitors → Ideation picks a positioning → Storyboard plans the reel (with 3D previz) → Content writes the captions.
+- **Weekly calendar**: Research refreshes trends → Content drafts a week of platform-ready posts in the brand voice.
 
 ---
 
@@ -134,13 +122,6 @@ python scripts/doctor.py             # only check, changes nothing (or: make doc
 #### Using VS Code Dev Containers
 Open this folder in VS Code with the **Dev Containers** extension installed. It will automatically load [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json) and set up Python, Node.js, and dependencies.
 
-#### Using Docker Compose directly
-```bash
-cp agents/openedswarm_core/.env.example agents/openedswarm_core/.env
-cd agents/openedswarm_core
-docker-compose up --build
-```
-
 </details>
 
 ### After setup
@@ -148,8 +129,8 @@ docker-compose up --build
 - **Optional tools** (ffmpeg, GIMP, Blender, raea, ImageMagick, ...) show as `warn` in `deps.py check`, each with
   its install command; `python scripts/deps.py install ID` installs one. The full list, what each is for, and
   how to update or fix it is in [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
-- **Nightly jobs:** `python scripts/schedule.py install vault-index` and `... install housekeeper` register them
-  with this machine's scheduler (Task Scheduler on Windows, systemd/cron on Linux).
+- **Scheduled jobs:** `python scripts/schedule.py install vault-index`, `... install housekeeper` and `... install vault-watchdog`
+  register them with this machine's scheduler (Task Scheduler on Windows, systemd/cron on Linux).
 - **After `git pull`** on either machine, re-run the setup script if dependencies changed; it is quick when
   nothing is missing.
 
@@ -224,29 +205,22 @@ py scripts\run-agent.py research --brand example-brand --scraper cdp --platforms
 
 ---
 
-### Mode 2: Interactive Swarm Specialists
+### Mode 2: Autonomous brand agent
 
-Run the unified CLI runner to converse with the multi-agent swarm:
+Run the autonomous agent loop for one brand and action (it logs the session to the vault):
 
 ```bash
-# Launch interactive terminal swarm session
-python core/runner.py --agent openedswarm
-
-# Launch brand research agent directly
-python core/runner.py --agent automata --brand "example-brand" --action research
-
-# Run the OpenSwarm REST API server (localhost:8080)
-python agents/openedswarm_core/server.py
+python core/runner.py --brand "example-brand" --action research
 ```
 
 ---
 
 ## 🎓 Skills & Workflow Discovery
 
-Automata includes modular agent skills under `skills/`. Every agent checks available skills and specialist instructions **before planning or executing any task**.
+Automata includes modular agent skills under `skills/`. Every agent checks available skills **before planning or executing any task**.
 
 ### Discovery & Sync Tools
-- `make list-workflows`: Lists all registered skills, specialist agent instruction paths, and routing policies.
+- `make list-workflows`: Lists all registered skills and the routing policy.
 - `make check-skills`: Verifies that skill shims are synchronized across Codex (`.agents/skills/`) and Claude Code (`.claude/skills/`).
 - `make install-skills`: Generates or updates missing discovery shims for your local coding assistants.
 

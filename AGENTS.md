@@ -9,8 +9,7 @@ and existing agent workflows **before planning or executing the task**. This app
 to every domain, project, agent, and workflow, not only brand or visual work.
 
 1. Match the requested outcome against the session's skill catalog and repo
-   `skills/*/SKILL.md` descriptions. Check existing specialist instructions under
-   `agents/openedswarm_core/*/instructions.md`, agency skills, and relevant
+   `skills/*/SKILL.md` descriptions. Check agency skills and relevant
    `mcp/agents/` manifests. `make list-workflows` lists local skills and agent
    instruction paths; a missing discovery registration does not mean a skill is absent.
 2. Read the best-matching skill and the references it requires before using tools

@@ -52,7 +52,7 @@ help:
 	@echo "  make deps-install ID=raea  Install one dependency the right way for this OS"
 	@echo "  make deps-outdated  Show newer upstream versions of pinned dependencies"
 	@echo "  make check-cross-platform  Flag code that would only work on Linux or only on Windows"
-	@echo "  make list-workflows List local skills and specialist instructions"
+	@echo "  make list-workflows List local skills and the routing policy"
 	@echo "  make install-housekeeper-watchdog  Install the native cleanup scheduler"
 	@echo "  make uninstall      Uninstall all packages"
 	@echo ""

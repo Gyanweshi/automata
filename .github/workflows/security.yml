@@ -20,8 +20,23 @@ jobs:
           python -m pip install --upgrade "pip>=26.2" "setuptools>=83.0.0"
           python -m pip install -r requirements.txt
           python -m pip install "pip-audit>=2.10" "bandit[toml]>=1.9" "detect-secrets>=1.5"
-      - name: Audit Python dependencies
-        run: python -m pip_audit
+      - name: Audit Python dependencies (fresh install and uv.lock)
+        # Accepted advisories (reviewed 2026-11-07; see docs/DEPENDENCIES.md "Accepted security advisories"):
+        #   chromadb PYSEC-2026-311/3813/3814/3815: Chroma *server* (auth, tenants, code injection); we only use the
+        #            embedded PersistentClient. No fixed release exists yet. Revisit on the next chromadb release.
+        env:
+          IGNORES: >-
+            --ignore-vuln PYSEC-2026-311 --ignore-vuln PYSEC-2026-3813
+            --ignore-vuln PYSEC-2026-3814 --ignore-vuln PYSEC-2026-3815
+        run: |
+          python -m pip_audit $IGNORES
+          python -m pip install "uv>=0.11"
+          # What the machines actually install: the lockfiles, not a fresh resolution.
+          for dir in .; do
+            (cd "$dir" && uv export --frozen --no-hashes --no-emit-project --no-header) | grep -v '^-e \|^\./' > "$RUNNER_TEMP/locked.txt"
+            echo "== auditing $dir/uv.lock"
+            python -m pip_audit -r "$RUNNER_TEMP/locked.txt" --no-deps --disable-pip $IGNORES
+          done
       - name: Check dependency consistency
         run: python -m pip check
       - name: Run high-severity Bandit gate
@@ -31,7 +46,7 @@ jobs:
           packages/agency-research/src
           packages/agency-storyboard/src
           packages/agency-content/src
-          core scripts agents/automata_core agents/openedswarm_core
+          core scripts agents/automata_core
           -lll
       - name: Scan tracked files for verified secrets
         run: python -m detect_secrets scan --only-verified
@@ -45,7 +60,6 @@ jobs:
         directory:
           - .
           - agents/automata_core/ig-research
-          - agents/openedswarm_core
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

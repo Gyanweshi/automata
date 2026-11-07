@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## First action for every task
 
 Read and follow `AGENTS.md`, especially **First Action — Discover Skills and Agents**.
-Check matching skills and existing specialists before planning or execution, even
+Check matching skills before planning or execution, even
 when no slash command is used. Follow required references, preserve project
 decisions, and use the applicable workflow without waiting for the user to name it.
 This applies across all domains and on every fresh session or material scope change.

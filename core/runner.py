@@ -1,6 +1,6 @@
 """
 Unified Autonomous Runner.
-Wraps the execution of both OpenedSwarm and Automata agents,
+Wraps the execution of the Automata agents,
 enforcing centralized logging and memory updates to Brainiac2.
 """
 import sys
@@ -69,36 +69,7 @@ def run_automata(brand: str, action: str):
     )
 
     print(f"\n✅ Session logged → {log_path}")
-    print(f"📚 Memory updated → C:\\Brainiac2\\memory\\")
-
-
-def run_openedswarm():
-    print("\n🐝 OpenedSwarm — initializing agent swarm...\n")
-
-    try:
-        from agents.openedswarm_core.swarm import create_agency
-        agency = create_agency()
-        status = "initialized"
-        actions = ["OpenedSwarm agency initialized successfully"]
-    except ImportError as e:
-        print(f"⚠️  Failed to load OpenedSwarm: {e}")
-        status = "import_error"
-        actions = [f"OpenedSwarm import failed: {e}"]
-
-    log_path = log_agent_session(
-        agent_name="openedswarm",
-        session_data={"agent": "openedswarm", "status": status},
-        project="automata-swarm",
-        actions=actions,
-        current_state=f"Swarm {status}",
-    )
-    append_recent_session_to_agents_md(
-        agent_name="OpenedSwarm",
-        brand_or_project="automata-swarm",
-        one_liner=f"Agency {status}",
-    )
-
-    print(f"\n✅ Session logged → {log_path}")
+    print("📚 Memory updated in the vault (OBSIDIAN_VAULT_PATH/memory)")
 
 
 def main():
@@ -108,13 +79,12 @@ def main():
         epilog="""
 Examples:
   python core/runner.py --agent automata --brand Rasoi --action research
-  python core/runner.py --agent openedswarm
         """,
     )
     parser.add_argument(
         "--agent",
-        choices=["automata", "openedswarm"],
-        required=True,
+        choices=["automata"],
+        default="automata",
         help="Which agent to run",
     )
     parser.add_argument("--brand", help="Brand name (automata agent only)")
@@ -126,8 +96,6 @@ Examples:
         if not args.brand or not args.action:
             parser.error("--brand and --action are required for the automata agent")
         run_automata(args.brand, args.action)
-    elif args.agent == "openedswarm":
-        run_openedswarm()
 
 
 if __name__ == "__main__":

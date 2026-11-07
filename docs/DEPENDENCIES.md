@@ -86,15 +86,38 @@ Update one dependency per commit, so a break points at exactly one change.
 5. **Record it:** if the fix is not obvious, add it to that dependency's `on_break` in `dependencies.toml`
    and regenerate this page, so the next person finds it here.
 
-## Known gaps (found while building this register)
+## Security audits
+
+The `Security and quality` workflow audits, on every push: a fresh install of `requirements.txt`, **`uv.lock`**
+(what the machines actually install), and `npm audit` in each Node package. Until 2026-11-07 it audited only the
+fresh install, so the lockfile had quietly collected 107 known vulnerabilities; those were cleared with targeted
+`uv lock --upgrade-package` bumps.
+
+To check locally before pushing:
+```bash
+uv export --frozen --no-hashes --no-emit-project --no-header | grep -v '^-e \|^\./' > /tmp/locked.txt
+uvx pip-audit -r /tmp/locked.txt --no-deps --disable-pip   # plus the --ignore-vuln list from security.yml
+```
+Fix a finding with `uv lock --upgrade-package NAME`, run `make test`, commit `uv.lock`.
+
+### Accepted security advisories
+
+Ignored in `.github/workflows/security.yml` only because they do not apply to how this repo uses the package.
+Review each one whenever the package is upgraded, and remove the ignore once a fixed version is locked.
+
+| Package | Advisories | Why it does not apply | Revisit when |
+|---|---|---|---|
+| chromadb 1.5.9 | PYSEC-2026-311, -3813, -3814, -3815 | All are in the Chroma **server** (pre-auth code injection, tenant permissions). We only use the embedded `PersistentClient`; no server is started. No fixed release exists. | the next chromadb release |
+
+## Known gaps
 
 - **MCP servers are behind upstream** (2026-11-07): chrome-devtools-mcp 0.23.0 (latest 1.12.0),
   notebooklm-mcp 1.5.9 (4.6.0), apify-mcp 0.9.20 (0.21.4), playwright-mcp 0.0.73 (0.0.84), browser-act 0.1.23
-  (1.6.2). Update one at a time with the steps above.
-- **ImageMagick** is not installed on the Linux machine; the slides agent's raster conversion and the
-  higgsfield brand kit need it there.
+  (1.6.2). Update one at a time with the steps above, after the cross-platform branch is merged.
 - **Three Playwright versions** coexist: Node 1.61 (package-lock), Python 1.59 (uv.lock), and the MCP server's
   own. Each needs its own Chromium build; the bootstrap installs both library builds.
+- **npm overrides:** `image-size` is forced to `^2.1.0` in `package.json` because pptxgenjs still asks
+  for the vulnerable 1.x; the slide exporters were tested with it. Drop the override once pptxgenjs requires 2.x.
 
 ## Register
 
@@ -106,7 +129,7 @@ Update one dependency per commit, so a break points at exactly one change.
 |---|---|---|---|---|
 | **Python** (`python`) | Runs every agent package, script and test. | yes | >= 3.12 | - |
 | **uv** (`uv`) | Installs the locked Python environment (uv sync) and runs uvx MCP servers and uv tools. | yes | OS package manager | - |
-| **Node.js (for MCP servers)** (`node`) | Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper. | yes | >= 22.12 | - |
+| **Node.js** (`node`) | Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper. | yes | >= 22.12 | - |
 | **Git** (`git`) | Repo sync between the two machines; the cross-platform checker lists files with it. | yes | OS package manager | - |
 | **GitHub CLI (gh)** (`gh`) | Browser login to GitHub for cloning and pushing the private repo; lets agents read CI results. | no | OS package manager | - |
 
@@ -115,7 +138,6 @@ Update one dependency per commit, so a break points at exactly one change.
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
 | **Python packages (root project)** (`python-packages`) | All Python libraries for the four agency packages and the root tooling, locked exactly in uv.lock. | yes | lockfile | `uv.lock` |
-| **Python packages (OpenSwarm sub-project)** (`openswarm-python`) | Agency Swarm and the OpenSwarm agents' libraries (slides, video, docs, data agents). | no | lockfile | `agents/openedswarm_core/uv.lock` |
 | **Node packages (root)** (`node-packages`) | playwright (HTML-to-PPTX screenshots), pptxgenjs, animate.css. | no | lockfile | `package-lock.json` |
 | **Node packages (ig-research scraper)** (`ig-research-packages`) | puppeteer-core for the CDP Instagram scraper. | no | lockfile | `agents/automata_core/ig-research/package-lock.json` |
 | **Playwright Chromium builds** (`playwright-browsers`) | Headless Chromium for the Node playwright (1.61) and the Python playwright (1.59); each version needs its own browser build. | no | per playwrig | - |
@@ -147,8 +169,8 @@ Update one dependency per commit, so a break points at exactly one change.
 |---|---|---|---|---|
 | **ffmpeg / ffprobe** (`ffmpeg`) | Upscale and crop-to-motion b-roll, video agent edits, raea media. | no | OS package manager | - |
 | **Poppler (pdftoppm)** (`poppler`) | PDF page rendering for slide checks and pdf2image. | no | OS package manager | - |
-| **ImageMagick (magick)** (`imagemagick`) | Raster conversion for slides and the Higgsfield brand kit. | no | OS package manager | - |
-| **LibreOffice (soffice)** (`libreoffice`) | PPTX to PDF/thumbnail rendering in the slides agent. | no | OS package manager | - |
+| **ImageMagick (magick)** (`imagemagick`) | Raster image conversion for slide work and the Higgsfield brand kit. | no | OS package manager | - |
+| **LibreOffice (soffice)** (`libreoffice`) | PPTX to PDF/thumbnail rendering for slide work. | no | OS package manager | - |
 | **Cairo / Pango libraries** (`cairo-pango`) | Native libraries behind weasyprint and cairosvg (PDF and SVG rendering). | no | OS package manager | - |
 | **Android platform-tools (adb)** (`adb`) | Mobile-only Instagram search through redroid/BlueStacks. | no | OS package manager | - |
 
@@ -180,11 +202,11 @@ Update one dependency per commit, so a break points at exactly one change.
 - **Update:** uv self update
 - **If it breaks:** uv self update; if uv sync fails, run `uv lock --check` to see whether uv.lock is stale.
 
-#### Node.js (for MCP servers) (`node`)
+#### Node.js (`node`)
 - **Install:** linux: `fnm install 22`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id OpenJS.NodeJS.LTS`; macos: `brew install node@22`
-  Linux: or your distro's nodejs 22 package.
+  The default `node` on PATH must be 22.12+ (sharp, the slide exporters). Linux with fnm: `fnm install 22 && fnm default 22`, and load fnm in ~/.bashrc: `export PATH="$HOME/.local/share/fnm:$PATH"; eval "$(fnm env --shell bash)"`. A distro's nodejs 22 package also works.
 - **Update:** Install a newer LTS (fnm install 24 / winget upgrade OpenJS.NodeJS.LTS). mcp-npx.mjs picks the newest compatible one automatically.
-- **If it breaks:** `node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH).
+- **If it breaks:** `node --version` must print v22.12 or newer; if it shows an older system Node, load fnm in your shell (see install note). `node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH).
 
 #### Git (`git`)
 - **Install:** linux: `sudo apt-get install -y git`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Git.Git`; macos: `xcode-select --install`
@@ -200,11 +222,6 @@ Update one dependency per commit, so a break points at exactly one change.
 - **Install:** all: `uv sync --locked`
 - **Update:** One package: `uv lock --upgrade-package NAME` then `uv sync`. Everything: `uv lock --upgrade`. Run tests, commit uv.lock. Ranges live in pyproject.toml files; requirements.txt mirrors the root pyproject for CI and must be edited with it.
 - **If it breaks:** `uv sync --locked` reinstalls exactly what uv.lock says. If a just-upgraded package broke something, `git checkout HEAD~1 -- uv.lock && uv sync --locked` rolls it back.
-
-#### Python packages (OpenSwarm sub-project) (`openswarm-python`)
-- **Install:** all: `uv sync --locked --directory agents/openedswarm_core`
-- **Update:** uv lock --upgrade-package NAME --directory agents/openedswarm_core
-- **If it breaks:** Same as the root lock: re-sync, or roll back agents/openedswarm_core/uv.lock from git.
 
 #### Node packages (root) (`node-packages`)
 - **Install:** all: `npm ci`

@@ -124,6 +124,11 @@ def main(argv: list[str] | None = None) -> int:
     if which.returncode != 0:
         fail("No Node.js ^20.19, ^22.12 or >= 23 found for the MCP servers: python scripts/deps.py install node")
     ok(f"MCP Node: {which.stdout.strip()}")
+    default_node = run(["node", "--version"], capture_output=True, text=True).stdout.strip()
+    parts = tuple(int(x) for x in default_node.lstrip("v").split(".")[:2] if x.isdigit())
+    if parts and parts < (22, 12):
+        warn(f"the default `node` is {default_node}, older than 22.12: sharp and the slide exporters need a newer one. "
+             "See the `node` entry in docs/DEPENDENCIES.md (Linux with fnm: load fnm in ~/.bashrc).")
 
     step("Python environment")
     if not VENV_PYTHON.exists():

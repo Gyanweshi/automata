@@ -2,7 +2,7 @@
 """Check that this machine can actually run everything, one step at a time (Linux, macOS, Windows).
 
     python scripts/doctor.py            # run every check, then print a summary
-    python scripts/doctor.py --quick    # skip the slow ones (Playwright MCP download, OpenSwarm server start)
+    python scripts/doctor.py --quick    # skip the slow ones (the Playwright MCP download)
 
 Read-only: it changes nothing. The bootstrap runs it at the end; run it alone after a `git pull`, after
 installing something, or whenever a machine feels broken. Each failing step says what to run.
@@ -143,16 +143,6 @@ def check_schedules():
                                                          else " (no vault configured, so no watchdog)"), ""
 
 
-def check_openswarm(quick: bool):
-    venv = ROOT / "agents" / "openedswarm_core" / ".venv"
-    if not venv.is_dir():
-        return SKIP, "OpenSwarm not set up here (uv sync --locked --directory agents/openedswarm_core)", ""
-    if quick:
-        return SKIP, "slow check skipped (--quick)", ""
-    code, out = run([sys.executable, "agents/openedswarm_core/start.py", "--no-ui", "--timeout", "150"], 200)
-    return (PASS, "server starts and answers on port 8080", "") if code == 0 else (FAIL, "server did not start", out)
-
-
 def check_gimp():
     code, out = run([sys.executable, "scripts/install-gimp-mcp.py", "--dry-run"])
     if code:
@@ -176,7 +166,6 @@ def main(argv: list[str] | None = None) -> int:
         ("Playwright MCP", (lambda: (SKIP, "slow check skipped (--quick)", "")) if args.quick else check_playwright_mcp),
         ("Agents (dry run)", check_agents),
         ("Scheduled jobs", check_schedules),
-        ("OpenSwarm server", lambda: check_openswarm(args.quick)),
         ("GIMP MCP plugin", check_gimp),
     ]
     results = []

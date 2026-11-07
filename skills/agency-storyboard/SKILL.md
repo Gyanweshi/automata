@@ -126,7 +126,7 @@ selected concept, exact visual instruction, or execution-only edit.
    - Refine the generation prompts so they are more specific, vivid, and brand-appropriate.
    - Add creative direction notes for each scene.
 
-5. **Generate assets**: After generating prompts, create the assets with the image/video tooling configured in your harness - for storyboard work that is `magnific` or the `higgsfield` MCP server in `mcp/agents/storyboard.json` (image up to 4K, short video) or the OpenSwarm Image/Video agents. Use the `positive_prompt` from the storyboard output as the prompt, or paste it into any generator.
+5. **Generate assets**: After generating prompts, create the assets with the image/video tooling configured in your harness - for storyboard work that is `magnific` or the `higgsfield` MCP server in `mcp/agents/storyboard.json` (image up to 4K, short video). Use the `positive_prompt` from the storyboard output as the prompt, or paste it into any generator.
 
 6. **Output**: Present the storyboard to the user as:
    - Scene-by-scene visual direction

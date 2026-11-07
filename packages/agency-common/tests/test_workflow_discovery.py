@@ -1,11 +1,7 @@
 import importlib.util
 import json
-import builtins
 import sys
 from pathlib import Path
-from types import ModuleType
-
-from pydantic import BaseModel
 
 from agency_common import workflow_discovery as workflows
 
@@ -22,14 +18,11 @@ def test_catalog_prefers_canonical_and_parses_multiline_metadata(tmp_path):
     shim = tmp_path / ".agents/skills/example/SKILL.md"
     shim.parent.mkdir(parents=True)
     shim.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
-    agent = tmp_path / "agents/openedswarm_core/docs_agent/instructions.md"
-    agent.parent.mkdir(parents=True)
-    agent.write_text("Document specialist", encoding="utf-8")
     catalog = workflows.workflow_catalog(tmp_path)
     assert len(catalog["skills"]) == 1
     assert catalog["skills"][0]["path"] == str(source)
     assert catalog["skills"][0]["description"].strip() == "First line second line"
-    assert catalog["agents"][0]["instructions"] == str(agent)
+    assert "agents" not in catalog
 
 
 def test_read_reference_but_reject_secret_traversal_and_symlink_escape(tmp_path, monkeypatch):
@@ -79,25 +72,3 @@ def test_custom_harness_tools_do_not_advertise_unavailable_discovery():
     runner = HarnessRunner("Example", "System", object(), available_tools={})
     assert runner.available_tools == {}
     assert runner.tool_schemas == []
-
-
-def test_swarm_adapters_read_skills_and_handle_standalone_missing_package(monkeypatch):
-    # Exercise the adapter with a Pydantic tool base; no live agency/model needed.
-    tool_module = ModuleType("agency_swarm.tools")
-    tool_module.BaseTool = BaseModel
-    monkeypatch.setitem(sys.modules, "agency_swarm.tools", tool_module)
-    path = workflows.repo_root() / "agents/openedswarm_core/shared_tools/WorkflowDiscovery.py"
-    spec = importlib.util.spec_from_file_location("workflow_adapter", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    catalog = json.loads(module.DiscoverWorkflows().run())
-    assert module.ReadWorkflow(path=catalog["skills"][0]["path"]).run().startswith("---")
-    original_import = builtins.__import__
-
-    def missing_common(name, *args, **kwargs):
-        if name == "agency_common":
-            raise ModuleNotFoundError("Missing agency-common", name="agency_common")
-        return original_import(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", missing_common)
-    assert "not installed" in module.DiscoverWorkflows().run()

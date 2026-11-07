@@ -20,7 +20,7 @@ PERSONA_PROMPTS = {
 
 CORE_DIRECTIVE = (
     "\n\nCORE DIRECTIVE: Before planning or executing each new request, call "
-    "discover_workflows to check matching skills and existing specialist agents. "
+    "discover_workflows to check matching skills. "
     "Use read_workflow to read AGENTS.md, the relevant SKILL.md and required references. "
     "Follow the smallest applicable workflow without waiting for the user to name it. "
     "Reuse unchanged instructions for follow-ups. Preserve project decisions, references, "

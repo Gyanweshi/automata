@@ -37,7 +37,7 @@ def log_agent_session(
     Parameters
     ----------
     agent_name : str
-        Name of the agent (e.g., 'automata', 'openedswarm', 'deep_research')
+        Name of the agent (e.g., 'automata', 'research')
     session_data : dict
         Raw session metadata (always saved to local JSON log as well)
     brand : str, optional

@@ -55,19 +55,19 @@ upstream = "github-release:astral-sh/uv"
 
 [[dependency]]
 id = "node"
-name = "Node.js (for MCP servers)"
+name = "Node.js"
 kind = "runtime"
 category = "Runtimes"
 purpose = "Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper."
 used_by = ["research MCPs", "tools/pdf_utils/html_to_pptx.js", "agents/automata_core/ig-research"]
 required = true
 min_version = "22.12"
-check = ["node", "scripts/mcp-npx.mjs", "--which"]
+check = ["node", "--version"]
 version_regex = 'v(\d+\.\d+\.\d+)'
-install_note = "Linux: or your distro's nodejs 22 package."
+install_note = "The default `node` on PATH must be 22.12+ (sharp, the slide exporters). Linux with fnm: `fnm install 22 && fnm default 22`, and load fnm in ~/.bashrc: `export PATH=\"$HOME/.local/share/fnm:$PATH\"; eval \"$(fnm env --shell bash)\"`. A distro's nodejs 22 package also works."
 install = { linux = "fnm install 22", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id OpenJS.NodeJS.LTS", macos = "brew install node@22" }
 update = "Install a newer LTS (fnm install 24 / winget upgrade OpenJS.NodeJS.LTS). mcp-npx.mjs picks the newest compatible one automatically."
-on_break = "`node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH)."
+on_break = "`node --version` must print v22.12 or newer; if it shows an older system Node, load fnm in your shell (see install note). `node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH)."
 
 [[dependency]]
 id = "git"
@@ -112,20 +112,6 @@ check = ["uv", "lock", "--check"]
 install = { all = "uv sync --locked" }
 update = "One package: `uv lock --upgrade-package NAME` then `uv sync`. Everything: `uv lock --upgrade`. Run tests, commit uv.lock. Ranges live in pyproject.toml files; requirements.txt mirrors the root pyproject for CI and must be edited with it."
 on_break = "`uv sync --locked` reinstalls exactly what uv.lock says. If a just-upgraded package broke something, `git checkout HEAD~1 -- uv.lock && uv sync --locked` rolls it back."
-
-[[dependency]]
-id = "openswarm-python"
-name = "Python packages (OpenSwarm sub-project)"
-kind = "python-lock"
-category = "Libraries"
-purpose = "Agency Swarm and the OpenSwarm agents' libraries (slides, video, docs, data agents)."
-used_by = ["agents/openedswarm_core"]
-required = false
-pin_files = [{ file = "agents/openedswarm_core/uv.lock" }]
-check = ["uv", "lock", "--check", "--directory", "agents/openedswarm_core"]
-install = { all = "uv sync --locked --directory agents/openedswarm_core" }
-update = "uv lock --upgrade-package NAME --directory agents/openedswarm_core"
-on_break = "Same as the root lock: re-sync, or roll back agents/openedswarm_core/uv.lock from git."
 
 [[dependency]]
 id = "node-packages"
@@ -343,7 +329,7 @@ name = "ffmpeg / ffprobe"
 kind = "system"
 category = "System tools"
 purpose = "Upscale and crop-to-motion b-roll, video agent edits, raea media."
-used_by = ["render-upscale-crop skill", "video_generation_agent"]
+used_by = ["render-upscale-crop skill", "raea media", "agent toolkit (moviepy, video edits)"]
 required = false
 check = ["ffmpeg", "-version"]
 version_regex = 'ffmpeg version n?(\d+\.\d+)'
@@ -357,7 +343,7 @@ name = "Poppler (pdftoppm)"
 kind = "system"
 category = "System tools"
 purpose = "PDF page rendering for slide checks and pdf2image."
-used_by = ["slides_agent", "pdf2image"]
+used_by = ["pdf2image", "pdf and pptx skills (page renders)"]
 required = false
 check = ["pdftoppm", "-v"]
 install = { linux = "sudo apt-get install -y poppler-utils", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id oschwartz10612.Poppler", macos = "brew install poppler" }
@@ -369,8 +355,8 @@ id = "imagemagick"
 name = "ImageMagick (magick)"
 kind = "system"
 category = "System tools"
-purpose = "Raster conversion for slides and the Higgsfield brand kit."
-used_by = ["slides_agent EnsureRasterImage", "higgsfield-brandkit skill"]
+purpose = "Raster image conversion for slide work and the Higgsfield brand kit."
+used_by = ["higgsfield-brandkit skill", "agent toolkit (image conversion)"]
 required = false
 check = ["magick", "-version"]
 check_linux = ["convert", "-version"]
@@ -385,8 +371,8 @@ id = "libreoffice"
 name = "LibreOffice (soffice)"
 kind = "app"
 category = "System tools"
-purpose = "PPTX to PDF/thumbnail rendering in the slides agent."
-used_by = ["slides_agent", "higgsfield-brandkit render_brandbook_pdf"]
+purpose = "PPTX to PDF/thumbnail rendering for slide work."
+used_by = ["pptx skill (thumbnails, PDF export)", "higgsfield-brandkit render_brandbook_pdf"]
 required = false
 check = ["soffice", "--version"]
 install = { linux = "sudo apt-get install -y libreoffice", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id TheDocumentFoundation.LibreOffice", macos = "brew install --cask libreoffice" }

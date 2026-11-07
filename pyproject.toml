@@ -4,10 +4,9 @@ version = "0.1.0"
 description = "Multi-agent research, storyboard, and content automation toolkit"
 requires-python = ">=3.12"
 dependencies = [
-    "agency-swarm[fastapi,jupyter,litellm]>=1.11.0",
-    "questionary>=2.0.0",
-    "fastapi",
-    "uvicorn",
+    # Agent toolkit: libraries agents and skills use for ad-hoc work (data, notebooks, images, video, documents,
+    # PDFs, browsers), plus the user's own Jupyter use. Most are not imported by repo code; do not prune them
+    # as "unused". Security floors (>=) at the end keep vulnerable versions out.
     "pytz",
     "pandas>=2.0.0",
     "numpy>=1.24.0",
@@ -41,9 +40,9 @@ dependencies = [
     "imageio-ffmpeg",
     "aiohttp>=3.14.3",
     "cryptography>=50.0.0",
-    "datamodel-code-generator>=0.64.0,<0.69.0",
     "jupyter-server>=2.20.0",
-    "jupyterlab>=4.5.10,<4.6",
+    "jupyterlab>=4.6.6,<4.7",
+    "notebook>=7.6.3",
     "mcp>=1.28.1,<2",
     "mistune>=3.3.0",
     "protego>=0.6.2",

@@ -1,4 +1,4 @@
-"""Read-only discovery of repo skills and specialist instructions, shared by runtimes."""
+"""Read-only discovery of repo skills, shared by runtimes."""
 from __future__ import annotations
 
 import json
@@ -17,8 +17,7 @@ def repo_root() -> Path:
 
 
 def skill_roots(root: Path) -> list[Path]:
-    return [root / "skills", root / ".agents/skills", root / ".claude/skills",
-            root / "agents/openedswarm_core/mnt/skills"]
+    return [root / "skills", root / ".agents/skills", root / ".claude/skills"]
 
 
 def workflow_catalog(root: Path | None = None) -> dict:
@@ -34,11 +33,8 @@ def workflow_catalog(root: Path | None = None) -> dict:
                                          "path": str(path.resolve())})
             except (OSError, ValueError, yaml.YAMLError) as exc:
                 errors.append({"path": str(path), "error": str(exc)})
-    agents = [{"name": path.parent.name, "instructions": str(path.resolve())}
-              for path in sorted((root / "agents/openedswarm_core").glob("*/instructions.md"))]
-    return {"policy": str(root / "AGENTS.md"), "skills": list(skills.values()),
-            "agents": agents, "errors": errors,
-            "note": "Listed agent files are not proof of callable delegation. Also consult the session's installed skill/tool catalog."}
+    return {"policy": str(root / "AGENTS.md"), "skills": list(skills.values()), "errors": errors,
+            "note": "Also consult the session's installed skill/tool catalog."}
 
 
 def discover_workflows() -> str:
@@ -54,8 +50,7 @@ def read_workflow(path: str) -> str:
         root = repo_root()
         target = (root / path).resolve()
         allowed_dirs = [p.resolve() for p in skill_roots(root)] + [(root / "mcp/agents").resolve()]
-        allowed_files = {root / "AGENTS.md", root / "agents/openedswarm_core/shared_instructions.md"}
-        allowed_files.update((root / "agents/openedswarm_core").glob("*/instructions.md"))
+        allowed_files = {root / "AGENTS.md"}
         if target not in allowed_files and not any(target.is_relative_to(p) for p in allowed_dirs):
             return "Workflow read denied: choose an instruction or reference path from discovery."
         if target.suffix.lower() not in {".md", ".json", ".yaml", ".yml", ".txt"}:
