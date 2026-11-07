@@ -346,7 +346,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 #### LibreOffice (soffice) (`libreoffice`)
 - **Install:** linux: `sudo apt-get install -y libreoffice`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id TheDocumentFoundation.LibreOffice`; macos: `brew install --cask libreoffice`
 - **Update:** Package manager upgrade.
-- **If it breaks:** Windows: add C:\Program Files\LibreOffice\program to PATH.
+- **If it breaks:** Windows: python scripts/deps.py install-roles adds the LibreOffice program folder to PATH; open a new terminal.
 
 #### Cairo / Pango libraries (`cairo-pango`)
 - **Install:** linux: `sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2`; windows: `manual: install the GTK3 runtime (MSYS2: pacman -S mingw-w64-x86_64-pango) and add its bin to PATH`; macos: `brew install pango cairo`

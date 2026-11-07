@@ -389,8 +389,9 @@ used_by = ["pptx skill (thumbnails, PDF export)", "higgsfield-brandkit render_br
 required = false
 check = ["soffice", "--version"]
 install = { linux = "sudo apt-get install -y libreoffice", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id TheDocumentFoundation.LibreOffice", macos = "brew install --cask libreoffice" }
+path_dirs = { windows = ["%ProgramFiles%\\LibreOffice\\program"] }  # winget's installer leaves soffice off PATH
 update = "Package manager upgrade."
-on_break = "Windows: add C:\\Program Files\\LibreOffice\\program to PATH."
+on_break = "Windows: python scripts/deps.py install-roles adds the LibreOffice program folder to PATH; open a new terminal."
 
 [[dependency]]
 id = "cairo-pango"

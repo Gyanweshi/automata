@@ -19,3 +19,13 @@ def test_refresh_path_adds_user_tool_dirs_and_keeps_existing(tmp_path, monkeypat
     parts = os.environ["PATH"].split(os.pathsep)
     assert str(home / ".local" / "bin") in parts
     assert parts.count("/already/here") == 1
+
+
+def test_path_dirs_come_from_the_manifest_per_os(monkeypatch, tmp_path):
+    monkeypatch.setattr(deps, "os_key", lambda: "windows")
+    monkeypatch.setenv("TOOLROOT", str(tmp_path))
+    dep = {"id": "x", "path_dirs": {"windows": ["$TOOLROOT/app/bin"]}}
+    assert deps.path_dirs(dep) == [tmp_path / "app" / "bin"]
+    monkeypatch.setattr(deps, "os_key", lambda: "linux")
+    assert deps.path_dirs(dep) == []
+    assert deps.persist_user_path(tmp_path / "missing") is False  # never writes PATH for a folder that isn't there

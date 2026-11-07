@@ -54,7 +54,42 @@ def deps_by_id(manifest: dict) -> dict[str, dict]:
 ALL_ROLES = ("research", "video", "slides", "images", "3d")
 
 
-def refresh_path() -> None:
+def path_dirs(dep: dict) -> list[Path]:
+    """Folders a tool installs into that its installer leaves off PATH (manifest `path_dirs`, per OS)."""
+    raw = (dep.get("path_dirs") or {}).get(os_key(), [])
+    return [Path(os.path.expandvars(os.path.expanduser(d))) for d in raw]
+
+
+def persist_user_path(folder: Path) -> bool:
+    """Add a folder to the user's PATH for good (Windows registry; new terminals see it). True if it changed."""
+    if os.name != "nt" or not folder.is_dir():
+        return False
+    import ctypes
+    import winreg
+
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0, winreg.KEY_READ | winreg.KEY_WRITE) as key:
+        try:
+            current, kind = winreg.QueryValueEx(key, "Path")
+        except FileNotFoundError:
+            current, kind = "", winreg.REG_EXPAND_SZ
+        entries = [e for e in current.split(os.pathsep) if e]
+        if any(os.path.normcase(os.path.expandvars(e)).rstrip("\\") == os.path.normcase(str(folder)).rstrip("\\")
+               for e in entries):
+            return False
+        winreg.SetValueEx(key, "Path", 0, kind if kind in (winreg.REG_SZ, winreg.REG_EXPAND_SZ) else winreg.REG_EXPAND_SZ,
+                          os.pathsep.join([*entries, str(folder)]))
+    # tell Explorer so newly opened terminals pick it up without a sign-out
+    ctypes.windll.user32.SendMessageTimeoutW(0xFFFF, 0x001A, 0, "Environment", 0x0002, 5000, None)
+    return True
+
+
+def ensure_path_dirs(dep: dict) -> None:
+    for folder in path_dirs(dep):
+        if persist_user_path(folder):
+            print(f"deps: {dep['id']}: added {folder} to your PATH (new terminals see it)")
+
+
+def refresh_path(manifest: dict | None = None) -> None:
     """Check against the PATH a newly opened terminal would have, not this process's possibly stale one.
 
     Installers (winget, the Node MSI, uv tool, deps.py itself) update PATH for new terminals only, and IDE terminals
@@ -78,6 +113,10 @@ def refresh_path() -> None:
     else:  # login-shell additions: uv/pipx tools, cargo, raea, and fnm's default Node ahead of a system Node
         known = [home / ".local" / "share" / "fnm" / "aliases" / "default" / "bin", home / ".local" / "bin",
                  home / ".cargo" / "bin", home / ".raea" / "bin"]
+    try:
+        known += [d for dep in (manifest or load())["dependency"] for d in path_dirs(dep)]
+    except (OSError, KeyError, ValueError):
+        pass
     known_dirs = [str(d) for d in known if d.is_dir()]
     ordered = (known_dirs[:1] + [p for p in os.environ.get("PATH", "").split(os.pathsep)] + parts + known_dirs[1:]) \
         if os.name != "nt" else ([p for p in os.environ.get("PATH", "").split(os.pathsep)] + parts + known_dirs)
@@ -480,6 +519,8 @@ def cmd_install(manifest: dict, ids: list[str], version: str | None, skills: boo
         if result.returncode != 0:
             print(f"deps: {dep_id} install exited {result.returncode}")
             return result.returncode
+        ensure_path_dirs(dep)
+        refresh_path()
     return 0
 
 
@@ -495,6 +536,7 @@ def cmd_install_roles(manifest: dict, roles: set[str] | None = None) -> int:
             continue
         state, _ = run_check(dep, release=manifest.get("releases", {}).get(dep["id"]))
         if state == "ok":
+            ensure_path_dirs(dep)  # installed earlier but its folder never reached PATH (e.g. LibreOffice via winget)
             continue
         if state == "n/a":  # no automatic check: never re-run an installer blindly; say what to do instead
             manual.append(f"{dep['id']} ({install_command(dep) or 'see docs/DEPENDENCIES.md'})")
@@ -573,7 +615,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     manifest = load()
-    refresh_path()
+    refresh_path(manifest)
     if args.command == "list":
         return cmd_list(manifest)
     if args.command == "check":
