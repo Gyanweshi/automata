@@ -116,7 +116,7 @@ def test_ownership_never_steals_another_checkouts_job(monkeypatch, tmp_path):
 def test_repo_from_command_reads_unit_task_and_legacy_lines():
     from agency_common.scheduled_jobs import repo_from_command
 
-    assert str(repo_from_command('ExecStart="/h/a/.venv/bin/python" "/h/a/scripts/schedule.py" "run" "x"')) == "/h/a"
+    assert repo_from_command('ExecStart="/h/a/.venv/bin/python" "/h/a/scripts/schedule.py" "run" "x"') == Path("/h/a")
     assert repo_from_command(r'<Arguments>"D:\work\automata\scripts\schedule.py" run x</Arguments>') is not None
-    assert str(repo_from_command('/usr/bin/env bash "/h/a/scripts/run-vault-index.sh"')) == "/h/a"
+    assert repo_from_command('/usr/bin/env bash "/h/a/scripts/run-vault-index.sh"') == Path("/h/a")
     assert repo_from_command("something else") is None
