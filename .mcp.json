@@ -9,7 +9,7 @@
       "args": [
         "scripts/mcp-npx.mjs",
         "-y",
-        "@playwright/mcp@0.0.73",
+        "@playwright/mcp@0.0.84",
         "--user-data-dir",
         "~/.agency/chrome-instagram-cdp",
         "--output-dir",

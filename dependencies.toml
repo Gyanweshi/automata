@@ -161,7 +161,7 @@ category = "MCP servers"
 purpose = "Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile."
 used_by = ["research agent"]
 required = false
-pin = "0.0.73"
+pin = "0.0.84"
 pin_files = [
   { file = ".mcp.json", pattern = "@playwright/mcp@{version}" },
   { file = "mcp/agents/research.json", pattern = "@playwright/mcp@{version}" },

@@ -64,7 +64,10 @@ Rules that keep the two machines identical:
    - Python libraries: `uv lock --upgrade-package NAME && uv sync --locked`;
    - Node libraries: `npm install NAME@NEW` (in the folder that owns the `package-lock.json`).
 4. Check: `python scripts/deps.py check ID`, run the feature that uses it once (each entry's
-   *Update* line below says how), and `make test`.
+   *Update* line below says how), and `make test`. For an MCP server, run
+   `python scripts/mcp-smoke.py NAME --save before.txt` *before* moving the pin and
+   `python scripts/mcp-smoke.py NAME --compare before.txt` after: it starts the server as configured, does the MCP
+   handshake and fails if any tool disappeared (skills, hooks and settings refer to tools by name).
 5. Commit the pin change on its own (`chore(deps): bump ID to NEW`). The `Cross-platform` workflow then
    checks the pins, the install resolution and the tests on Linux and Windows before you switch machines.
 6. On the other machine: `git pull`, then `python scripts/deps.py install ID` (or re-run the bootstrap).
@@ -146,7 +149,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
-| **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | 0.0.73 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
+| **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | 0.0.84 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
 | **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | 0.23.0 | `mcp/agents/research.json`, `dependencies.toml` |
 | **@roomi-fields/notebooklm-mcp** (`notebooklm-mcp`) | Grounded Q&A against NotebookLM sources. | no | 1.5.9 | `mcp/agents/research.json`, `dependencies.toml` |
 | **@apify/actors-mcp-server** (`apify-mcp`) | Apify actors (Instagram, LinkedIn extraction). | no | 0.9.20 | `mcp/agents/research.json`, `dependencies.toml` |

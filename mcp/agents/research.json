@@ -3,7 +3,7 @@
   "mcpServers": {
     "playwright": {
       "command": "node",
-      "args": ["scripts/mcp-npx.mjs", "-y", "@playwright/mcp@0.0.73", "--user-data-dir", "~/.agency/chrome-instagram-cdp", "--output-dir", "~/.agency/playwright-mcp-output"],
+      "args": ["scripts/mcp-npx.mjs", "-y", "@playwright/mcp@0.0.84", "--user-data-dir", "~/.agency/chrome-instagram-cdp", "--output-dir", "~/.agency/playwright-mcp-output"],
       "purpose": "Browser automation for public pages, accessibility snapshots, forms, screenshots, and data extraction."
     },
 
