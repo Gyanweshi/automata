@@ -6,7 +6,7 @@
 
 **A production-grade multi-agent AI system for brand research, visual storyboards, content generation, and autonomous task execution.**
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
 [![Built on Agency Swarm](https://img.shields.io/badge/Built%20on-Agency%20Swarm-7c3aed?style=flat-square)](https://github.com/VRSEN/agency-swarm)
 [![MCP Powered](https://img.shields.io/badge/MCP-Enabled-orange?style=flat-square)](https://modelcontextprotocol.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
@@ -86,94 +86,72 @@ automata/
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (fresh machine)
 
-### Prerequisites
-Before starting, ensure your system has:
-- **Python 3.11+**
-- **Node.js 20.19+, 22.12+, or 23+** (includes `npm` and `npx`)
-- **Git**
-- **uv** (fast Python package manager)
-
----
-
-### Step-by-Step Setup
-
-Open the tab for your operating system:
+`git clone` only copies files; it never installs anything. One setup script does the rest: it installs the
+missing tools, builds the Python environment from the lockfile, installs the Node packages and browsers, and
+checks every dependency. The same script runs on Windows and Linux, and it is safe to re-run any time
+something looks broken.
 
 <details open>
-<summary><strong>Linux, macOS, or WSL (Recommended)</strong></summary>
+<summary><strong>Windows (PowerShell)</strong></summary>
 
-#### 1. Install `uv` (if not already installed)
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+**1. Install Python 3.12** (the setup script is Python, so this is the one thing it can't do for you):
+```powershell
+winget install -e --id Python.Python.3.12
 ```
 
-#### 2. Clone the repository
-```bash
+**2. Install Git, if `git --version` says "not recognized":**
+```powershell
+winget install -e --id Git.Git
+```
+
+**3. Reload PATH in this window** (installers update PATH for *new* windows only; this saves reopening):
+```powershell
+$env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")
+```
+Check with `py --version` and `git --version`.
+
+**4. Clone and run the setup:**
+```powershell
 git clone https://github.com/Gyanweshi/automata.git
 cd automata
+py scripts\bootstrap.py
 ```
+It asks before installing anything missing (uv, Node.js; add `--yes` to skip the questions), then sets up the
+rest. The first `git clone`/`git fetch` may open a browser to sign in to GitHub: approve it once.
 
-#### 3. Run the bootstrap script
-```bash
-python3 scripts/bootstrap.py
-```
-*(If you are on a headless server without GUI libraries, run `python3 scripts/bootstrap.py --skip-browsers`)*
+**5. Add your API keys:** `Copy-Item env.example .env`, then fill in `.env`.
 
-#### 4. Configure API Keys
-Copy the environment template and edit `.env`:
-```bash
-cp env.example .env
-```
-Export your core keys in your shell profile (`~/.bashrc` or `~/.zshrc`):
-```bash
-export APIFY_API_TOKEN="your_apify_token"
-export OPENAI_API_KEY="your_openai_key"       # or ANTHROPIC_API_KEY
-source ~/.bashrc
-```
-
-#### 5. Verify the installation
-```bash
-make status
-make dry-run BRAND=example-brand
+**6. Verify:**
+```powershell
+py scripts\deps.py check
+py scripts\run-agent.py dry-run --brand example-brand
 ```
 
 </details>
 
 <details>
-<summary><strong>Windows PowerShell</strong></summary>
+<summary><strong>Linux / macOS / WSL</strong></summary>
 
-#### 1. Install `uv`
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-*(Close and reopen PowerShell after installing uv)*
+**1. Python 3.12 and Git** are usually already there (`python3 --version`, `git --version`). If not:
+`sudo apt install python3 python3-venv git` (macOS: `brew install python@3.12 git`).
 
-#### 2. Clone the repository
-```powershell
+**2. Clone and run the setup:**
+```bash
 git clone https://github.com/Gyanweshi/automata.git
 cd automata
+python3 scripts/bootstrap.py          # or: make bootstrap
 ```
+It offers to install uv and Node.js if they are missing (`--yes` skips the questions). On a headless server add
+`--skip-browsers`.
 
-#### 3. Run the bootstrap script
-```powershell
-py scripts\bootstrap.py
-```
-*(To skip Playwright browser downloads: `--skip-browsers`)*
+**3. Add your API keys:** `cp env.example .env`, then fill in `.env`.
 
-#### 4. Configure API Keys
-```powershell
-Copy-Item env.example .env
-[Environment]::SetEnvironmentVariable("APIFY_API_TOKEN", "your_apify_token", "User")
-[Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "your_openai_key", "User")
-```
-*(Close and reopen PowerShell to load the new environment variables)*
-
-#### 5. Verify the installation
-```powershell
-py scripts\run-agent.py status
-py scripts\run-agent.py dry-run --brand example-brand
+**4. Verify:**
+```bash
+python3 scripts/deps.py check         # or: make deps
+make dry-run BRAND=example-brand
 ```
 
 </details>
@@ -192,6 +170,16 @@ docker-compose up --build
 ```
 
 </details>
+
+### After setup
+
+- **Optional tools** (ffmpeg, GIMP, Blender, raea, ImageMagick, ...) show as `warn` in `deps.py check`, each with
+  its install command; `python scripts/deps.py install ID` installs one. The full list, what each is for, and
+  how to update or fix it is in [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
+- **Nightly jobs:** `python scripts/schedule.py install vault-index` and `... install housekeeper` register them
+  with this machine's scheduler (Task Scheduler on Windows, systemd/cron on Linux).
+- **After `git pull`** on either machine, re-run the setup script if dependencies changed; it is quick when
+  nothing is missing.
 
 ---
 
@@ -375,28 +363,29 @@ make dry-run BRAND=my-brand
 ## ❓ Troubleshooting & FAQ
 
 <details>
-<summary><strong><code>uv: command not found</code></strong></summary>
+<summary><strong>Fresh machine troubleshooting: "not recognized" / "command not found"</strong></summary>
 
-Install `uv` via Astral's installer:
-- **Linux/macOS**: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- **Windows**: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`  
-Reopen your terminal after installation.
-</details>
-
-<details>
-<summary><strong><code>npx: command not found</code></strong></summary>
-
-Install Node.js 20.19+, 22.12+, or 23+ from [nodejs.org](https://nodejs.org/). `npm` and `npx` are bundled with Node.js.
+- **Installed it, but the terminal still says "not recognized":** the window still has the old PATH. Run the
+  PATH reload line from Quick Start step 3 (Windows), or open a new terminal.
+- **winget says "Found an existing package" but the command is still not recognized:** it is installed but not
+  on PATH. Find it, e.g. `Get-ChildItem "C:\Program Files\Git\cmd" -Filter git.exe`, and add that folder:
+  `[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";C:\Program Files\Git\cmd", "User")`,
+  then reload PATH. GitHub Desktop and VS Code ship their own git that PowerShell cannot see; install Git for
+  Windows anyway.
+- **`py` not recognized but `python` works** (or the reverse): use whichever works; every command in this repo
+  accepts either. If `python` opens the Microsoft Store, that is a stub: install Python with winget (step 1).
+- **uv or Node.js missing:** re-run `py scripts\bootstrap.py` (Linux: `python3 scripts/bootstrap.py`) and
+  answer yes, or install one directly with `python scripts/deps.py install uv` / `... install node`.
+- **MCP servers say no compatible Node.js:** `node scripts/mcp-npx.mjs --which` shows which Node they will use;
+  `none` means install Node 22+ (`python scripts/deps.py install node`).
 </details>
 
 <details>
 <summary><strong>Playwright cannot launch browser</strong></summary>
 
-Install the Chromium binary:
-```bash
-npx -y playwright@1.56.1 install chromium
-```
-On Linux, if system libraries are missing, Playwright will print the exact `apt-get` or distribution command required.
+Re-run the setup script; it installs the Chromium build for both the Node and the Python Playwright (each
+version needs its own). On Linux, if system libraries are missing, Playwright prints the exact `apt-get`
+command required.
 </details>
 
 <details>

@@ -5,7 +5,8 @@
     py scripts\\bootstrap.py                             # Windows
     ... --skip-browsers                                  # skip Playwright Chromium downloads
 
-Steps: check Python/uv/Node, create .venv, `uv sync --locked`, `npm ci`, register skills, validate MCP JSON,
+Steps: check git/uv/Node and install any that are missing (winget on Windows, the manifest's command on
+Linux/macOS; asks first unless --yes), create .venv, `uv sync --locked`, `npm ci`, register skills, validate MCP JSON,
 check dependency pins, install the Playwright browsers each playwright version needs, report API keys,
 then run `scripts/deps.py check` so you see anything optional that is still missing.
 Standard library only: it runs before the venv exists.
@@ -48,28 +49,67 @@ def run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run([exe, *command[1:]], cwd=ROOT, **kwargs)  # nosec B603
 
 
-def require(tool: str, hint: str) -> None:
-    path = shutil.which(tool)
-    if not path:
-        fail(f"{tool} is missing. {hint}")
-    ok(f"{tool}: {path}")
+def refresh_path() -> None:
+    """Pick up PATH changes an installer just made, without opening a new terminal."""
+    if WINDOWS:
+        import winreg
+
+        parts = []
+        for hive, key in ((winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+                          (winreg.HKEY_CURRENT_USER, "Environment")):
+            try:
+                with winreg.OpenKey(hive, key) as handle:
+                    parts.append(os.path.expandvars(winreg.QueryValueEx(handle, "Path")[0]))
+            except OSError:
+                continue
+        os.environ["PATH"] = os.pathsep.join([*parts, os.environ.get("PATH", "")])
+    else:
+        extra = [str(Path.home() / d) for d in (".local/bin", ".cargo/bin") if (Path.home() / d).is_dir()]
+        os.environ["PATH"] = os.pathsep.join([*extra, os.environ.get("PATH", "")])
+
+
+def ensure(tool: str, dep_id: str, assume_yes: bool, why: str) -> None:
+    """Use the tool if it is there; otherwise offer to install it with `deps.py install`, then re-check."""
+    if shutil.which(tool):
+        ok(f"{tool}: {shutil.which(tool)}")
+        return
+    print(f"MISS {tool} is not installed ({why}).", flush=True)
+    answer = "y" if assume_yes else input(f"     Install {dep_id} now? [Y/n] ").strip().lower()
+    if answer not in ("", "y", "yes"):
+        fail(f"{tool} is required. Install it with: python scripts/deps.py install {dep_id}")
+    run([sys.executable, "scripts/deps.py", "install", dep_id])
+    refresh_path()
+    if not shutil.which(tool):
+        fail(f"{tool} still not found after installing. Open a new terminal and run the bootstrap again "
+             "(see 'Fresh machine troubleshooting' in README.md).")
+    ok(f"{tool}: {shutil.which(tool)} (just installed)")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skip-browsers", "--skip-playwright-browser", action="store_true")
+    parser.add_argument("--yes", "-y", action="store_true", help="install missing tools without asking")
     args = parser.parse_args(argv)
 
     step("Checking required tools")
     if sys.version_info < (3, 12):
         fail(f"Python 3.12+ is required; this is {sys.version.split()[0]}")
     ok(f"Python {sys.version.split()[0]}")
-    require("uv", "Install: Linux `curl -LsSf https://astral.sh/uv/install.sh | sh`, Windows `winget install astral-sh.uv`.")
-    require("node", "Install Node.js 22 (Linux `fnm install 22`, Windows `winget install OpenJS.NodeJS.LTS`).")
-    require("npm", "npm ships with Node.js.")
+    refresh_path()
+    ensure("git", "git", args.yes, "repo sync and the cross-platform checks")
+    ensure("uv", "uv", args.yes, "installs the locked Python packages")
+    ensure("node", "node", args.yes, "runs the MCP servers and HTML-to-PPTX")
+    ensure("npm", "node", args.yes, "ships with Node.js")
     which = run(["node", "scripts/mcp-npx.mjs", "--which"], capture_output=True, text=True)
     if which.returncode != 0:
-        fail("No Node.js ^20.19, ^22.12 or >= 23 found for the MCP servers. Install Node 22.")
+        print("MISS Node.js is too old for the MCP servers (need ^20.19, ^22.12 or >= 23).", flush=True)
+        answer = "y" if args.yes else input("     Install Node.js LTS now? [Y/n] ").strip().lower()
+        if answer in ("", "y", "yes"):
+            run([sys.executable, "scripts/deps.py", "install", "node"])
+            refresh_path()
+            which = run(["node", "scripts/mcp-npx.mjs", "--which"], capture_output=True, text=True)
+    if which.returncode != 0:
+        fail("No Node.js ^20.19, ^22.12 or >= 23 found for the MCP servers: python scripts/deps.py install node")
     ok(f"MCP Node: {which.stdout.strip()}")
 
     step("Python environment")

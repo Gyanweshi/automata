@@ -34,7 +34,7 @@ min_version = "3.12"
 check = ["python3", "--version"]
 check_windows = ["python", "--version"]
 version_regex = 'Python (\d+\.\d+\.\d+)'
-install = { linux = "sudo apt-get install -y python3 python3-venv", windows = "winget install -e --id Python.Python.3.12", macos = "brew install python@3.12" }
+install = { linux = "sudo apt-get install -y python3 python3-venv", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id Python.Python.3.12", macos = "brew install python@3.12" }
 update = "Install the newer Python, delete .venv, re-run bootstrap. Keep requires-python in pyproject.toml in step."
 on_break = "Recreate the venv: delete .venv and run the bootstrap. On Windows, check the 'python' on PATH is not the Microsoft Store stub."
 
@@ -48,7 +48,7 @@ used_by = ["bootstrap", "blender MCP", "gimp MCP", "browser-act"]
 required = true
 check = ["uv", "--version"]
 version_regex = 'uv (\d+\.\d+\.\d+)'
-install = { linux = "curl -LsSf https://astral.sh/uv/install.sh | sh", windows = "winget install -e --id astral-sh.uv", macos = "brew install uv" }
+install = { linux = "curl -LsSf https://astral.sh/uv/install.sh | sh", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id astral-sh.uv", macos = "brew install uv" }
 update = "uv self update"
 on_break = "uv self update; if uv sync fails, run `uv lock --check` to see whether uv.lock is stale."
 upstream = "github-release:astral-sh/uv"
@@ -65,7 +65,7 @@ min_version = "22.12"
 check = ["node", "scripts/mcp-npx.mjs", "--which"]
 version_regex = 'v(\d+\.\d+\.\d+)'
 install_note = "Linux: or your distro's nodejs 22 package."
-install = { linux = "fnm install 22", windows = "winget install -e --id OpenJS.NodeJS.LTS", macos = "brew install node@22" }
+install = { linux = "fnm install 22", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id OpenJS.NodeJS.LTS", macos = "brew install node@22" }
 update = "Install a newer LTS (fnm install 24 / winget upgrade OpenJS.NodeJS.LTS). mcp-npx.mjs picks the newest compatible one automatically."
 on_break = "`node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH)."
 
@@ -79,7 +79,7 @@ used_by = ["everything"]
 required = true
 check = ["git", "--version"]
 version_regex = 'git version (\d+\.\d+\.\d+)'
-install = { linux = "sudo apt-get install -y git", windows = "winget install -e --id Git.Git", macos = "xcode-select --install" }
+install = { linux = "sudo apt-get install -y git", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id Git.Git", macos = "xcode-select --install" }
 update = "Package manager upgrade."
 on_break = "Line-ending trouble: .gitattributes pins *.sh/*.py to LF and *.cmd to CRLF; run `git add --renormalize .` once if a script shows CRLF."
 
@@ -333,7 +333,7 @@ used_by = ["render-upscale-crop skill", "video_generation_agent"]
 required = false
 check = ["ffmpeg", "-version"]
 version_regex = 'ffmpeg version n?(\d+\.\d+)'
-install = { linux = "sudo apt-get install -y ffmpeg", windows = "winget install -e --id Gyan.FFmpeg", macos = "brew install ffmpeg" }
+install = { linux = "sudo apt-get install -y ffmpeg", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id Gyan.FFmpeg", macos = "brew install ffmpeg" }
 update = "Package manager upgrade."
 on_break = "Not on PATH after a winget install: open a new terminal."
 
@@ -346,7 +346,7 @@ purpose = "PDF page rendering for slide checks and pdf2image."
 used_by = ["slides_agent", "pdf2image"]
 required = false
 check = ["pdftoppm", "-v"]
-install = { linux = "sudo apt-get install -y poppler-utils", windows = "winget install -e --id oschwartz10612.Poppler", macos = "brew install poppler" }
+install = { linux = "sudo apt-get install -y poppler-utils", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id oschwartz10612.Poppler", macos = "brew install poppler" }
 update = "Package manager upgrade."
 on_break = "pdf2image 'Unable to get page count' = pdftoppm not on PATH."
 
@@ -362,7 +362,7 @@ check = ["magick", "-version"]
 check_linux = ["convert", "-version"]
 version_regex = 'ImageMagick (\d+\.\d+\.\d+)'
 install_note = "Ubuntu/Mint ship ImageMagick 6 as `convert`; v7 adds `magick`."
-install = { linux = "sudo apt-get install -y imagemagick", windows = "winget install -e --id ImageMagick.ImageMagick", macos = "brew install imagemagick" }
+install = { linux = "sudo apt-get install -y imagemagick", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id ImageMagick.ImageMagick", macos = "brew install imagemagick" }
 update = "Package manager upgrade."
 on_break = "On Linux, ImageMagick 6 has no `magick` command; the tools fall back to `convert`."
 
@@ -375,7 +375,7 @@ purpose = "PPTX to PDF/thumbnail rendering in the slides agent."
 used_by = ["slides_agent", "higgsfield-brandkit render_brandbook_pdf"]
 required = false
 check = ["soffice", "--version"]
-install = { linux = "sudo apt-get install -y libreoffice", windows = "winget install -e --id TheDocumentFoundation.LibreOffice", macos = "brew install --cask libreoffice" }
+install = { linux = "sudo apt-get install -y libreoffice", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id TheDocumentFoundation.LibreOffice", macos = "brew install --cask libreoffice" }
 update = "Package manager upgrade."
 on_break = "Windows: add C:\\Program Files\\LibreOffice\\program to PATH."
 
@@ -400,7 +400,7 @@ purpose = "Mobile-only Instagram search through redroid/BlueStacks."
 used_by = ["scripts/bluestacks_instagram_search.py"]
 required = false
 check = ["adb", "version"]
-install = { linux = "sudo apt-get install -y adb", windows = "winget install -e --id Google.PlatformTools", macos = "brew install --cask android-platform-tools" }
+install = { linux = "sudo apt-get install -y adb", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id Google.PlatformTools", macos = "brew install --cask android-platform-tools" }
 update = "Package manager upgrade."
 on_break = "`adb devices` empty = emulator not running or not connected (adb connect HOST:PORT)."
 
@@ -412,7 +412,7 @@ category = "Apps"
 purpose = "Persistent logged-in Instagram profile for CDP research."
 used_by = ["scripts/open-instagram-session.py", "agency-research --scraper cdp"]
 required = false
-install = { linux = "manual: install google-chrome or chromium", windows = "winget install -e --id Google.Chrome", macos = "brew install --cask google-chrome" }
+install = { linux = "manual: install google-chrome or chromium", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id Google.Chrome", macos = "brew install --cask google-chrome" }
 update = "Updates itself."
 on_break = "CDP not reachable: run `python scripts/open-instagram-session.py` and keep that window open."
 
@@ -424,7 +424,7 @@ category = "Apps"
 purpose = "Host app for the GIMP MCP."
 used_by = ["gimp-mcp"]
 required = false
-install = { linux = "flatpak install flathub org.gimp.GIMP", windows = "winget install -e --id GIMP.GIMP.3", macos = "brew install --cask gimp" }
+install = { linux = "flatpak install flathub org.gimp.GIMP", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id GIMP.GIMP.3", macos = "brew install --cask gimp" }
 update = "App update; after a minor version change re-install the gimp-mcp plugin."
 on_break = "See gimp-mcp."
 
@@ -436,7 +436,7 @@ category = "Apps"
 purpose = "Host app for the Blender MCP."
 used_by = ["blender-mcp"]
 required = false
-install = { linux = "snap install blender --classic", windows = "winget install -e --id BlenderFoundation.Blender", macos = "brew install --cask blender" }
+install = { linux = "snap install blender --classic", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id BlenderFoundation.Blender", macos = "brew install --cask blender" }
 update = "App update; keep the BlenderMCP addon version matched to blender-mcp."
 on_break = "See blender-mcp."
 

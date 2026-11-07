@@ -172,23 +172,23 @@ Update one dependency per commit, so a break points at exactly one change.
 ### Install, update, and what to do when it breaks
 
 #### Python (`python`)
-- **Install:** linux: `sudo apt-get install -y python3 python3-venv`; windows: `winget install -e --id Python.Python.3.12`; macos: `brew install python@3.12`
+- **Install:** linux: `sudo apt-get install -y python3 python3-venv`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Python.Python.3.12`; macos: `brew install python@3.12`
 - **Update:** Install the newer Python, delete .venv, re-run bootstrap. Keep requires-python in pyproject.toml in step.
 - **If it breaks:** Recreate the venv: delete .venv and run the bootstrap. On Windows, check the 'python' on PATH is not the Microsoft Store stub.
 
 #### uv (`uv`)
-- **Install:** linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`; windows: `winget install -e --id astral-sh.uv`; macos: `brew install uv`
+- **Install:** linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id astral-sh.uv`; macos: `brew install uv`
 - **Update:** uv self update
 - **If it breaks:** uv self update; if uv sync fails, run `uv lock --check` to see whether uv.lock is stale.
 
 #### Node.js (for MCP servers) (`node`)
-- **Install:** linux: `fnm install 22`; windows: `winget install -e --id OpenJS.NodeJS.LTS`; macos: `brew install node@22`
+- **Install:** linux: `fnm install 22`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id OpenJS.NodeJS.LTS`; macos: `brew install node@22`
   Linux: or your distro's nodejs 22 package.
 - **Update:** Install a newer LTS (fnm install 24 / winget upgrade OpenJS.NodeJS.LTS). mcp-npx.mjs picks the newest compatible one automatically.
 - **If it breaks:** `node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH).
 
 #### Git (`git`)
-- **Install:** linux: `sudo apt-get install -y git`; windows: `winget install -e --id Git.Git`; macos: `xcode-select --install`
+- **Install:** linux: `sudo apt-get install -y git`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Git.Git`; macos: `xcode-select --install`
 - **Update:** Package manager upgrade.
 - **If it breaks:** Line-ending trouble: .gitattributes pins *.sh/*.py to LF and *.cmd to CRLF; run `git add --renormalize .` once if a script shows CRLF.
 
@@ -267,23 +267,23 @@ Update one dependency per commit, so a break points at exactly one change.
 - **If it breaks:** uv tool install --force browser-act-cli=={version}
 
 #### ffmpeg / ffprobe (`ffmpeg`)
-- **Install:** linux: `sudo apt-get install -y ffmpeg`; windows: `winget install -e --id Gyan.FFmpeg`; macos: `brew install ffmpeg`
+- **Install:** linux: `sudo apt-get install -y ffmpeg`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Gyan.FFmpeg`; macos: `brew install ffmpeg`
 - **Update:** Package manager upgrade.
 - **If it breaks:** Not on PATH after a winget install: open a new terminal.
 
 #### Poppler (pdftoppm) (`poppler`)
-- **Install:** linux: `sudo apt-get install -y poppler-utils`; windows: `winget install -e --id oschwartz10612.Poppler`; macos: `brew install poppler`
+- **Install:** linux: `sudo apt-get install -y poppler-utils`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id oschwartz10612.Poppler`; macos: `brew install poppler`
 - **Update:** Package manager upgrade.
 - **If it breaks:** pdf2image 'Unable to get page count' = pdftoppm not on PATH.
 
 #### ImageMagick (magick) (`imagemagick`)
-- **Install:** linux: `sudo apt-get install -y imagemagick`; windows: `winget install -e --id ImageMagick.ImageMagick`; macos: `brew install imagemagick`
+- **Install:** linux: `sudo apt-get install -y imagemagick`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id ImageMagick.ImageMagick`; macos: `brew install imagemagick`
   Ubuntu/Mint ship ImageMagick 6 as `convert`; v7 adds `magick`.
 - **Update:** Package manager upgrade.
 - **If it breaks:** On Linux, ImageMagick 6 has no `magick` command; the tools fall back to `convert`.
 
 #### LibreOffice (soffice) (`libreoffice`)
-- **Install:** linux: `sudo apt-get install -y libreoffice`; windows: `winget install -e --id TheDocumentFoundation.LibreOffice`; macos: `brew install --cask libreoffice`
+- **Install:** linux: `sudo apt-get install -y libreoffice`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id TheDocumentFoundation.LibreOffice`; macos: `brew install --cask libreoffice`
 - **Update:** Package manager upgrade.
 - **If it breaks:** Windows: add C:\Program Files\LibreOffice\program to PATH.
 
@@ -293,22 +293,22 @@ Update one dependency per commit, so a break points at exactly one change.
 - **If it breaks:** 'cannot load library libgobject' / 'no library called cairo' = the native runtime is missing or not on PATH.
 
 #### Android platform-tools (adb) (`adb`)
-- **Install:** linux: `sudo apt-get install -y adb`; windows: `winget install -e --id Google.PlatformTools`; macos: `brew install --cask android-platform-tools`
+- **Install:** linux: `sudo apt-get install -y adb`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Google.PlatformTools`; macos: `brew install --cask android-platform-tools`
 - **Update:** Package manager upgrade.
 - **If it breaks:** `adb devices` empty = emulator not running or not connected (adb connect HOST:PORT).
 
 #### Google Chrome or Microsoft Edge (`chrome`)
-- **Install:** linux: `manual: install google-chrome or chromium`; windows: `winget install -e --id Google.Chrome`; macos: `brew install --cask google-chrome`
+- **Install:** linux: `manual: install google-chrome or chromium`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Google.Chrome`; macos: `brew install --cask google-chrome`
 - **Update:** Updates itself.
 - **If it breaks:** CDP not reachable: run `python scripts/open-instagram-session.py` and keep that window open.
 
 #### GIMP 3.2 (`gimp`)
-- **Install:** linux: `flatpak install flathub org.gimp.GIMP`; windows: `winget install -e --id GIMP.GIMP.3`; macos: `brew install --cask gimp`
+- **Install:** linux: `flatpak install flathub org.gimp.GIMP`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id GIMP.GIMP.3`; macos: `brew install --cask gimp`
 - **Update:** App update; after a minor version change re-install the gimp-mcp plugin.
 - **If it breaks:** See gimp-mcp.
 
 #### Blender (`blender`)
-- **Install:** linux: `snap install blender --classic`; windows: `winget install -e --id BlenderFoundation.Blender`; macos: `brew install --cask blender`
+- **Install:** linux: `snap install blender --classic`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id BlenderFoundation.Blender`; macos: `brew install --cask blender`
 - **Update:** App update; keep the BlenderMCP addon version matched to blender-mcp.
 - **If it breaks:** See blender-mcp.
 
