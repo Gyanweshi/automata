@@ -27,7 +27,7 @@ Use deterministic local pixel operations to integrate an existing edit or repair
 
 ## GIMP MCP
 
-1. Preflight: call a cheap GIMP tool (e.g. list images). If it can't connect, ask the user to open GIMP and run **Tools > MCP > Start MCP Server**. Don't silently fall back to Python for an edit that was meant for GIMP. If the plugin is missing, run `scripts/install-gimp-mcp.ps1`.
+1. Preflight: call a cheap GIMP tool (e.g. list images). If it can't connect, ask the user to open GIMP and run **Tools > MCP > Start MCP Server**. Don't silently fall back to Python for an edit that was meant for GIMP. If the plugin is missing, run `python scripts/install-gimp-mcp.py` (any OS).
 2. Copy the source into `workspace/<project>/` and open the copy, never the original.
 3. Do non-destructive work: a new layer per edit, masks rather than erasing, adjustments on duplicates.
 4. Call `get_state_snapshot` after every edit step. Use `region` to zoom in on faces, text, edges and seams before moving on.

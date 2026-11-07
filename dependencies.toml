@@ -1,0 +1,483 @@
+# Every external dependency of this repo, in one place.
+#
+# scripts/deps.py reads this file:   python scripts/deps.py list | check | install ID | outdated | set-pin ID VERSION
+# docs/DEPENDENCIES.md is generated from it (python scripts/deps.py docs); CI fails if the two drift.
+#
+# Fields
+#   id, name, kind, category, purpose, used_by   what it is and who needs it
+#   required    true = bootstrap and core agents fail without it; false = only the listed features need it
+#   pin         the exact version this repo expects (empty = not pinned; min_version for a floor)
+#   pin_files   files that must all contain the pin, as {file, pattern} with {version} in the pattern;
+#               `deps.py check` verifies they agree, `deps.py set-pin` rewrites all of them at once
+#   check       command that proves it is installed (first word is looked up on PATH)
+#   version_regex  pulls the version out of the check command's output, to compare with pin / min_version
+#   install     per-OS install command ({linux, windows, macos} or all); text starting "manual:" is printed, not run
+#   install_note  extra context shown in docs (never part of the command)
+#   update      how to move to a newer version
+#   on_break    first things to try when it stops working
+#   upstream    where `deps.py outdated` looks for the newest version: npm:PKG | pypi:PKG | github-release:OWNER/REPO | github-commit:OWNER/REPO
+#
+# Kinds: runtime, python-lock, node-lock, mcp-npm, mcp-uvx, mcp-remote, github-release, uv-tool, system, app,
+#        browser, external-skills, ci-action
+
+# ---------------------------------------------------------------- runtimes
+
+[[dependency]]
+id = "python"
+name = "Python"
+kind = "runtime"
+category = "Runtimes"
+purpose = "Runs every agent package, script and test."
+used_by = ["everything"]
+required = true
+min_version = "3.12"
+check = ["python3", "--version"]
+check_windows = ["python", "--version"]
+version_regex = 'Python (\d+\.\d+\.\d+)'
+install = { linux = "sudo apt-get install -y python3 python3-venv", windows = "winget install -e --id Python.Python.3.12", macos = "brew install python@3.12" }
+update = "Install the newer Python, delete .venv, re-run bootstrap. Keep requires-python in pyproject.toml in step."
+on_break = "Recreate the venv: delete .venv and run the bootstrap. On Windows, check the 'python' on PATH is not the Microsoft Store stub."
+
+[[dependency]]
+id = "uv"
+name = "uv"
+kind = "runtime"
+category = "Runtimes"
+purpose = "Installs the locked Python environment (uv sync) and runs uvx MCP servers and uv tools."
+used_by = ["bootstrap", "blender MCP", "gimp MCP", "browser-act"]
+required = true
+check = ["uv", "--version"]
+version_regex = 'uv (\d+\.\d+\.\d+)'
+install = { linux = "curl -LsSf https://astral.sh/uv/install.sh | sh", windows = "winget install -e --id astral-sh.uv", macos = "brew install uv" }
+update = "uv self update"
+on_break = "uv self update; if uv sync fails, run `uv lock --check` to see whether uv.lock is stale."
+upstream = "github-release:astral-sh/uv"
+
+[[dependency]]
+id = "node"
+name = "Node.js (for MCP servers)"
+kind = "runtime"
+category = "Runtimes"
+purpose = "Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper."
+used_by = ["research MCPs", "tools/pdf_utils/html_to_pptx.js", "agents/automata_core/ig-research"]
+required = true
+min_version = "22.12"
+check = ["node", "scripts/mcp-npx.mjs", "--which"]
+version_regex = 'v(\d+\.\d+\.\d+)'
+install_note = "Linux: or your distro's nodejs 22 package."
+install = { linux = "fnm install 22", windows = "winget install -e --id OpenJS.NodeJS.LTS", macos = "brew install node@22" }
+update = "Install a newer LTS (fnm install 24 / winget upgrade OpenJS.NodeJS.LTS). mcp-npx.mjs picks the newest compatible one automatically."
+on_break = "`node scripts/mcp-npx.mjs --which` shows which Node the MCP servers will use. 'none' = install Node 22+. An older default Node is fine as long as a newer one exists (fnm, nvm, PATH)."
+
+[[dependency]]
+id = "git"
+name = "Git"
+kind = "runtime"
+category = "Runtimes"
+purpose = "Repo sync between the two machines; the cross-platform checker lists files with it."
+used_by = ["everything"]
+required = true
+check = ["git", "--version"]
+version_regex = 'git version (\d+\.\d+\.\d+)'
+install = { linux = "sudo apt-get install -y git", windows = "winget install -e --id Git.Git", macos = "xcode-select --install" }
+update = "Package manager upgrade."
+on_break = "Line-ending trouble: .gitattributes pins *.sh/*.py to LF and *.cmd to CRLF; run `git add --renormalize .` once if a script shows CRLF."
+
+# ---------------------------------------------------------------- python and node libraries
+
+[[dependency]]
+id = "python-packages"
+name = "Python packages (root project)"
+kind = "python-lock"
+category = "Libraries"
+purpose = "All Python libraries for the four agency packages and the root tooling, locked exactly in uv.lock."
+used_by = ["packages/*", "scripts/*", "tests"]
+required = true
+pin_files = [{ file = "uv.lock" }]
+check = ["uv", "lock", "--check"]
+install = { all = "uv sync --locked" }
+update = "One package: `uv lock --upgrade-package NAME` then `uv sync`. Everything: `uv lock --upgrade`. Run tests, commit uv.lock. Ranges live in pyproject.toml files; requirements.txt mirrors the root pyproject for CI and must be edited with it."
+on_break = "`uv sync --locked` reinstalls exactly what uv.lock says. If a just-upgraded package broke something, `git checkout HEAD~1 -- uv.lock && uv sync --locked` rolls it back."
+
+[[dependency]]
+id = "openswarm-python"
+name = "Python packages (OpenSwarm sub-project)"
+kind = "python-lock"
+category = "Libraries"
+purpose = "Agency Swarm and the OpenSwarm agents' libraries (slides, video, docs, data agents)."
+used_by = ["agents/openedswarm_core"]
+required = false
+pin_files = [{ file = "agents/openedswarm_core/uv.lock" }]
+check = ["uv", "lock", "--check", "--directory", "agents/openedswarm_core"]
+install = { all = "uv sync --locked --directory agents/openedswarm_core" }
+update = "uv lock --upgrade-package NAME --directory agents/openedswarm_core"
+on_break = "Same as the root lock: re-sync, or roll back agents/openedswarm_core/uv.lock from git."
+
+[[dependency]]
+id = "node-packages"
+name = "Node packages (root)"
+kind = "node-lock"
+category = "Libraries"
+purpose = "playwright (HTML-to-PPTX screenshots), pptxgenjs, animate.css."
+used_by = ["tools/pdf_utils/html_to_pptx.js", "slides"]
+required = false
+pin_files = [{ file = "package-lock.json" }]
+install = { all = "npm ci" }
+update = "npm install PKG@VERSION (updates package-lock.json), run the tool once, commit both files. After a playwright bump also run `npx playwright install chromium`."
+on_break = "npm ci restores node_modules exactly from package-lock.json."
+
+[[dependency]]
+id = "ig-research-packages"
+name = "Node packages (ig-research scraper)"
+kind = "node-lock"
+category = "Libraries"
+purpose = "puppeteer-core for the CDP Instagram scraper."
+used_by = ["agency-research --scraper cdp"]
+required = false
+pin_files = [{ file = "agents/automata_core/ig-research/package-lock.json" }]
+install = { all = "npm ci --prefix agents/automata_core/ig-research" }
+update = "npm install puppeteer-core@VERSION --prefix agents/automata_core/ig-research"
+on_break = "npm ci --prefix agents/automata_core/ig-research"
+
+[[dependency]]
+id = "playwright-browsers"
+name = "Playwright Chromium builds"
+kind = "browser"
+category = "Libraries"
+purpose = "Headless Chromium for the Node playwright (1.61) and the Python playwright (1.59); each version needs its own browser build."
+used_by = ["html_to_pptx.js", "agency-research --scraper playwright", "html-preview skill"]
+required = false
+install = { all = "npx playwright install chromium && .venv python -m playwright install chromium" }
+update = "Runs automatically in bootstrap; re-run after bumping either playwright package."
+on_break = "'Executable doesn't exist at ...ms-playwright...' means the browser for that playwright version is missing: re-run the bootstrap (or the two install commands)."
+
+# ---------------------------------------------------------------- MCP servers
+
+[[dependency]]
+id = "playwright-mcp"
+name = "@playwright/mcp"
+kind = "mcp-npm"
+category = "MCP servers"
+purpose = "Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile."
+used_by = ["research agent"]
+required = false
+pin = "0.0.73"
+pin_files = [
+  { file = ".mcp.json", pattern = "@playwright/mcp@{version}" },
+  { file = "mcp/agents/research.json", pattern = "@playwright/mcp@{version}" },
+]
+update = "python scripts/deps.py set-pin playwright-mcp NEW, restart the MCP client, run one browse."
+on_break = "Run `node scripts/mcp-npx.mjs -y @playwright/mcp@PIN --help`. If the profile is locked, close the Chrome window opened by scripts/open-instagram-session.py."
+upstream = "npm:@playwright/mcp"
+
+[[dependency]]
+id = "chrome-devtools-mcp"
+name = "chrome-devtools-mcp"
+kind = "mcp-npm"
+category = "MCP servers"
+purpose = "Console, network and screenshot inspection for research."
+used_by = ["research agent"]
+required = false
+pin = "0.23.0"
+pin_files = [{ file = "mcp/agents/research.json", pattern = "chrome-devtools-mcp@{version}" }]
+update = "python scripts/deps.py set-pin chrome-devtools-mcp NEW"
+on_break = "Needs Node ^20.19/^22.12/>=23: check `node scripts/mcp-npx.mjs --which`."
+upstream = "npm:chrome-devtools-mcp"
+
+[[dependency]]
+id = "notebooklm-mcp"
+name = "@roomi-fields/notebooklm-mcp"
+kind = "mcp-npm"
+category = "MCP servers"
+purpose = "Grounded Q&A against NotebookLM sources."
+used_by = ["research agent"]
+required = false
+pin = "1.5.9"
+pin_files = [{ file = "mcp/agents/research.json", pattern = "@roomi-fields/notebooklm-mcp@{version}" }]
+update = "python scripts/deps.py set-pin notebooklm-mcp NEW"
+on_break = "Usually an expired Google session: log in again through the MCP's auth flow."
+upstream = "npm:@roomi-fields/notebooklm-mcp"
+
+[[dependency]]
+id = "apify-mcp"
+name = "@apify/actors-mcp-server"
+kind = "mcp-npm"
+category = "MCP servers"
+purpose = "Apify actors (Instagram, LinkedIn extraction)."
+used_by = ["research agent"]
+required = false
+pin = "0.9.20"
+pin_files = [{ file = "mcp/agents/research.json", pattern = "@apify/actors-mcp-server@{version}" }]
+update = "python scripts/deps.py set-pin apify-mcp NEW"
+on_break = "Check APIFY_API_TOKEN is set and the account has credit."
+upstream = "npm:@apify/actors-mcp-server"
+
+[[dependency]]
+id = "blender-mcp"
+name = "blender-mcp"
+kind = "mcp-uvx"
+category = "MCP servers"
+purpose = "Drive Blender from the storyboard agent (asset prep, Blender-only shots)."
+used_by = ["storyboard agent"]
+required = false
+pin = "2.0.0"
+pin_files = [
+  { file = ".mcp.json", pattern = "blender-mcp@{version}" },
+  { file = "mcp/agents/storyboard.json", pattern = "blender-mcp@{version}" },
+]
+update = "python scripts/deps.py set-pin blender-mcp NEW, then install the matching addon.py from the blender-mcp repo into Blender."
+on_break = "Blender must be open with the BlenderMCP addon connected (N panel > BlenderMCP > Connect). Server and addon versions must match."
+upstream = "pypi:blender-mcp"
+
+[[dependency]]
+id = "gimp-mcp"
+name = "gimp-mcp (server + GIMP plugin)"
+kind = "mcp-uvx"
+category = "MCP servers"
+purpose = "Local non-generative image editing through GIMP 3.2."
+used_by = ["image-compositing-repair skill", "storyboard agent"]
+required = false
+pin = "7325865385541a01aaf336ebc93b00332297f77f"
+pin_files = [
+  { file = ".mcp.json", pattern = "gimp-mcp@{version}" },
+  { file = "mcp/agents/storyboard.json", pattern = "gimp-mcp@{version}" },
+]
+install_note = "Reads this pin and detects GIMP 3.x, including Flatpak."
+install = { all = "python scripts/install-gimp-mcp.py" }
+update = "python scripts/deps.py set-pin gimp-mcp NEWCOMMIT, re-install the plugin, restart GIMP. Server and plugin must be the same commit."
+on_break = "GIMP running? Tools > MCP > Start MCP Server (localhost:9877). After a GIMP minor upgrade the plug-ins folder moves: re-install the plugin."
+upstream = "github-commit:gimp-mcp/gimp-mcp"
+
+[[dependency]]
+id = "higgsfield-mcp"
+name = "Higgsfield MCP (remote)"
+kind = "mcp-remote"
+category = "MCP servers"
+purpose = "Image and video generation."
+used_by = ["storyboard agent", "higgsfield-* skills"]
+required = false
+pin_files = [{ file = ".mcp.json", pattern = "https://mcp.higgsfield.ai/mcp" }]
+update = "Hosted by Higgsfield; nothing to update locally."
+on_break = "Re-authenticate with /mcp in Claude Code. Check credits (balance tool)."
+
+[[dependency]]
+id = "magnific-mcp"
+name = "Magnific MCP (remote)"
+kind = "mcp-remote"
+category = "MCP servers"
+purpose = "Upscaling, restyling, generation history."
+used_by = ["storyboard agent"]
+required = false
+pin_files = [{ file = ".mcp.json", pattern = "https://mcp.magnific.com" }]
+update = "Hosted by Magnific; nothing to update locally."
+on_break = "Re-authenticate with /mcp. Never fall back to Zen/Selenium automation for Magnific."
+
+[[dependency]]
+id = "figma-mcp"
+name = "Figma desktop MCP"
+kind = "mcp-remote"
+category = "MCP servers"
+purpose = "Read/write Figma frames for editable final assets."
+used_by = ["storyboard final-asset workflow"]
+required = false
+pin_files = [{ file = ".mcp.json", pattern = "http://127.0.0.1:3845/mcp" }]
+install = { all = "manual: install Figma desktop and enable its Dev Mode MCP server" }
+update = "Updates with the Figma desktop app."
+on_break = "ECONNREFUSED = Figma desktop is not running or its MCP server is off."
+
+# ---------------------------------------------------------------- tools downloaded or installed per user
+
+[[dependency]]
+id = "raea"
+name = "raea (Render Anything Engine)"
+kind = "github-release"
+category = "Tools"
+purpose = "Local GPU renderer for 3D previz (greybox keyframes and camera-move clips)."
+used_by = ["skills/previz-3d"]
+required = false
+pin = "0.1.0-canary.2"
+check = ["raea", "help"]
+upstream = "github-release:shinyobjectz/raea"
+update = "`python scripts/deps.py outdated` shows the newest engine release; `python scripts/deps.py set-pin raea NEW`, `python scripts/deps.py install raea`, then re-render skills/previz-3d/templates/greybox-shot.tsx and run `raea scene lint` on it."
+on_break = "Canary software. Roll back: `python scripts/deps.py set-pin raea OLD && python scripts/deps.py install raea`. Upstream's own installer can pick a web-* release and 404; use deps.py instead."
+
+[releases.raea]
+repo = "shinyobjectz/raea"
+binary = "raea"
+skills_dir = "share/raea/skills"
+assets = { linux-x86_64 = "raea-{version}-linux-x86_64.tar.gz", windows-x86_64 = "raea-{version}-windows-x86_64.zip", macos-arm64 = "raea-{version}-macos-arm64.tar.gz" }
+
+[[dependency]]
+id = "browser-act"
+name = "browser-act CLI"
+kind = "uv-tool"
+category = "Tools"
+purpose = "Stealth browser extraction for research (--scraper browser-act)."
+used_by = ["agency-research", "browser-act skill"]
+required = false
+pin = "0.1.23"
+check = ["browser-act", "--version"]
+version_regex = '(\d+\.\d+\.\d+)'
+install = { all = "uv tool install browser-act-cli=={version}" }
+update = "python scripts/deps.py set-pin browser-act NEW && python scripts/deps.py install browser-act"
+on_break = "uv tool install --force browser-act-cli=={version}"
+upstream = "pypi:browser-act-cli"
+
+[[dependency]]
+id = "ffmpeg"
+name = "ffmpeg / ffprobe"
+kind = "system"
+category = "System tools"
+purpose = "Upscale and crop-to-motion b-roll, video agent edits, raea media."
+used_by = ["render-upscale-crop skill", "video_generation_agent"]
+required = false
+check = ["ffmpeg", "-version"]
+version_regex = 'ffmpeg version n?(\d+\.\d+)'
+install = { linux = "sudo apt-get install -y ffmpeg", windows = "winget install -e --id Gyan.FFmpeg", macos = "brew install ffmpeg" }
+update = "Package manager upgrade."
+on_break = "Not on PATH after a winget install: open a new terminal."
+
+[[dependency]]
+id = "poppler"
+name = "Poppler (pdftoppm)"
+kind = "system"
+category = "System tools"
+purpose = "PDF page rendering for slide checks and pdf2image."
+used_by = ["slides_agent", "pdf2image"]
+required = false
+check = ["pdftoppm", "-v"]
+install = { linux = "sudo apt-get install -y poppler-utils", windows = "winget install -e --id oschwartz10612.Poppler", macos = "brew install poppler" }
+update = "Package manager upgrade."
+on_break = "pdf2image 'Unable to get page count' = pdftoppm not on PATH."
+
+[[dependency]]
+id = "imagemagick"
+name = "ImageMagick (magick)"
+kind = "system"
+category = "System tools"
+purpose = "Raster conversion for slides and the Higgsfield brand kit."
+used_by = ["slides_agent EnsureRasterImage", "higgsfield-brandkit skill"]
+required = false
+check = ["magick", "-version"]
+check_linux = ["convert", "-version"]
+version_regex = 'ImageMagick (\d+\.\d+\.\d+)'
+install_note = "Ubuntu/Mint ship ImageMagick 6 as `convert`; v7 adds `magick`."
+install = { linux = "sudo apt-get install -y imagemagick", windows = "winget install -e --id ImageMagick.ImageMagick", macos = "brew install imagemagick" }
+update = "Package manager upgrade."
+on_break = "On Linux, ImageMagick 6 has no `magick` command; the tools fall back to `convert`."
+
+[[dependency]]
+id = "libreoffice"
+name = "LibreOffice (soffice)"
+kind = "app"
+category = "System tools"
+purpose = "PPTX to PDF/thumbnail rendering in the slides agent."
+used_by = ["slides_agent", "higgsfield-brandkit render_brandbook_pdf"]
+required = false
+check = ["soffice", "--version"]
+install = { linux = "sudo apt-get install -y libreoffice", windows = "winget install -e --id TheDocumentFoundation.LibreOffice", macos = "brew install --cask libreoffice" }
+update = "Package manager upgrade."
+on_break = "Windows: add C:\\Program Files\\LibreOffice\\program to PATH."
+
+[[dependency]]
+id = "cairo-pango"
+name = "Cairo / Pango libraries"
+kind = "system"
+category = "System tools"
+purpose = "Native libraries behind weasyprint and cairosvg (PDF and SVG rendering)."
+used_by = ["weasyprint", "cairosvg"]
+required = false
+install = { linux = "sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2", windows = "manual: install the GTK3 runtime (MSYS2: pacman -S mingw-w64-x86_64-pango) and add its bin to PATH", macos = "brew install pango cairo" }
+update = "Package manager upgrade."
+on_break = "'cannot load library libgobject' / 'no library called cairo' = the native runtime is missing or not on PATH."
+
+[[dependency]]
+id = "adb"
+name = "Android platform-tools (adb)"
+kind = "system"
+category = "System tools"
+purpose = "Mobile-only Instagram search through redroid/BlueStacks."
+used_by = ["scripts/bluestacks_instagram_search.py"]
+required = false
+check = ["adb", "version"]
+install = { linux = "sudo apt-get install -y adb", windows = "winget install -e --id Google.PlatformTools", macos = "brew install --cask android-platform-tools" }
+update = "Package manager upgrade."
+on_break = "`adb devices` empty = emulator not running or not connected (adb connect HOST:PORT)."
+
+[[dependency]]
+id = "chrome"
+name = "Google Chrome or Microsoft Edge"
+kind = "app"
+category = "Apps"
+purpose = "Persistent logged-in Instagram profile for CDP research."
+used_by = ["scripts/open-instagram-session.py", "agency-research --scraper cdp"]
+required = false
+install = { linux = "manual: install google-chrome or chromium", windows = "winget install -e --id Google.Chrome", macos = "brew install --cask google-chrome" }
+update = "Updates itself."
+on_break = "CDP not reachable: run `python scripts/open-instagram-session.py` and keep that window open."
+
+[[dependency]]
+id = "gimp"
+name = "GIMP 3.2"
+kind = "app"
+category = "Apps"
+purpose = "Host app for the GIMP MCP."
+used_by = ["gimp-mcp"]
+required = false
+install = { linux = "flatpak install flathub org.gimp.GIMP", windows = "winget install -e --id GIMP.GIMP.3", macos = "brew install --cask gimp" }
+update = "App update; after a minor version change re-install the gimp-mcp plugin."
+on_break = "See gimp-mcp."
+
+[[dependency]]
+id = "blender"
+name = "Blender"
+kind = "app"
+category = "Apps"
+purpose = "Host app for the Blender MCP."
+used_by = ["blender-mcp"]
+required = false
+install = { linux = "snap install blender --classic", windows = "winget install -e --id BlenderFoundation.Blender", macos = "brew install --cask blender" }
+update = "App update; keep the BlenderMCP addon version matched to blender-mcp."
+on_break = "See blender-mcp."
+
+[[dependency]]
+id = "obsidian-vault"
+name = "Obsidian vault (Brainiac2)"
+kind = "app"
+category = "Apps"
+purpose = "Brand notes, drafts and research; source for the vault search index."
+used_by = ["all brand work", "vault index", "housekeeper"]
+required = true
+install = { all = "manual: set OBSIDIAN_VAULT_PATH in .env (Linux: the vault drive's fstab mount point; Windows: D:\\Brainiac2)" }
+update = "Synced between machines outside git."
+on_break = "Linux I/O errors on the NTFS drive: run chkdsk on Windows. Index stale: make vault-index."
+
+# ---------------------------------------------------------------- skills and CI
+
+[[dependency]]
+id = "external-skills"
+name = "Third-party agent skills"
+kind = "external-skills"
+category = "Skills and CI"
+purpose = "browser-act, superdesign and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json."
+used_by = [".agents/skills"]
+required = false
+pin_files = [{ file = "skills-lock.json" }]
+update = "Re-install through the `skills` CLI that wrote skills-lock.json (`npx skills --help`), review the diff, commit."
+on_break = "Restore a skill folder from git; skills-lock.json holds the hash of the version that worked."
+
+[[dependency]]
+id = "github-actions"
+name = "GitHub Actions"
+kind = "ci-action"
+category = "Skills and CI"
+purpose = "actions/checkout, setup-python and setup-node in the Security and Cross-platform workflows."
+used_by = [".github/workflows"]
+required = false
+pin_files = [
+  { file = ".github/workflows/security.yml", pattern = "actions/checkout@v4" },
+  { file = ".github/workflows/cross-platform.yml", pattern = "actions/checkout@v4" },
+]
+install_note = "cross-platform.yml also uses actions/setup-node@v4."
+update = "Bump the @vN tag in both workflow files together."
+on_break = "Read the failing job log on GitHub; the Cross-platform job names the OS that broke."

@@ -1,0 +1,6 @@
+# Keep scripts runnable on both machines regardless of core.autocrlf.
+*.sh   text eol=lf
+*.bash text eol=lf
+*.py   text eol=lf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf

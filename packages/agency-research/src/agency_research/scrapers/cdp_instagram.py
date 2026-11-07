@@ -10,7 +10,7 @@ inside the agency pipeline and its output feeds directly into PostData /
 CompetitorAnalysis objects — the same interface as every other scraper.
 
 The Node tool requires Chrome running with --remote-debugging-port=9222
-(see agents/automata_core/scripts/open-instagram-session.ps1 -Mode cdp).
+(see scripts/open-instagram-session.py).
 If Chrome is not reachable, this scraper logs a warning and returns empty
 results rather than crashing the whole research run.
 """

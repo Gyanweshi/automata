@@ -98,6 +98,24 @@ ideation and concept selection, then storyboard and content. A blocked research
 readiness result stops dependent execution; do not hide missing or stale inputs in a
 storyboard.
 
+## Cross-Platform Rule (Linux + Windows)
+
+The same repo is used on a Linux machine and a Windows machine. Anything built on one must run on the other
+without a rebuild there.
+
+- Write new scripts and tools once, in Python (or Node where the tool is already Node). Handle OS
+  differences inside them with `pathlib`, `sys.platform`/`platform.system()`, and `Path.home()`. Do not
+  write a new `.sh` + `.ps1` pair; a launcher, if one is needed at all, only calls the Python.
+- No machine paths in tracked code or config: no `/home/<user>`, `/mnt/<disk>`, `C:\Users\<name>`. Use
+  `Path.home()`, the repo root, `workspace/`, or an env var (`OBSIDIAN_VAULT_PATH`).
+- Third-party tools: install them through one Python script that picks the right build per OS
+  (pattern: `scripts/deps.py` + `dependencies.toml`), with pure logic covered by tests that run on both OSes.
+- Before calling work done, run `make check-cross-platform` (`python scripts/check-cross-platform.py`).
+  It fails on new one-OS scripts, machine paths, and CRLF shell scripts; existing debt is listed in
+  `scripts/cross-platform-baseline.txt`, so remove lines there as you migrate old scripts.
+- The `Cross-platform` GitHub workflow runs the checks and tests on Ubuntu and Windows on every push.
+  If you can only verify on one OS locally, say which, and point at that workflow for the other.
+
 ## Environment Rules
 
 - Use `.venv` for Python package installs and CLI execution.
@@ -122,48 +140,43 @@ storyboard.
 .venv\Scripts\agency-vault-search.exe "ethanol petrol motor insurance claims"   # Windows
 ```
 
-It prints the best-matching note sections with `[[Note#Heading]]` citations; cite those, then open the note if you need more than the excerpt. The index (`chroma_db/`, collection `second_brain_v2`) is per machine and rebuilt nightly, so notes edited today may not appear until tomorrow — run `make vault-index` (or `scripts\run-vault-index.ps1`) first if freshness matters. After changing chunking, the embedder, or search code, run `make rag-eval` and compare against the last score; add a question to `Operations/RAG_Eval/rag-eval-questions.yaml` in the vault whenever search misses a note it should have found.
+It prints the best-matching note sections with `[[Note#Heading]]` citations; cite those, then open the note if you need more than the excerpt. The index (`chroma_db/`, collection `second_brain_v2`) is per machine and rebuilt nightly, so notes edited today may not appear until tomorrow — run `make vault-index` (or `python scripts/schedule.py run vault-index`) first if freshness matters. After changing chunking, the embedder, or search code, run `make rag-eval` and compare against the last score; add a question to `Operations/RAG_Eval/rag-eval-questions.yaml` in the vault whenever search misses a note it should have found.
 
 **Note for Claude Code sessions:** a third layer exists — memory files at `~/.claude/projects/.../memory/` — which are loaded automatically and contain always-on rules and preferences. Codex does not have this layer; `AGENTS.md` serves the same purpose.
 
 ## OS Commands
 
-Linux/macOS/WSL:
+The same commands work on both machines; only the Python launcher differs (`python3` on Linux/macOS,
+`python` or `py` on Windows). Make targets are shortcuts for the Linux side.
 
 ```bash
-bash scripts/bootstrap.sh
-make status
-make dry-run BRAND=example-brand
-make research BRAND=example-brand
-make research BRAND=example-brand PARALLEL=1 MAX_WORKERS=4
-make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig PARALLEL=1 MAX_WORKERS=4
-make storyboard BRAND=example-brand TYPE=carousel TOPIC="5 tips"
-make content BRAND=example-brand TYPE=carousel TOPIC="5 tips"
-make pipeline BRAND=example-brand TYPE=carousel TOPIC="5 tips"
+python3 scripts/bootstrap.py                          # set up or repair this machine
+python3 scripts/deps.py check                         # every external dependency (dependencies.toml)
+python3 scripts/run-agent.py status
+python3 scripts/run-agent.py dry-run --brand example-brand
+python3 scripts/run-agent.py research --brand example-brand [--parallel --max-workers 4] [--scraper browser-act --platforms ig]
+python3 scripts/run-agent.py storyboard --brand example-brand --type carousel --topic "5 tips"
+python3 scripts/run-agent.py content --brand example-brand --type carousel --topic "5 tips"
+python3 scripts/run-agent.py pipeline --brand example-brand --type carousel --topic "5 tips"
+python3 scripts/schedule.py run vault-index           # rebuild the vault search index now
+python3 scripts/schedule.py install vault-index       # nightly rebuild (systemd/cron on Linux, Task Scheduler on Windows)
+python3 scripts/schedule.py install housekeeper       # nightly quarantine purge
 ```
 
-Windows PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
-.\scripts\run-agent.ps1 status
-.\scripts\run-agent.ps1 dry-run -Brand example-brand
-.\scripts\run-agent.ps1 research -Brand example-brand
-.\scripts\run-agent.ps1 storyboard -Brand example-brand -Type carousel -Topic "5 tips"
-.\scripts\run-agent.ps1 content -Brand example-brand -Type carousel -Topic "5 tips"
-.\scripts\run-agent.ps1 pipeline -Brand example-brand -Type carousel -Topic "5 tips"
-.\scripts\run-vault-index.ps1                     # rebuild the vault search index now
-.\scripts\install-vault-index.ps1 -DailyAt 02:30  # schedule the nightly rebuild (Task Scheduler)
-```
+Make equivalents: `make bootstrap`, `make deps`, `make dry-run BRAND=x`, `make research BRAND=x PARALLEL=1`,
+`make pipeline BRAND=x TYPE=carousel TOPIC="5 tips"`, `make vault-index`, `make install-vault-index`.
 
 Instagram login/session helpers:
 
-```powershell
-.\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
-.\scripts\open-instagram-session.ps1 -Mode browser-act -BrowserActSessionName instagram-main -WaitForEnter
+```bash
+python3 scripts/open-instagram-session.py --cdp-port 9224 --wait          # CDP: persistent Chrome/Edge profile
+python3 scripts/open-instagram-session.py --mode browser-act --wait       # browser-act session
 ```
 
-Use the CDP helper when rendered Instagram post pages hit a login wall. It opens a persistent Chrome profile under `%USERPROFILE%\.agency\chrome-instagram-cdp`; the user logs in once and keeps the browser open while CDP research runs. Use browser-act session mode with `-BrowserActMode session -BrowserActSessionName instagram-main` after its login helper has been completed.
+Use the CDP helper when rendered Instagram post pages hit a login wall. It opens the persistent profile
+`~/.agency/chrome-instagram-cdp` (the same profile the Playwright MCP uses); log in once and keep the browser
+open while CDP research runs. Use browser-act session mode with `--browser-act-mode session
+--browser-act-session-name instagram-main` after its login helper has been completed.
 
 ## MCP Assignments
 
@@ -180,20 +193,23 @@ Storyboard agent:
 - `higgsfield`
 - `magnific`
 - `gimp` (default for all local, non-generative image editing; see `skills/image-compositing-repair/SKILL.md`)
+- local CLI `raea` (not an MCP server): default 3D previz route before AI video; see `skills/previz-3d/SKILL.md`. Install or update with `python scripts/deps.py install raea` (pinned in `dependencies.toml`).
 
 Content agent:
 
 - primarily Python CLI output and brand voice files
 - may use research outputs from `workspace/<brand-slug>/research/`
 
-MCP package versions are pinned in `mcp/agents/*.json`. Keep README and agent manifests synchronized if updated.
+MCP package versions are pinned in `.mcp.json` and `mcp/agents/*.json` and mirrored in `dependencies.toml`; `python scripts/deps.py check --pins-only` fails when they disagree and `set-pin` moves them together. Full register: `docs/DEPENDENCIES.md`.
 
 ## Verification Checklist
 
 After setup-script, MCP-config, README, or agent-context changes, run what applies:
 
 ```bash
-bash -n scripts/bootstrap.sh
+python3 scripts/deps.py check --pins-only
+python3 scripts/deps.py docs --check
+python3 scripts/check-cross-platform.py
 python3 -m json.tool .mcp.json
 python3 -m json.tool mcp/agents/research.json
 python3 -m json.tool mcp/agents/storyboard.json
@@ -202,20 +218,14 @@ make status
 make dry-run BRAND=example-brand
 ```
 
-If PowerShell is available, also run:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap.ps1 -SkipPlaywrightBrowser
-.\scripts\run-agent.ps1 status
-.\scripts\run-agent.ps1 dry-run -Brand example-brand
-```
+The `Cross-platform` GitHub workflow runs the same checks and the tests on Windows on every push.
 
 ## Known Caveats
 
 - `README.md` uses collapsible sections as README-safe OS selection buttons. GitHub Markdown does not allow arbitrary JavaScript buttons.
 - `.mcp.json` carries the shared servers (`figma`, `playwright`, `blender`, `higgsfield`). Use `mcp/agents/*.json` as the source for agent-scoped server registration.
 - Blender MCP requires Blender and the MCP addon to be installed and running outside this repo.
-- GIMP MCP requires GIMP 3.2 running with Tools > MCP > Start MCP Server (localhost:9877). Install or refresh the plugin with `scripts/install-gimp-mcp.ps1`, and re-run it after a GIMP minor upgrade. The server commit is pinned in `.mcp.json` and the plugin commit in the script, so bump both together.
+- GIMP MCP requires GIMP 3.2 running with Tools > MCP > Start MCP Server (localhost:9877). Install or refresh the plugin with `python scripts/install-gimp-mcp.py`, and re-run it after a GIMP minor upgrade. Server and plugin use the one commit pinned in `dependencies.toml`; move it with `python scripts/deps.py set-pin gimp-mcp SHA`.
 - API keys belong in environment variables or local `.env`, never in committed config.
 - `.agents` and `.codex` directories may be read-only in some harnesses. Use repo-owned `AGENTS.md`, `skills/`, and `mcp/agents/` as portable context.
 

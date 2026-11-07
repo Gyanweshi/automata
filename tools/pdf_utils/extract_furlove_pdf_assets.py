@@ -1,12 +1,30 @@
+"""Render every page of each PDF to JPEG and pull out its embedded images (Linux, macOS, Windows).
+
+    python tools/pdf_utils/extract_furlove_pdf_assets.py --out DIR "Concept store France.pdf=concept" \
+        "Introduction deck FURLOVE (1).pdf=intro"
+
+Each argument is PDF_PATH=SLUG (SLUG defaults to the file name). Output: DIR/<slug>-pages/ and DIR/<slug>-images/.
+"""
+import argparse
+import sys
 from pathlib import Path
-import fitz
 
-PDFS = [
-    (Path(r"C:\Users\Devan\Downloads\Concept store France.pdf"), "concept"),
-    (Path(r"C:\Users\Devan\Downloads\Introduction deck FURLOVE (1).pdf"), "intro"),
-]
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument("pdfs", nargs="+", help="PDF_PATH or PDF_PATH=SLUG")
+parser.add_argument("--out", type=Path, required=True, help="output folder")
+args = parser.parse_args()
 
-OUT = Path(r"C:\openedswarm\docs\fur-love-assets\pdf")
+try:
+    import fitz  # PyMuPDF; not in uv.lock yet
+except ImportError:
+    sys.exit("PyMuPDF is required: uv pip install pymupdf (see docs/DEPENDENCIES.md, known gaps)")
+
+PDFS = []
+for item in args.pdfs:
+    path, _, slug = item.partition("=")
+    PDFS.append((Path(path).expanduser(), slug or Path(path).stem))
+
+OUT = args.out.expanduser()
 OUT.mkdir(parents=True, exist_ok=True)
 
 for pdf_path, slug in PDFS:

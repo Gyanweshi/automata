@@ -1,4 +1,4 @@
-.PHONY: install install-skills check-skills list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval pipeline clean help
+.PHONY: install install-skills bootstrap deps deps-install deps-outdated check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval research storyboard content pipeline week dry-run clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -22,24 +22,15 @@ COMMIT_REASON ?=
 ifeq ($(OS),Windows_NT)
 PYTHON ?= $(VENV)/Scripts/python.exe
 PIP ?= $(VENV)/Scripts/pip.exe
-AGENCY_RESEARCH ?= $(VENV)/Scripts/agency-research.exe
-AGENCY_STORYBOARD ?= $(VENV)/Scripts/agency-storyboard.exe
-AGENCY_CONTENT ?= $(VENV)/Scripts/agency-content.exe
 PYTHON_CMD ?= python
 else
 PYTHON ?= $(VENV)/bin/python
 PIP ?= $(VENV)/bin/pip
-AGENCY_RESEARCH ?= $(VENV)/bin/agency-research
-AGENCY_STORYBOARD ?= $(VENV)/bin/agency-storyboard
-AGENCY_CONTENT ?= $(VENV)/bin/agency-content
 PYTHON_CMD ?= python3
 endif
 
 ifeq ($(PARALLEL),1)
-RESEARCH_PARALLEL_FLAGS := --parallel --max-workers $(MAX_WORKERS)
-endif
-ifneq ($(strip $(PLATFORMS)),)
-RESEARCH_PLATFORM_FLAGS := --platforms $(PLATFORMS)
+RUN_AGENT_PARALLEL := --parallel --max-workers $(MAX_WORKERS)
 endif
 ifeq ($(COMMIT_VAULT),1)
 ifeq ($(strip $(COMMIT_REASON)),)
@@ -55,6 +46,11 @@ help:
 	@echo "  make install        Install all packages in editable mode"
 	@echo "  make install-skills Register repo skills for Codex and Claude"
 	@echo "  make check-skills   Check skill discovery coverage"
+	@echo "  make bootstrap      Set up this machine (Linux or Windows): venv, packages, browsers, checks"
+	@echo "  make deps           Check every external dependency (dependencies.toml)"
+	@echo "  make deps-install ID=raea  Install one dependency the right way for this OS"
+	@echo "  make deps-outdated  Show newer upstream versions of pinned dependencies"
+	@echo "  make check-cross-platform  Flag code that would only work on Linux or only on Windows"
 	@echo "  make list-workflows List local skills and specialist instructions"
 	@echo "  make install-housekeeper-watchdog  Install the native cleanup scheduler"
 	@echo "  make uninstall      Uninstall all packages"
@@ -93,6 +89,21 @@ install:
 install-skills:
 	$(PYTHON) scripts/sync-skills.py --sync
 
+deps:
+	$(PYTHON_CMD) scripts/deps.py check
+
+deps-install:
+	$(PYTHON_CMD) scripts/deps.py install $(ID)
+
+deps-outdated:
+	$(PYTHON_CMD) scripts/deps.py outdated
+
+bootstrap:
+	$(PYTHON_CMD) scripts/bootstrap.py
+
+check-cross-platform:
+	$(PYTHON_CMD) scripts/check-cross-platform.py
+
 check-skills:
 	$(PYTHON) scripts/sync-skills.py --check
 
@@ -105,36 +116,13 @@ install-housekeeper-watchdog:
 uninstall:
 	$(PIP) uninstall -y agency-common agency-research agency-storyboard agency-content
 
-research:
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS) $(VAULT_FLAGS)
+RUN_AGENT = $(PYTHON) scripts/run-agent.py
+AGENT_FLAGS = --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) \
+	--scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) \
+	--browser-act-session-name "$(BROWSER_ACT_SESSION_NAME)" --platforms "$(PLATFORMS)" $(RUN_AGENT_PARALLEL) $(VAULT_FLAGS)
 
-storyboard:
-	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
-
-content:
-	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
-
-pipeline:
-	@echo "==> Research"
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --scraper $(SCRAPER) --instagram-login-mode $(INSTAGRAM_LOGIN_MODE) --browser-act-mode $(BROWSER_ACT_MODE) --browser-act-session-name $(BROWSER_ACT_SESSION_NAME) $(RESEARCH_PLATFORM_FLAGS) $(RESEARCH_PARALLEL_FLAGS) $(VAULT_FLAGS)
-	@echo ""
-	@echo "==> Storyboard"
-	$(AGENCY_STORYBOARD) --brand $(BRAND) --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
-	@echo ""
-	@echo "==> Content"
-	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type $(TYPE) --topic $(TOPIC) \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) $(VAULT_FLAGS)
-
-week:
-	$(AGENCY_CONTENT) --brand $(BRAND) --week --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format markdown $(VAULT_FLAGS)
-
-dry-run:
-	$(AGENCY_RESEARCH) --brand $(BRAND) --workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --dry-run
-	$(AGENCY_CONTENT) --brand $(BRAND) --platform instagram --type caption --topic "test" \
-		--workspace $(WORKSPACE) --brands-dir $(BRANDS_DIR) --format summary --dry-run
+research storyboard content pipeline week dry-run:
+	$(RUN_AGENT) $@ $(AGENT_FLAGS)
 
 status:
 	$(PIP) show agency-common agency-research agency-storyboard agency-content 2>/dev/null | grep -E "^(Name|Version|Location)"
@@ -143,10 +131,10 @@ test:
 	$(PYTHON) -m pytest packages/*/tests -v
 
 vault-index:
-	bash scripts/run-vault-index.sh
+	$(PYTHON) scripts/schedule.py run vault-index
 
 install-vault-index:
-	bash scripts/install-vault-index.sh --daily-at $(VAULT_INDEX_AT)
+	$(PYTHON) scripts/schedule.py install vault-index --daily-at $(VAULT_INDEX_AT)
 
 vault-search:
 	$(PYTHON) -m agency_common.vault_search $(Q)

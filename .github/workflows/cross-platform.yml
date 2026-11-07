@@ -1,0 +1,49 @@
+name: Cross-platform
+
+# Runs the same checks on Linux and Windows on every push, so something built on one machine is known to
+# work (or known broken) on the other before you sit down at it.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade "pip>=26.2" "setuptools>=83.0.0"
+          python -m pip install -r requirements.txt
+          python -m pip install -e "./packages/agency-common[test]" -e "./packages/agency-research[test]" -e ./packages/agency-storyboard -e ./packages/agency-content
+      - name: No new one-OS scripts, machine paths, or CRLF shell scripts
+        run: python scripts/check-cross-platform.py
+      - name: Skill registrations
+        run: python scripts/sync-skills.py --check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dependency pins agree across every config
+        run: python scripts/deps.py check --pins-only
+      - name: Dependency register matches dependencies.toml
+        run: python scripts/deps.py docs --check
+      - name: MCP launcher finds a compatible Node and runs npx
+        run: node scripts/mcp-npx.mjs --which && node scripts/mcp-npx.mjs --version
+      - name: Repo scripts start on this OS
+        run: |
+          python scripts/run-agent.py --help
+          python scripts/schedule.py install housekeeper --dry-run
+          python scripts/install-gimp-mcp.py --dry-run --gimp-version 3.2
+          python skills/render-upscale-crop/scripts/crop-motion-broll.py --help
+      - name: Tests
+        run: python -m pytest -q packages/agency-common/tests packages/agency-research/tests

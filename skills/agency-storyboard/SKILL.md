@@ -140,16 +140,15 @@ low for 4K crops or restrained camera motion, use the repo-owned Lanczos helper 
 building frames. This is deterministic resampling, not generative enhancement: it does
 not restore missing detail or authorize geometry changes.
 
-```powershell
-.\scripts\upscale-storyboard-image.ps1 `
-  -InputPath "<source-image>" `
-  -OutputDirectory "workspace/<brand-slug>/storyboards/<run>/upscaled"
+```bash
+python skills/render-upscale-crop/scripts/upscale-storyboard-image.py "<source-image>" \
+  --output-dir "workspace/<brand-slug>/storyboards/<run>/upscaled"
 ```
 
 The helper performs the proven sequence `source -> exact 4K -> exact 8K`, using the
 4K result as the input to the 8K pass. It preserves aspect ratio, letterboxes when
 needed, sets square pixels, writes PNGs into `4k-exact/` and `8k-exact/`, and refuses
-to overwrite existing outputs unless `-Force` is explicitly supplied.
+to overwrite existing outputs unless `--force` is explicitly supplied.
 
 - Default landscape canvas: `3840x2160`, then `7680x4320`.
 - For vertical work, pass `-Width4K 2160 -Height4K 3840`.
@@ -175,6 +174,11 @@ to overwrite existing outputs unless `-Force` is explicitly supplied.
 - `magnific_video` - video prompt preset; best for reels
 - `blender` - for 3D visualization (uses Blender MCP, already configured)
 - `generic` - tool-agnostic prompts for any AI generator
+
+**3D previz before video generation:** for camera blocking, drone/dolly paths, subject motion,
+or start/end frames that must hold a locked composition, block the shot first with raea
+(local GPU, seconds per render) following `skills/previz-3d/SKILL.md`. It is the default
+previz route; use the Blender MCP only for asset prep or when a shot needs Blender itself.
 
 ## MCP Integrations
 

@@ -6,7 +6,7 @@
       "version": "22"
     }
   },
-  "postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && bash scripts/bootstrap.sh --skip-playwright-browser",
+  "postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && python3 scripts/bootstrap.py --skip-browsers",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -117,9 +117,9 @@ cd automata
 
 #### 3. Run the bootstrap script
 ```bash
-bash scripts/bootstrap.sh
+python3 scripts/bootstrap.py
 ```
-*(If you are on a headless server without GUI libraries, run `bash scripts/bootstrap.sh --skip-playwright-browser`)*
+*(If you are on a headless server without GUI libraries, run `python3 scripts/bootstrap.py --skip-browsers`)*
 
 #### 4. Configure API Keys
 Copy the environment template and edit `.env`:
@@ -158,9 +158,9 @@ cd automata
 
 #### 3. Run the bootstrap script
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/bootstrap.ps1
+py scripts\bootstrap.py
 ```
-*(To skip Playwright browser download: `-SkipPlaywrightBrowser`)*
+*(To skip Playwright browser downloads: `--skip-browsers`)*
 
 #### 4. Configure API Keys
 ```powershell
@@ -172,8 +172,8 @@ Copy-Item env.example .env
 
 #### 5. Verify the installation
 ```powershell
-.\scripts\run-agent.ps1 status
-.\scripts\run-agent.ps1 dry-run -Brand example-brand
+py scripts\run-agent.py status
+py scripts\run-agent.py dry-run --brand example-brand
 ```
 
 </details>
@@ -239,25 +239,25 @@ make research BRAND=example-brand SCRAPER=browser-act PLATFORMS=ig BROWSER_ACT_M
 
 ```powershell
 # 1. Competitive & audience research
-.\scripts\run-agent.ps1 research -Brand example-brand
+py scripts\run-agent.py research --brand example-brand
 
 # 2. Visual storyboard creation
-.\scripts\run-agent.ps1 storyboard -Brand example-brand -Type carousel -Topic "5 tips for entrepreneurs"
+py scripts\run-agent.py storyboard --brand example-brand --type carousel --topic "5 tips for entrepreneurs"
 
 # 3. Copywriting & captions
-.\scripts\run-agent.ps1 content -Brand example-brand -Type carousel -Topic "5 tips for entrepreneurs"
+py scripts\run-agent.py content --brand example-brand --type carousel --topic "5 tips for entrepreneurs"
 
 # 4. Full end-to-end pipeline
-.\scripts\run-agent.ps1 pipeline -Brand example-brand -Type carousel -Topic "5 tips for entrepreneurs"
+py scripts\run-agent.py pipeline --brand example-brand --type carousel --topic "5 tips for entrepreneurs"
 ```
 
 **Persistent Instagram Login Helper (Windows):**
 ```powershell
 # Open persistent CDP Chrome profile for one-time login:
-.\scripts\open-instagram-session.ps1 -Mode cdp -CdpPort 9224 -WaitForEnter
+py scripts\open-instagram-session.py --cdp-port 9224 --wait
 
 # Run CDP-backed research:
-.\scripts\run-agent.ps1 research -Brand example-brand -Scraper cdp -Platforms ig
+py scripts\run-agent.py research --brand example-brand --scraper cdp --platforms ig
 ```
 
 </details>
@@ -303,6 +303,7 @@ Automata includes modular agent skills under `skills/`. Every agent checks avail
 - **`visual-image` & `visual-video`**: Curated prompt libraries for AI image/video models.
 - **`image-gen`**: OpenAI GPT Image generation/edits and local animated-GIF assembly via portable Python CLIs.
 - **`image-compositing-repair`**: Local, non-generative image editing (GIMP MCP or Python/OpenCV/Pillow) that preserves untouched pixels.
+- **`previz-3d`**: Greybox 3D previz (camera moves, subject motion, keyframes) rendered locally with [raea](https://github.com/shinyobjectz/raea) before AI video generation. Install with `python scripts/deps.py install raea`.
 
 ---
 
@@ -320,7 +321,7 @@ Automata connects agents directly to external browsers, design tools, and AI gen
 | `higgsfield` | Storyboard / Content | Higgsfield OAuth | Up to 4K image and video generation |
 | `magnific` | Storyboard / Content | Magnific OAuth | AI upscaling, restyling, and generation history |
 | `blender` | Storyboard / 3D | Blender + Addon | Programmatic 3D scene creation and rendering |
-| `gimp` | Storyboard / Image editing | GIMP 3.2 + plugin (`scripts/install-gimp-mcp.ps1`) | Local image editing: retouch, masks, layers, color, text, XCF export |
+| `gimp` | Storyboard / Image editing | GIMP 3.2 + plugin (`python scripts/install-gimp-mcp.py`) | Local image editing: retouch, masks, layers, color, text, XCF export |
 
 *Project-wide MCP configuration is managed in [.mcp.json](.mcp.json); agent-specific configurations live in `mcp/agents/`.*
 

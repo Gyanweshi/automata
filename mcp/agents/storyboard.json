@@ -3,7 +3,7 @@
   "mcpServers": {
     "blender": {
       "command": "uvx",
-      "args": ["blender-mcp"],
+      "args": ["blender-mcp@2.0.0"],
       "purpose": "Create, inspect, and render Blender scenes for 3D storyboard work."
     },
     "higgsfield": {
@@ -23,7 +23,7 @@
         "git+https://github.com/gimp-mcp/gimp-mcp@7325865385541a01aaf336ebc93b00332297f77f",
         "gimp-mcp-server"
       ],
-      "purpose": "Local, credit-free image editing in the user's live GIMP 3.2: layers, selections, masks, color/tone, transforms, text, filters, layered XCF and exports, with get_state_snapshot for visual verification. Requires GIMP open with Tools > MCP > Start MCP Server (localhost:9877); plugin installed by scripts/install-gimp-mcp.ps1."
+      "purpose": "Local, credit-free image editing in the user's live GIMP 3.2: layers, selections, masks, color/tone, transforms, text, filters, layered XCF and exports, with get_state_snapshot for visual verification. Requires GIMP open with Tools > MCP > Start MCP Server (localhost:9877); plugin installed by scripts/install-gimp-mcp.py."
     }
   }
 }

@@ -62,7 +62,7 @@ agent-led gate between them; it is not currently a Python CLI stage.
 
 1. Read `$OBSIDIAN_VAULT_PATH/Brands/<brand-slug>.md`, especially `## Memory`, before deciding whether to reuse prior outputs.
 2. `agency-research --brand <brand-slug> --workspace ./workspace` (skip if already run today unless the user asks for fresh research).
-   - For Instagram login walls, use `scripts/open-instagram-session.ps1` and rerun with `--scraper cdp` or browser-act session mode instead of repeatedly retrying blocked public pages.
+   - For Instagram login walls, use `python scripts/open-instagram-session.py` and rerun with `--scraper cdp` or browser-act session mode instead of repeatedly retrying blocked public pages.
 3. Read the research `evidence_readiness` object before downstream work. If it is
    `blocked`, surface missing, stale, irrelevant, or unreliable inputs and stop the
    dependent storyboard/content path. Ask for the smallest next action. If it is
@@ -154,7 +154,7 @@ reason; never carry authorization into the next phase or run.
 To register all repo skills for Codex and Claude Code:
 
 ```bash
-bash scripts/install-skills.sh
+python scripts/install-skills.py
 ```
 
 This creates missing project discovery shims under `.agents/skills/` and

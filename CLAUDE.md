@@ -29,7 +29,8 @@ Use `D:\automata\workspace\` for machine-readable JSON, browser dumps, logs, scr
 
 ```bash
 # First-time setup
-bash scripts/bootstrap.sh       # Install Python/Node deps, create .venv
+python3 scripts/bootstrap.py    # Set up this machine (Windows: py scripts\bootstrap.py)
+python3 scripts/deps.py check   # Every external dependency; register in docs/DEPENDENCIES.md
 make install                    # Install all packages in editable mode
 make install-skills             # Register repo skills for Codex and Claude
 
@@ -57,7 +58,7 @@ make status                     # Show installed package versions
 make clean                      # Clear workspace/ outputs
 ```
 
-Windows PowerShell equivalents are in `scripts/*.ps1` (see AGENTS.md).
+Every script is Python and runs the same on Windows (`py scripts\...`); see the Cross-Platform Rule in AGENTS.md.
 
 ## Architecture
 
@@ -114,7 +115,7 @@ Defined in `.mcp.json` (aggregate) and `mcp/agents/*.json` (agent-scoped). Keep 
 | `blender` | storyboard | requires external Blender + addon |
 | `higgsfield` | storyboard | Higgsfield OAuth |
 | `magnific` | storyboard | Magnific OAuth |
-| `gimp` | storyboard | GIMP 3.2 running with Tools > MCP > Start MCP Server (install plugin: `scripts/install-gimp-mcp.ps1`) |
+| `gimp` | storyboard | GIMP 3.2 running with Tools > MCP > Start MCP Server (install plugin: `python scripts/install-gimp-mcp.py`) |
 
 ## Context Layers — How to Use Them
 
@@ -133,6 +134,14 @@ There are three layers of context. Use all three, in order, before doing any bra
 - Brand notes = current client state + distilled run history in ## Memory — always read first
 - Vault RAG = broad research queries only, not brand-specific context
 
+## Cross-Platform
+
+This repo runs on a Linux machine and a Windows machine. Follow the **Cross-Platform Rule** in `AGENTS.md`: new scripts are one Python implementation (no new `.sh` + `.ps1` pairs), no machine paths, and `make check-cross-platform` passes before work is called done. The `Cross-platform` workflow tests both OSes on every push.
+
+## 3D Previz
+
+`skills/previz-3d/SKILL.md` is the default route for blocking a shot in 3D (camera path, lens, subject motion, start/end frames) before AI video generation. It uses raea, a local GPU renderer driven by TSX (`raea render`, `raea scene lint`), installed with `python scripts/deps.py install raea` (pinned in `dependencies.toml`). Previz media lives in `workspace/<brand>/storyboards/previz/<shot-id>/`; always pass absolute output paths.
+
 ## Research Methodology
 
 `skills/agency-research/METHODOLOGY.md` — practitioner guide for the human research layer. Covers what no scraper or LLM can reliably do: hypothesis formation, customer interviews, data quality judgment, triangulation, pattern recognition, and the feedback loop. Structured as a 16-week skill-building progression. Read this before designing research strategy for any client.
@@ -150,7 +159,8 @@ Install with `make install-skills`. The orchestrator's `/agency onboard` workflo
 ## After Changing Config or Scripts
 
 ```bash
-bash -n scripts/bootstrap.sh
+python3 scripts/deps.py check --pins-only
+python3 scripts/check-cross-platform.py
 python3 -m json.tool .mcp.json
 python3 -m json.tool mcp/agents/research.json
 make status
