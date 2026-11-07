@@ -6,26 +6,31 @@ raw consumer questions, debates, and emerging topics from non-social-network sou
 from __future__ import annotations
 
 import logging
+import re
 from defusedxml import ElementTree as ET
 from collections import Counter
 from datetime import datetime
+
+from typing import Callable
 
 import requests
 
 from agency_common.models import CommunityPost, ListeningNodeReport
 
+from .page_fetch import PageFetcher, make_fetcher
+from .social_parsers import parse_reddit_listing, parse_x_timeline
+
 LOGGER = logging.getLogger(__name__)
 
 YOUTUBE_RSS_URL = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-REDDIT_ACTOR = "epctex/reddit-scraper"
-X_ACTOR = "apidojo/tweet-scraper"
 
 
 class CommunityListener:
-    """Scrape top weekly posts from Reddit, YouTube RSS feeds, and X/Twitter lists."""
+    """Top weekly posts from Reddit and X/Twitter (read through a real browser: Playwright or browser-act) and
+    YouTube RSS feeds. Reddit works logged out; X needs a one-time login (see page_fetch.py)."""
 
-    def __init__(self, apify_token: str = "", dry_run: bool = False):
-        self.apify_token = apify_token
+    def __init__(self, fetcher_for: Callable[[str], PageFetcher] | None = None, dry_run: bool = False):
+        self.fetcher_for = fetcher_for or make_fetcher
         self.dry_run = dry_run
 
     def scrape(
@@ -59,57 +64,25 @@ class CommunityListener:
         return self._build_report(posts, sources)
 
     # ------------------------------------------------------------------
-    # Reddit via Apify
+    # Reddit: the subreddit's top-of-the-week page
     # ------------------------------------------------------------------
 
     def _scrape_reddit(self, subreddits: list[str], post_count: int) -> list[CommunityPost]:
         if self.dry_run:
             LOGGER.info("[dry-run] Would scrape Reddit subreddits: %s", subreddits)
             return []
-
-        if not self.apify_token:
-            LOGGER.warning("No APIFY_API_TOKEN — skipping Reddit scrape")
-            return []
-
-        try:
-            from apify_client import ApifyClient
-            client = ApifyClient(self.apify_token)
-            start_urls = [
-                {"url": f"https://www.reddit.com/r/{sub.lstrip('r/').lstrip('/').lstrip('r/')}/top/?t=week"}
-                for sub in subreddits
-            ]
-            run_input = {
-                "startUrls": start_urls,
-                "sort": "top",
-                "time": "week",
-                "maxPostCount": post_count,
-                "includeComments": False,
-                "proxy": {"useApifyProxy": True},
-            }
-            run = client.actor(REDDIT_ACTOR).call(run_input=run_input)
-            items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
-            posts = []
-            for item in items:
-                author = item.get("author", "")
-                if isinstance(author, dict):
-                    author = author.get("name", "")
-                posts.append(CommunityPost(
-                    source="reddit",
-                    subreddit=item.get("community", {}).get("name", "") or item.get("subreddit", ""),
-                    title=item.get("title", ""),
-                    body=(item.get("body", "") or item.get("text", ""))[:2000],
-                    url=item.get("url", "") or item.get("permalink", ""),
-                    upvotes=int(item.get("upVotes", 0) or item.get("score", 0) or 0),
-                    comments=int(item.get("numberOfComments", 0) or item.get("num_comments", 0) or 0),
-                    author=str(author),
-                    timestamp=str(item.get("createdAt", "") or item.get("created_utc", "")),
-                    score=float(item.get("upVoteRatio", 0) or 0),
-                ))
-            LOGGER.info("Reddit: scraped %d posts from %s", len(posts), subreddits)
-            return posts
-        except Exception as exc:
-            LOGGER.error("Reddit scrape failed: %s", exc)
-            return []
+        fetcher = self.fetcher_for("reddit")
+        posts: list[CommunityPost] = []
+        for sub in subreddits:
+            name = re.sub(r"^/?r/", "", sub.strip()).strip("/")
+            page = fetcher.fetch(f"https://www.reddit.com/r/{name}/top/?t=week", scrolls=max(0, post_count // 8))
+            if not page.ok:
+                LOGGER.warning("Reddit r/%s: %s", name, page.error or page.status)
+                continue
+            found = parse_reddit_listing(page.html, limit=post_count)
+            LOGGER.info("Reddit r/%s: %d posts", name, len(found))
+            posts += found
+        return posts
 
     # ------------------------------------------------------------------
     # YouTube RSS — no API key required
@@ -170,48 +143,24 @@ class CommunityListener:
         return posts
 
     # ------------------------------------------------------------------
-    # X / Twitter lists via Apify
+    # X / Twitter lists, profiles or searches (needs a logged-in browser)
     # ------------------------------------------------------------------
 
     def _scrape_x(self, list_urls: list[str], post_count: int) -> list[CommunityPost]:
         if self.dry_run:
             LOGGER.info("[dry-run] Would scrape X/Twitter lists: %s", list_urls)
             return []
-
-        if not self.apify_token:
-            LOGGER.warning("No APIFY_API_TOKEN — skipping X/Twitter scrape")
-            return []
-
-        try:
-            from apify_client import ApifyClient
-            client = ApifyClient(self.apify_token)
-            run_input = {
-                "startUrls": [{"url": u} for u in list_urls],
-                "maxItems": post_count,
-            }
-            run = client.actor(X_ACTOR).call(run_input=run_input)
-            items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
-            posts = []
-            for item in items:
-                author = item.get("author", {})
-                author_name = author.get("userName", "") if isinstance(author, dict) else str(author)
-                posts.append(CommunityPost(
-                    source="x",
-                    subreddit="",
-                    title="",
-                    body=(item.get("text", "") or item.get("full_text", ""))[:2000],
-                    url=item.get("url", "") or item.get("twitterUrl", ""),
-                    upvotes=int(item.get("likeCount", 0) or 0),
-                    comments=int(item.get("replyCount", 0) or 0),
-                    author=author_name,
-                    timestamp=str(item.get("createdAt", "")),
-                    score=float(item.get("retweetCount", 0) or 0),
-                ))
-            LOGGER.info("X/Twitter: scraped %d posts", len(posts))
-            return posts
-        except Exception as exc:
-            LOGGER.error("X/Twitter scrape failed: %s", exc)
-            return []
+        fetcher = self.fetcher_for("x")
+        posts: list[CommunityPost] = []
+        for url in list_urls:
+            url = url if url.startswith("http") else f"https://x.com/{url.lstrip('@/')}"
+            page = fetcher.fetch(url, scrolls=max(1, post_count // 5))
+            found = parse_x_timeline(page.html, limit=post_count) if page.ok else []
+            if not found:
+                LOGGER.warning("X %s: no posts read (%s). X shows nothing logged out; log in once: "
+                               "python scripts/open-instagram-session.py --site x", url, page.error or page.status)
+            posts += found
+        return posts
 
     # ------------------------------------------------------------------
     # Report builder

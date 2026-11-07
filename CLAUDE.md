@@ -112,7 +112,6 @@ Defined in `.mcp.json` (aggregate) and `mcp/agents/*.json` (agent-scoped). Keep 
 | `playwright` | research | — |
 | `chrome-devtools` | research | — |
 | `notebooklm` | research | Google login/session |
-| `apify` | research | `APIFY_API_TOKEN` |
 | `blender` | storyboard | requires external Blender + addon |
 | `higgsfield` | storyboard | Higgsfield OAuth |
 | `magnific` | storyboard | Magnific OAuth |

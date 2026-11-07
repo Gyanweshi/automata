@@ -39,7 +39,6 @@ from .analyzers import (
     VisualAnalyzer,
 )
 from .scrapers import (
-    ApifyInstagramScraper,
     BrowserActInstagramScraper,
     CDPInstagramScraper,
     CommunityListener,
@@ -48,12 +47,12 @@ from .scrapers import (
     MetaAdsLibraryScraper,
     PlaywrightInstagramScraper,
 )
+from .scrapers.page_fetch import PageFetcher, make_fetcher
 
 LOGGER = logging.getLogger(__name__)
 T = TypeVar("T")
 
 INSTAGRAM_SCRAPERS = {
-    "apify": ApifyInstagramScraper,
     "playwright": PlaywrightInstagramScraper,
     "browser-act": BrowserActInstagramScraper,
     "cdp": CDPInstagramScraper,
@@ -74,6 +73,8 @@ class ResearchAgent:
         browser_act_session_name: str | None = None,
         playwright_post_dwell_seconds: float = 1.5,
         browser_act_browser: str | None = None,
+        social_backend: str | None = None,
+        social_login_mode: str = "auto",
     ):
         self.config = config or AgencyConfig.from_env()
         self.dry_run = dry_run
@@ -84,9 +85,7 @@ class ResearchAgent:
         self.browser_act_browser = browser_act_browser or self.config.browser_act_browser or ""
 
         ig_cls = INSTAGRAM_SCRAPERS.get(scraper, CDPInstagramScraper)
-        if ig_cls is ApifyInstagramScraper:
-            self.ig = ig_cls(dry_run=dry_run, api_token=self.config.apify_token)
-        elif ig_cls is BrowserActInstagramScraper:
+        if ig_cls is BrowserActInstagramScraper:
             self.ig = ig_cls(
                 dry_run=dry_run,
                 proxy_region=self.browser_act_proxy_region or None,
@@ -105,21 +104,24 @@ class ResearchAgent:
         else:
             self.ig = ig_cls(dry_run=dry_run)
 
-        self.li = LinkedInScraper(api_token=self.config.apify_token, dry_run=dry_run)
+        # LinkedIn, Facebook, Reddit, X and the Ad Library website are read through a real browser:
+        # Playwright or browser-act (default: browser-act when it is the Instagram scraper, else Playwright).
+        self.social_backend = social_backend or ("browser-act" if scraper == "browser-act" else "playwright")
+        self.social_login_mode = social_login_mode
+        self._fetchers: dict[str, PageFetcher] = {}
+
+        self.li = LinkedInScraper(fetcher=self.fetcher_for("linkedin"), dry_run=dry_run)
         self.fb = FacebookScraper(
             page_access_token=self.config.fb_page_access_token,
-            apify_token=self.config.apify_token,
+            fetcher=self.fetcher_for("facebook"),
             dry_run=dry_run,
         )
 
         # Step 1 & 2 scrapers
-        self.community = CommunityListener(
-            apify_token=self.config.apify_token,
-            dry_run=dry_run,
-        )
+        self.community = CommunityListener(fetcher_for=self.fetcher_for, dry_run=dry_run)
         self.meta_ads = MetaAdsLibraryScraper(
             access_token=self.config.meta_ad_library_token,
-            apify_token=self.config.apify_token,
+            fetcher=self.fetcher_for("facebook"),
             dry_run=dry_run,
         )
 
@@ -150,6 +152,17 @@ class ResearchAgent:
 
         # Step 6: Framework analysis layer
         self.framework_orchestrator = FrameworkOrchestrator(dry_run=dry_run)
+
+    def fetcher_for(self, site: str) -> PageFetcher:
+        """One page fetcher per site, shared by every scraper that reads that site."""
+        if site not in self._fetchers:
+            # browser-act reads in the saved browser (session mode): logged-in where you logged in, guest elsewhere
+            self._fetchers[site] = make_fetcher(
+                site, self.social_backend, login_mode=self.social_login_mode,
+                browser_act_browser=self.browser_act_browser or "instagram-research", browser_act_mode="session",
+                session_prefix=(self.browser_act_session_name or "automata-research") + "-social",
+            )
+        return self._fetchers[site]
 
     def run(
         self,

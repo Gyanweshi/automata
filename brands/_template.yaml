@@ -141,7 +141,7 @@ community:
   x_lists: []                        # Full X/Twitter list URLs
 
 # Step 2: Meta Ad Library audit
-# Keywords to search. Requires META_AD_LIBRARY_TOKEN or APIFY_API_TOKEN.
+# Keywords to search. Uses META_AD_LIBRARY_TOKEN if set, otherwise the public Ad Library website (browser).
 meta_ads:
   keywords:
     - "your product category"

@@ -1,4 +1,8 @@
-"""Facebook scraper: Graph API for owned pages, Apify for competitor pages."""
+"""Facebook research: Graph API for pages you own, a real browser (Playwright or browser-act) for competitor pages.
+
+Logged out, Facebook shows a page's follower count and one or two posts; log in once (see page_fetch.py) and
+scrolling loads the recent posts with reaction, comment and share counts.
+"""
 from __future__ import annotations
 
 import logging
@@ -6,106 +10,68 @@ import logging
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from agency_common.models import CompetitorAnalysis, PostData
-from agency_common.rate_limiter import apify_limiter, facebook_limiter
+from agency_common.rate_limiter import facebook_limiter
+
+from .page_fetch import PageFetcher, make_fetcher
+from .social_parsers import parse_facebook_page, parse_facebook_posts, summarize
 
 logger = logging.getLogger(__name__)
 
+GRAPH_API_BASE = "https://graph.facebook.com/v19.0"
+
+
 def _return_empty_list(retry_state):
-    logger.error(f"Facebook scrape failed after {retry_state.attempt_number} attempts: {retry_state.outcome.exception()}")
+    logger.error(f"Facebook Graph API failed after {retry_state.attempt_number} attempts: {retry_state.outcome.exception()}")
     return []
 
 
-GRAPH_API_BASE = "https://graph.facebook.com/v19.0"
-APIFY_FB_ACTOR = "apify/facebook-pages-scraper"
+def page_url(identifier: str) -> str:
+    value = identifier.strip()
+    return value if value.startswith("http") else f"https://www.facebook.com/{value.strip('/')}"
 
 
 class FacebookScraper:
-    """
-    Scrape Facebook pages.
-
-    - Owned pages: Facebook Graph API (requires FB_PAGE_ACCESS_TOKEN)
-    - Competitor pages: Apify (requires APIFY_API_TOKEN)
-    """
-
-    def __init__(
-        self,
-        page_access_token: str = "",
-        apify_token: str = "",
-        dry_run: bool = False,
-    ):
+    def __init__(self, page_access_token: str = "", fetcher: PageFetcher | None = None, dry_run: bool = False):
         self.page_access_token = page_access_token
-        self.apify_token = apify_token
+        self.fetcher = fetcher or make_fetcher("facebook")
         self.dry_run = dry_run
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), retry_error_callback=_return_empty_list)
     def scrape_owned_page(self, page_id: str, count: int = 20) -> list[PostData]:
-        """Fetch posts from a page you own via Graph API."""
+        """Fetch posts from a page you own via Graph API (FB_PAGE_ACCESS_TOKEN)."""
         if self.dry_run or not self.page_access_token:
             return []
 
         import requests
         facebook_limiter.wait()
-        url = f"{GRAPH_API_BASE}/{page_id}/posts"
-        params = {
+        resp = requests.get(f"{GRAPH_API_BASE}/{page_id}/posts", params={
             "access_token": self.page_access_token,
             "fields": "id,message,created_time,likes.summary(true),comments.summary(true),shares",
             "limit": count,
-        }
-        resp = requests.get(url, params=params, timeout=30)
+        }, timeout=30)
         resp.raise_for_status()
-        data = resp.json()
-        posts = []
-        for item in data.get("data", []):
-            posts.append(PostData(
-                platform="facebook",
-                post_id=item.get("id", ""),
-                caption=item.get("message", ""),
-                likes=item.get("likes", {}).get("summary", {}).get("total_count", 0),
-                comments=item.get("comments", {}).get("summary", {}).get("total_count", 0),
-                shares=item.get("shares", {}).get("count", 0),
-                timestamp=item.get("created_time", ""),
-            ))
-        return posts
+        return [PostData(
+            platform="facebook", post_id=item.get("id", ""), caption=item.get("message", ""),
+            likes=item.get("likes", {}).get("summary", {}).get("total_count", 0),
+            comments=item.get("comments", {}).get("summary", {}).get("total_count", 0),
+            shares=item.get("shares", {}).get("count", 0), timestamp=item.get("created_time", ""),
+        ) for item in resp.json().get("data", [])]
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10), retry_error_callback=_return_empty_list)
-    def scrape_competitor_page(self, page_url: str, count: int = 20) -> list[PostData]:
-        """Scrape a competitor's public Facebook page via Apify."""
-        if self.dry_run or not self.apify_token:
-            return []
-
-        apify_limiter.wait()
-        from apify_client import ApifyClient
-        client = ApifyClient(self.apify_token)
-        run = client.actor(APIFY_FB_ACTOR).call(run_input={
-            "startUrls": [{"url": page_url}],
-            "maxPosts": count,
-        })
-        posts = []
-        for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-            for post in item.get("posts", [])[:count]:
-                posts.append(PostData(
-                    platform="facebook",
-                    post_id=post.get("postId", ""),
-                    url=post.get("url", ""),
-                    caption=post.get("text", ""),
-                    likes=post.get("likes", 0),
-                    comments=post.get("comments", 0),
-                    shares=post.get("shares", 0),
-                    timestamp=post.get("time", ""),
-                ))
-        return posts
-
-    def build_competitor_analysis(
-        self, page_identifier: str, post_count: int = 20, is_owned: bool = False
-    ) -> CompetitorAnalysis:
-        """Full competitor analysis for a Facebook page."""
+    def build_competitor_analysis(self, page_identifier: str, post_count: int = 20, is_owned: bool = False) -> CompetitorAnalysis:
         if is_owned:
-            posts = self.scrape_owned_page(page_identifier, count=post_count)
-        else:
-            posts = self.scrape_competitor_page(page_identifier, count=post_count)
-        analysis = CompetitorAnalysis(handle=page_identifier, platform="facebook")
-        if posts:
-            analysis.top_posts = posts[:5]
-            analysis.avg_likes = sum(p.likes for p in posts) / len(posts)
-            analysis.avg_comments = sum(p.comments for p in posts) / len(posts)
+            return summarize(CompetitorAnalysis(handle=page_identifier, platform="facebook"),
+                             self.scrape_owned_page(page_identifier, count=post_count))
+        url = page_url(page_identifier)
+        if self.dry_run:
+            return CompetitorAnalysis(handle=url, platform="facebook", scrape_status="dry_run")
+        page = self.fetcher.fetch(url, scrolls=max(2, post_count // 3))
+        if not page.ok:
+            logger.warning("Facebook %s: %s", url, page.error or page.status)
+            return CompetitorAnalysis(handle=url, platform="facebook", bio=page.error, scrape_status=page.status)
+        posts = parse_facebook_posts(page.html, limit=post_count)
+        analysis = summarize(parse_facebook_page(page.html, url), posts)
+        analysis.scrape_status = "ok" if len(posts) > 2 else ("partial" if posts or analysis.follower_count else "empty")
+        if analysis.scrape_status == "partial":
+            logger.warning("Facebook %s: only the logged-out preview was readable; log in once for full posts "
+                           "(python scripts/open-instagram-session.py --site facebook)", url)
         return analysis

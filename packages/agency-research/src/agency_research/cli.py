@@ -49,7 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--commit-reason", help="Required approval/finalization reason for --commit-vault.")
     p.add_argument(
         "--scraper",
-        choices=["playwright", "apify", "browser-act", "cdp"],
+        choices=["playwright", "browser-act", "cdp"],
         default="cdp",
         help="Instagram scraper backend (default: cdp)",
     )
@@ -86,6 +86,20 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["auto", "manual"],
         default="auto",
         help="Instagram login mode for Playwright scraper: auto uses saved session or creds, manual waits for a headed login once and reuses it later.",
+    )
+    p.add_argument(
+        "--social-backend",
+        choices=["playwright", "browser-act"],
+        default=None,
+        help="How LinkedIn, Facebook, Reddit, X and the Ad Library website are read (default: browser-act when "
+        "--scraper browser-act, else playwright). Both are free; log in once per site with "
+        "python scripts/open-instagram-session.py --mode <playwright|browser-act> --site <linkedin|facebook|x>.",
+    )
+    p.add_argument(
+        "--social-login-mode",
+        choices=["auto", "manual"],
+        default="auto",
+        help="Playwright only: manual opens a visible browser to log in to a site the first time it is needed.",
     )
     p.add_argument(
         "--notebooklm",
@@ -131,7 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--audit-ads",
         action="store_true",
         default=None,
-        help="Step 2: Meta Ad Library audit (requires META_AD_LIBRARY_TOKEN or APIFY_API_TOKEN)",
+        help="Step 2: Meta Ad Library audit (META_AD_LIBRARY_TOKEN, or the public Ad Library website through the browser)",
     )
     intel.add_argument(
         "--no-audit-ads",
@@ -262,6 +276,8 @@ def main():
         browser_act_session_name=browser_act_session_name or None,
         playwright_post_dwell_seconds=args.playwright_post_dwell_seconds,
         browser_act_browser=args.browser_act_browser or None,
+        social_backend=args.social_backend,
+        social_login_mode=args.social_login_mode,
     )
     parallel_note = f", parallel: {args.max_workers} workers" if args.parallel else ""
     print(f"Running research for '{brand.name}' (scraper: {args.scraper}{parallel_note})...")

@@ -25,12 +25,19 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 4. **Run the scraper**:
    ```bash
-   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper playwright|cdp|apify|browser-act] [--playwright-post-dwell-seconds 1.5] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
+   agency-research --brand <brand-slug> --workspace ./workspace [--platforms <list>] [--post-count 20] [--scraper playwright|cdp|browser-act] [--social-backend playwright|browser-act] [--playwright-post-dwell-seconds 1.5] [--browser-act-proxy-region US] [--browser-act-mode stealth|session] [--browser-act-session-name instagram-main] [--instagram-login-mode auto|manual] [--parallel --max-workers 4]
    ```
 
-   The CLI's hardcoded default is `cdp` (drives a logged-in Chrome DevTools session via the in-repo `agents/automata_core/ig-research` tool — see `python scripts/open-instagram-session.py`), but `playwright` is the recommended choice for Instagram: it is the only scraper that reads the real caption, like count, comment count, and date off each post's `og:description` meta tag (CDP only gets engagement counts, no captions). No Apify token needed for either. On a one-time first run, do `--instagram-login-mode manual` to open a visible browser and log in once — it's saved to `~/.agency/ig_session.json` and reused after that. If captions/likes come back empty on a slow connection, raise `--playwright-post-dwell-seconds` (default 1.5s) to give each post page more time to settle before reading it.
+   The CLI's hardcoded default is `cdp` (drives a logged-in Chrome DevTools session via the in-repo `agents/automata_core/ig-research` tool — see `python scripts/open-instagram-session.py`), but `playwright` is the recommended choice for Instagram: it is the only scraper that reads the real caption, like count, comment count, and date off each post's `og:description` meta tag (CDP only gets engagement counts, no captions). No paid service is needed for any scraper. On a one-time first run, do `--instagram-login-mode manual` to open a visible browser and log in once — it's saved to `~/.agency/ig_session.json` and reused after that. If captions/likes come back empty on a slow connection, raise `--playwright-post-dwell-seconds` (default 1.5s) to give each post page more time to settle before reading it.
 
-   Use `browser-act` for stealth/session extraction, or `apify` for managed scraping (requires `APIFY_API_TOKEN`) — neither is needed for normal Instagram research.
+   Use `browser-act` for stealth/session extraction; it is not needed for normal Instagram research.
+
+   LinkedIn, Facebook, Reddit, X and the Meta Ad Library website are read through a real browser: `--social-backend playwright` (default) or `browser-act` (default when `--scraper browser-act`). Both are free and give the same data. LinkedIn company pages, Reddit and the Ad Library work logged out; Facebook shows only a preview and X shows nothing until you log in once:
+
+   ```bash
+   python scripts/open-instagram-session.py --mode playwright --site linkedin        # or facebook, x
+   python scripts/open-instagram-session.py --mode browser-act --site facebook --wait # same, in the browser-act browser
+   ```
 
    If Instagram rendered pages hit a login wall, do not keep retrying public extraction. Ask the user to complete the one-time login helper, then rerun with the matching scraper:
 
@@ -68,9 +75,11 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 ## Platform Notes
 
-- **Instagram**: use `playwright` — local browser-based scraping that captures real captions/likes/comments via `og:description`, one-time manual login. `cdp` (CLI default) works off a user-logged-in Chrome profile via `scripts/open-instagram-session.py` but only gets engagement counts, no captions. `browser-act` for stealth/session extraction or `apify` for managed scraping are available but unnecessary for normal use.
-- **LinkedIn** (Apify): requires `APIFY_API_TOKEN` env var. If missing, skip with a note.
-- **Facebook** (Graph API + Apify): owned pages need `FB_PAGE_ACCESS_TOKEN`; competitor pages need `APIFY_API_TOKEN`.
+- **Instagram**: use `playwright` — local browser-based scraping that captures real captions/likes/comments via `og:description`, one-time manual login. `cdp` (CLI default) works off a user-logged-in Chrome profile via `scripts/open-instagram-session.py` but only gets engagement counts, no captions. `browser-act` for stealth/session extraction is available but unnecessary for normal use.
+- **LinkedIn** (browser): company page followers, description and ~10 recent posts with reactions/comments work logged out; log in once for more posts.
+- **Facebook** (Graph API + browser): owned pages via `FB_PAGE_ACCESS_TOKEN`; competitor pages through the browser (log in once, otherwise only a preview; `scrape_status` says `partial`).
+- **Reddit / X listening** (browser): Reddit works logged out; X needs a one-time login.
+- **Meta Ad Library**: `META_AD_LIBRARY_TOKEN` if set, otherwise the public Ad Library website through the browser.
 
 ## Standalone Use
 
@@ -91,7 +100,6 @@ Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use thes
 
 - **Playwright** - browser automation for public pages, screenshots, form flows, and page extraction.
 - **Chrome DevTools** - inspect live pages, console output, network requests, screenshots, and performance.
-- **Apify** (`APIFY_API_TOKEN`) - managed Actor-backed scraping for social and web workflows.
 - **NotebookLM** - optional source-grounded synthesis when `--notebooklm` is used and the user has logged in.
 
 ## Common Flags
@@ -100,16 +108,14 @@ Agent-scoped MCP configuration is stored in `mcp/agents/research.json`. Use thes
 - `--list` - show past research runs for the brand
 - `--latest` - print the most recent research output
 - `--platforms ig` - scrape only Instagram
-- `--scraper apify` - use Apify's managed Instagram scraper (default); requires `APIFY_API_TOKEN`
-- `--scraper playwright` - use local browser-based scraping
-- `--scraper browser-act` - use browser-act extraction for public or session-backed Instagram pages; best combined with `--parallel`
-- `--scraper cdp` - use a Chrome DevTools Protocol session opened by `scripts/open-instagram-session.py`
 - `--scraper cdp` - use a Chrome DevTools Protocol session opened by `scripts/open-instagram-session.py` (default)
 - `--scraper playwright` - use local browser-based scraping
 - `--scraper browser-act` - use browser-act extraction for public or session-backed Instagram pages; best combined with `--parallel`
 - `--browser-act-proxy-region US` - pass a dynamic proxy region to browser-act for Instagram discovery pages that are more aggressively gated. **Paid** (BrowserAct proxy credits); everything else in browser-act is free, so use it only when asked
 - `--browser-act-mode session` - read pages through a saved, logged-in browser-act browser (free; the reliable choice for Instagram, since logged-out stealth extraction hits the login wall)
 - `--browser-act-browser instagram-research` - which saved browser holds the Instagram login (default `instagram-research`; list them with `browser-act browser list`). Log in once with `python scripts/open-instagram-session.py --mode browser-act --wait`
+- `--social-backend playwright|browser-act` - how LinkedIn, Facebook, Reddit, X and the Ad Library website are read (default follows `--scraper`)
+- `--social-login-mode manual` - Playwright: open a visible browser to log in to a site the first time it is needed
 - `--instagram-login-mode manual` - for Playwright Instagram runs, open a visible browser for one manual login and reuse the saved session afterward
 - `--parallel` - run independent platform/source/analyzer jobs concurrently
 - `--max-workers 4` - cap parallel research workers

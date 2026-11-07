@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS = os.name == "nt"
 VENV_PYTHON = ROOT / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python")
-API_KEYS = ("APIFY_API_TOKEN",)
+API_KEYS: tuple[str, ...] = ()  # keys every machine needs; optional ones are listed in env.example
 
 
 def ok(message: str) -> None:
@@ -258,6 +258,8 @@ def main(argv: list[str] | None = None) -> int:
         found = os.environ.get(key) or any(line.strip().startswith(f"{key}=") and line.split("=", 1)[1].strip()
                                            for line in dotenv.splitlines())
         (ok if found else warn)(f"{key} {'is set' if found else 'is not set (add it to .env; see env.example)'}")
+    if not API_KEYS:
+        ok("no keys are required; optional ones (Facebook, Meta Ad Library, image/video services) are in env.example")
 
     step("Scheduled jobs (vault index 02:30, housekeeper 03:00, vault watchdog at login if a vault is set)")
     wanted = args.schedules

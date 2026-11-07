@@ -202,12 +202,18 @@ python3 scripts/schedule.py install vault-watchdog    # session backlinks, runs 
 Make equivalents: `make bootstrap`, `make deps`, `make dry-run BRAND=x`, `make research BRAND=x PARALLEL=1`,
 `make pipeline BRAND=x TYPE=carousel TOPIC="5 tips"`, `make vault-index`, `make install-vault-index`.
 
-Instagram login/session helpers:
+Login/session helpers (Instagram by default; `--site linkedin|facebook|x` for the other research sites):
 
 ```bash
 python3 scripts/open-instagram-session.py --cdp-port 9224 --wait          # CDP: persistent Chrome/Edge profile
 python3 scripts/open-instagram-session.py --mode browser-act --wait       # browser-act session
+python3 scripts/open-instagram-session.py --mode playwright --site linkedin   # Playwright: one visible login, saved
+python3 scripts/open-instagram-session.py --mode browser-act --site facebook --wait
 ```
+
+LinkedIn, Facebook, Reddit, X and the Meta Ad Library website are read through a real browser, Playwright or
+browser-act (`--social-backend`; default follows `--scraper`). Both are free. LinkedIn company pages, Reddit
+and the Ad Library work logged out; Facebook shows only a preview and X nothing until you log in once.
 
 Use the CDP helper when rendered Instagram post pages hit a login wall. It opens the persistent profile
 `~/.agency/chrome-instagram-cdp` (the same profile the Playwright MCP uses); log in once and keep the browser
@@ -222,7 +228,6 @@ Research agent:
 - `playwright`
 - `chrome-devtools`
 - `notebooklm`
-- `apify`
 
 Storyboard agent:
 

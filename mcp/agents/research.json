@@ -6,7 +6,6 @@
       "args": ["scripts/mcp-npx.mjs", "-y", "@playwright/mcp@0.0.84", "--user-data-dir", "~/.agency/chrome-instagram-cdp", "--output-dir", "~/.agency/playwright-mcp-output"],
       "purpose": "Browser automation for public pages, accessibility snapshots, forms, screenshots, and data extraction."
     },
-
     "chrome-devtools": {
       "command": "node",
       "args": ["scripts/mcp-npx.mjs", "-y", "chrome-devtools-mcp@1.12.0"],
@@ -16,14 +15,6 @@
       "command": "node",
       "args": ["scripts/mcp-npx.mjs", "-y", "@roomi-fields/notebooklm-mcp@4.4.0"],
       "purpose": "Interact with Google NotebookLM notebooks for source-grounded Q&A and notebook workflows."
-    },
-    "apify": {
-      "command": "node",
-      "args": ["scripts/mcp-npx.mjs", "-y", "@apify/actors-mcp-server@0.21.4"],
-      "env": {
-        "APIFY_TOKEN": "${APIFY_API_TOKEN}"
-      },
-      "purpose": "Run Apify Actors for Instagram, LinkedIn, TikTok, and web scraping at scale."
     }
   }
 }

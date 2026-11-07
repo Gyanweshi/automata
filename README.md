@@ -44,7 +44,7 @@ automata/
 │   ├── agency-housekeeper/        ← Workspace & vault retention hygiene
 │   └── [image, video, design...]  ← Image editing, generation, upscaling, slides
 │
-├── 🤖 agents/automata_core/       ← Autonomous agent loop and the CDP Instagram scraper
+├── 🤖 agents/automata_core/       ← Autonomous agent loop
 ├── ⚙️ core/                       ← Unified CLI runner and session logging
 ├── 🔌 mcp/                        ← Agent-scoped Model Context Protocol manifests
 ├── 🛠️ scripts/                    ← One cross-platform toolchain: bootstrap, doctor, deps, schedule, run-agent
@@ -266,7 +266,6 @@ Automata connects agents directly to external browsers, design tools, and AI gen
 | `playwright` | Research | None | Headless browser automation and page scraping |
 | `chrome-devtools` | Research | None | Console inspection, network monitoring, screenshots |
 | `notebooklm` | Research | Google Login | Grounded Q&A against source documents |
-| `apify` | Research | `APIFY_API_TOKEN` | Actor-backed social media extraction (Instagram, LinkedIn) |
 | `figma` | Design | Figma Desktop | Canvas context inspection and vector delivery |
 | `higgsfield` | Storyboard / Content | Higgsfield OAuth | Up to 4K image and video generation |
 | `magnific` | Storyboard / Content | Magnific OAuth | AI upscaling, restyling, and generation history |
@@ -283,7 +282,6 @@ Automata connects agents directly to external browsers, design tools, and AI gen
 |---|---|---|
 | `OPENAI_API_KEY` | GPT models + Sora video | ✅ Yes (or Anthropic) |
 | `ANTHROPIC_API_KEY` | Claude 3.5 / 3.7 models | ✅ Yes (or OpenAI) |
-| `APIFY_API_TOKEN` | Social media scrapers | Recommended for social research |
 | `GOOGLE_API_KEY` | Gemini and Veo models | Optional |
 | `COMPOSIO_API_KEY` | 10,000+ app integrations (Slack, Gmail, HubSpot) | Optional (for Virtual Assistant) |
 | `PEXELS_API_KEY` / `UNSPLASH_ACCESS_KEY` | Stock photography in presentations | Optional (for Slides Agent) |
@@ -338,11 +336,9 @@ command required.
 <details>
 <summary><strong>MCP server returns authentication error</strong></summary>
 
-Check that your environment variable is loaded in your current shell:
-```bash
-echo "$APIFY_API_TOKEN"
-```
-Ensure keys are exported in `.env` or your shell configuration (`~/.bashrc`, `~/.zshrc`).
+Servers that need a key read it from `.env` in the repo root (see `env.example`); ones that need a login
+(NotebookLM, Higgsfield, Magnific) are authenticated from the client (`/mcp` in Claude Code).
+`python scripts/mcp-smoke.py <server>` starts one exactly as configured and lists its tools.
 </details>
 
 ---

@@ -8,7 +8,7 @@ Use it around every MCP version bump: run before `deps.py set-pin`, run after, c
     python scripts/mcp-smoke.py chrome-devtools --compare before.txt
 
 Stdio servers only (remote http servers need OAuth in the client). Loads .env so servers that need API keys
-(apify) can start. Standard library only.
+can start. Standard library only.
 """
 from __future__ import annotations
 

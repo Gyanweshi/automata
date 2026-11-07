@@ -52,5 +52,4 @@ class RateLimiter:
 
 # Pre-built limiters matching platform constraints
 instagram_limiter = RateLimiter(calls=200, period=3600)   # ~200/hour
-apify_limiter = RateLimiter(calls=60, period=60)          # 60/min
 facebook_limiter = RateLimiter(calls=200, period=3600)    # Graph API

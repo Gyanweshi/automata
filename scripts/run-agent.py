@@ -52,6 +52,10 @@ def research_args(a: argparse.Namespace) -> list[str]:
             "--browser-act-session-name", a.browser_act_session_name]
     if a.browser_act_browser:
         args += ["--browser-act-browser", a.browser_act_browser]
+    if a.social_backend:
+        args += ["--social-backend", a.social_backend]
+    if a.social_login_mode != "auto":
+        args += ["--social-login-mode", a.social_login_mode]
     if a.platforms:
         args += ["--platforms", a.platforms]
     if a.parallel:
@@ -91,7 +95,10 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--workspace", default=os.environ.get("AGENCY_WORKSPACE", "./workspace"))
     p.add_argument("--brands-dir", default=os.environ.get("AGENCY_BRANDS_DIR", "./brands"))
     p.add_argument("--platforms", default="")
-    p.add_argument("--scraper", default="apify", choices=["apify", "playwright", "browser-act", "cdp"])
+    p.add_argument("--scraper", default="cdp", choices=["playwright", "browser-act", "cdp"])
+    p.add_argument("--social-backend", default="", choices=["", "playwright", "browser-act"],
+                   help="how LinkedIn/Facebook/Reddit/X are read (default: follows --scraper)")
+    p.add_argument("--social-login-mode", default="auto", choices=["auto", "manual"])
     p.add_argument("--instagram-login-mode", default="auto", choices=["auto", "manual"])
     p.add_argument("--browser-act-mode", default="stealth", choices=["stealth", "session"])
     p.add_argument("--browser-act-session-name", default="")

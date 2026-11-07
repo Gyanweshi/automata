@@ -5,7 +5,7 @@ ads prove a specific hook, angle, or visual style is converting — not just tre
 
 Authentication options (in priority order):
   1. META_AD_LIBRARY_TOKEN — Facebook access token with ads_read permission
-  2. APIFY_API_TOKEN       — Falls back to Apify curious_coder/facebook-ads-scraper
+  2. No token              — reads the public Ad Library website through a browser (Playwright or browser-act)
 """
 from __future__ import annotations
 
@@ -13,9 +13,14 @@ import logging
 from collections import Counter
 from datetime import datetime, timedelta
 
+from urllib.parse import quote_plus
+
 import requests
 
 from agency_common.models import AdLibraryAd, AdLibraryReport
+
+from .page_fetch import PageFetcher, make_fetcher
+from .social_parsers import parse_ad_library
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,11 +34,11 @@ class MetaAdsLibraryScraper:
     def __init__(
         self,
         access_token: str = "",
-        apify_token: str = "",
+        fetcher: PageFetcher | None = None,
         dry_run: bool = False,
     ):
         self.access_token = access_token
-        self.apify_token = apify_token
+        self.fetcher = fetcher
         self.dry_run = dry_run
 
     def audit(
@@ -65,7 +70,7 @@ class MetaAdsLibraryScraper:
             if self.access_token:
                 ads = self._fetch_via_graph_api(keyword, countries, cutoff_date, limit_per_keyword)
             else:
-                ads = self._fetch_via_apify(keyword, limit_per_keyword)
+                ads = self._fetch_via_website(keyword, limit_per_keyword, countries)
             all_ads.extend(ads)
 
         return self._build_report(keywords, all_ads, min_days_running)
@@ -144,57 +149,22 @@ class MetaAdsLibraryScraper:
         )
 
     # ------------------------------------------------------------------
-    # Apify fallback (no Graph API token needed)
+    # Website fallback (no token needed): the public Ad Library search page
     # ------------------------------------------------------------------
 
-    def _fetch_via_apify(self, keyword: str, limit: int) -> list[AdLibraryAd]:
-        if not self.apify_token:
-            LOGGER.warning(
-                "Neither META_AD_LIBRARY_TOKEN nor APIFY_API_TOKEN set — "
-                "skipping Meta Ad Library scrape"
-            )
+    def _fetch_via_website(self, keyword: str, limit: int, countries: list[str] | None = None) -> list[AdLibraryAd]:
+        fetcher = self.fetcher or make_fetcher("facebook")
+        country = (countries or ["ALL"])[0] if countries and len(countries) == 1 else "ALL"
+        url = ("https://www.facebook.com/ads/library/?active_status=active&ad_type=all&media_type=all"
+               f"&search_type=keyword_unordered&country={country}&q={quote_plus(keyword)}")
+        page = fetcher.fetch(url, scrolls=max(1, limit // 10))
+        if not page.ok:
+            LOGGER.warning("Meta Ad Library website failed for '%s': %s", keyword, page.error or page.status)
             return []
-
-        try:
-            from apify_client import ApifyClient
-            client = ApifyClient(self.apify_token)
-            run_input = {
-                "searchTerms": [keyword],
-                "activeStatus": "active",
-                "maxAds": limit,
-            }
-            run = client.actor("curious_coder/facebook-ads-scraper").call(run_input=run_input)
-            items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
-            ads = [self._parse_apify_ad(item) for item in items]
-            LOGGER.info("Meta Ad Library (Apify): %d ads for '%s'", len(ads), keyword)
-            return ads
-        except Exception as exc:
-            LOGGER.error("Apify Meta Ads fallback failed for '%s': %s", keyword, exc)
-            return []
-
-    def _parse_apify_ad(self, item: dict) -> AdLibraryAd:
-        start_date = item.get("startDate", "") or item.get("startedRunningAt", "")
-        days_running = int(item.get("daysRunning", 0) or 0)
-        if not days_running and start_date:
-            try:
-                started = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
-                days_running = (datetime.now(tz=started.tzinfo) - started).days
-            except Exception as e:
-                import os
-                import logging
-                if os.environ.get("AGENCY_DEBUG") == "1":
-                    logging.getLogger(__name__).error(e, exc_info=True)
-
-        return AdLibraryAd(
-            ad_id=str(item.get("id", "") or item.get("adId", "")),
-            page_name=item.get("pageName", "") or item.get("advertiser", ""),
-            started_running=start_date,
-            days_running=days_running,
-            ad_copy=(item.get("body", "") or item.get("adCopy", ""))[:500],
-            cta=item.get("callToAction", "") or item.get("cta", ""),
-            hook=(item.get("headline", "") or item.get("title", "") or "")[:200],
-            url=item.get("url", "") or item.get("adUrl", ""),
-        )
+        ads = [AdLibraryAd(url=f"https://www.facebook.com/ads/library/?id={item['ad_id']}", **item)
+               for item in parse_ad_library(page.html, limit=limit)]
+        LOGGER.info("Meta Ad Library (website): %d ads for '%s'", len(ads), keyword)
+        return ads
 
     # ------------------------------------------------------------------
     # Report synthesis

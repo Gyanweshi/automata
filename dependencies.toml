@@ -201,20 +201,6 @@ on_break = "Usually an expired Google session (check with its server_health tool
 upstream = "npm:@roomi-fields/notebooklm-mcp"
 
 [[dependency]]
-id = "apify-mcp"
-name = "@apify/actors-mcp-server"
-kind = "mcp-npm"
-category = "MCP servers"
-purpose = "Apify actors (Instagram, LinkedIn extraction)."
-used_by = ["research agent"]
-required = false
-pin = "0.21.4"
-pin_files = [{ file = "mcp/agents/research.json", pattern = "@apify/actors-mcp-server@{version}" }]
-update = "python scripts/deps.py set-pin apify-mcp NEW"
-on_break = "Check APIFY_API_TOKEN is set and the account has credit."
-upstream = "npm:@apify/actors-mcp-server"
-
-[[dependency]]
 id = "blender-mcp"
 roles = ["3d"]
 name = "blender-mcp"

@@ -12,7 +12,6 @@ class AgencyConfig:
         OBSIDIAN_VAULT_PATH   — path to Obsidian vault root
         ANTHROPIC_API_KEY     — Anthropic / Claude API key
         PERPLEXITY_API_KEY    — Perplexity MCP server key
-        APIFY_API_TOKEN       — Apify token for scraping
         FB_PAGE_ACCESS_TOKEN  — Facebook Graph API token (owned pages)
         CAPSULEHUB_API_KEY    — CapsuleHub / Tilantra API key
         META_AD_LIBRARY_TOKEN — Facebook/Meta access token for Ad Library API
@@ -35,7 +34,6 @@ class AgencyConfig:
     openai_api_base: str = field(default_factory=lambda: os.environ.get("OPENAI_API_BASE", ""))
     openai_api_key: str = field(default_factory=lambda: os.environ.get("OPENAI_API_KEY", ""))
     perplexity_api_key: str = field(default_factory=lambda: os.environ.get("PERPLEXITY_API_KEY", ""))
-    apify_token: str = field(default_factory=lambda: os.environ.get("APIFY_API_TOKEN", ""))
     fb_page_access_token: str = field(default_factory=lambda: os.environ.get("FB_PAGE_ACCESS_TOKEN", ""))
     capsulehub_api_key: str = field(default_factory=lambda: os.environ.get("CAPSULEHUB_API_KEY", ""))
     meta_ad_library_token: str = field(default_factory=lambda: os.environ.get("META_AD_LIBRARY_TOKEN", ""))
@@ -50,7 +48,6 @@ class AgencyConfig:
         """Return a list of missing required config keys. Empty list = all good."""
         checks = {
             "anthropic_api_key": self.anthropic_api_key,
-            "apify_token": self.apify_token,
             "fb_page_access_token": self.fb_page_access_token,
             "perplexity_api_key": self.perplexity_api_key,
             "capsulehub_api_key": self.capsulehub_api_key,

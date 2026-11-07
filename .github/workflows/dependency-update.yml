@@ -35,8 +35,6 @@ jobs:
           npm ci --no-audit --no-fund
           npm ci --no-audit --no-fund --prefix agents/automata_core/ig-research
       - name: Compute safe updates
-        env:
-          APIFY_API_TOKEN: ${{ secrets.APIFY_API_TOKEN }}   # optional: without it the apify MCP is not bumped
         run: python scripts/deps.py update --cooldown-days "${{ inputs.cooldown_days || '14' }}" --report "$RUNNER_TEMP/report.md"
       - name: Collect changed files
         id: diff
