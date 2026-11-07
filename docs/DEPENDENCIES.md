@@ -323,7 +323,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **If it breaks:** Canary software. Roll back: `python scripts/deps.py set-pin raea OLD && python scripts/deps.py install raea`. Upstream's own installer can pick a web-* release and 404; use deps.py instead.
 
 #### browser-act CLI (`browser-act`)
-- **Install:** all: `uv tool install --python 3.12 --force browser-act-cli==1.6.2`
+- **Install:** all: `uv tool install --python 3.12 --force browser-act-cli==1.6.2 && uv tool update-shell`
 - **Update:** python scripts/deps.py set-pin browser-act NEW && python scripts/deps.py install browser-act
 - **If it breaks:** Reinstall: `uv tool install --python 3.12 --force browser-act-cli==PIN` (1.x ships only Python 3.12 wheels). Session mode needs the saved browser named in BROWSER_ACT_BROWSER (default instagram-research; `browser-act browser list`). Free for local Chrome browsers, stealth-extract and captcha solving; only BrowserAct proxies and more than 5 stealth browsers cost credits, and the scraper uses a proxy only when BROWSER_ACT_PROXY_REGION is set.
 

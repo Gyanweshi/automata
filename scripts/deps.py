@@ -54,6 +54,37 @@ def deps_by_id(manifest: dict) -> dict[str, dict]:
 ALL_ROLES = ("research", "video", "slides", "images", "3d")
 
 
+def refresh_path() -> None:
+    """Check against the PATH a newly opened terminal would have, not this process's possibly stale one.
+
+    Installers (winget, the Node MSI, uv tool, deps.py itself) update PATH for new terminals only, and IDE terminals
+    keep the old value until the IDE restarts; without this, freshly installed tools look missing.
+    """
+    home = Path.home()
+    parts: list[str] = []
+    if os.name == "nt":
+        import winreg
+
+        for hive, key in ((winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+                          (winreg.HKEY_CURRENT_USER, "Environment")):
+            try:
+                with winreg.OpenKey(hive, key) as handle:
+                    parts += os.path.expandvars(winreg.QueryValueEx(handle, "Path")[0]).split(os.pathsep)
+            except OSError:
+                continue
+        local = Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local"))
+        known = [local / "Microsoft" / "WinGet" / "Links", home / ".local" / "bin", home / ".cargo" / "bin",
+                 Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "nodejs", home / ".raea" / "bin"]
+    else:  # login-shell additions: uv/pipx tools, cargo, raea, and fnm's default Node ahead of a system Node
+        known = [home / ".local" / "share" / "fnm" / "aliases" / "default" / "bin", home / ".local" / "bin",
+                 home / ".cargo" / "bin", home / ".raea" / "bin"]
+    known_dirs = [str(d) for d in known if d.is_dir()]
+    ordered = (known_dirs[:1] + [p for p in os.environ.get("PATH", "").split(os.pathsep)] + parts + known_dirs[1:]) \
+        if os.name != "nt" else ([p for p in os.environ.get("PATH", "").split(os.pathsep)] + parts + known_dirs)
+    seen: set[str] = set()
+    os.environ["PATH"] = os.pathsep.join(p for p in ordered if p and not (p in seen or seen.add(p)))
+
+
 def machine_roles() -> set[str]:
     """Roles this machine was set up for (AUTOMATA_ROLES in the environment or .env): 'all', none, or a list."""
     raw = os.environ.get("AUTOMATA_ROLES")
@@ -418,7 +449,7 @@ def cmd_check(manifest: dict, pins_only: bool, only: list[str]) -> int:
         elif state == "n/a":
             print(f"-     {dep['id']:22} {detail}")
         else:
-            label = "FAIL " if dep.get("required") else "warn "
+            label = "FAIL " if dep.get("required") else ("warn " if dep.get("roles") else "info ")
             errors += 1 if dep.get("required") else 0
             hint = install_command(dep) or f"python scripts/deps.py install {dep['id']}"
             print(f"{label} {dep['id']:22} {state}: {detail}  ->  {hint}")
@@ -542,6 +573,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     manifest = load()
+    refresh_path()
     if args.command == "list":
         return cmd_list(manifest)
     if args.command == "check":

@@ -10,6 +10,7 @@ installing something, or whenever a machine feels broken. Each failing step says
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import os
 import re
 import shutil
@@ -43,7 +44,7 @@ def pin(dep_id: str) -> str:
 
 def check_dependencies():
     code, out = run([sys.executable, "scripts/deps.py", "check"])
-    warns = [line for line in out.splitlines() if line.startswith("warn")]
+    warns = [line for line in out.splitlines() if line.startswith("warn")]  # info lines (untagged extras) don't count
     if code:
         return FAIL, "a required dependency is missing or a pin disagrees", out
     return (WARN, f"{len(warns)} optional tool(s) missing (install with deps.py install ID)", "\n".join(warns)) if warns \
@@ -178,6 +179,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--quick", action="store_true")
     args = parser.parse_args(argv)
+    # judge the machine by what a newly opened terminal sees (installers only update PATH for new terminals)
+    spec = importlib.util.spec_from_file_location("deps_for_doctor", ROOT / "scripts" / "deps.py")
+    deps_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(deps_module)
+    deps_module.refresh_path()
 
     checks = [
         ("Dependencies installed (deps.py check)", check_dependencies),
