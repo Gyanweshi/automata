@@ -1,4 +1,4 @@
-"""Nightly jobs (vault index rebuild, housekeeper purge): run them and schedule them on Linux or Windows.
+"""Scheduled jobs: nightly (vault index rebuild, housekeeper purge) and background (vault watchdog).
 
 One implementation for both machines. `run` executes a job with logging under .housekeeper/logs; `install`
 registers it with the native scheduler (systemd user timer, else cron, on Linux; Task Scheduler on Windows),
@@ -8,6 +8,7 @@ always calling `scripts/schedule.py run JOB` with the repo's venv Python, so no 
     python scripts/schedule.py install vault-index [--daily-at 02:30]
     python scripts/schedule.py install housekeeper [--daily-at 03:00] [--retention-days 7]
     python scripts/schedule.py install housekeeper --dry-run     # print what would be registered
+    python scripts/schedule.py install vault-watchdog            # background: starts at login, restarts on failure
 """
 from __future__ import annotations
 
@@ -41,6 +42,8 @@ class Job:
     task: str  # Windows Task Scheduler name
     log_filter: str | None = None  # keep only matching output lines in the log
     nice: bool = False
+    background: bool = False  # True: long-running, starts at login, restarted by `run` after a crash
+    linux_system_unit: str | None = None  # an existing system-wide unit that already provides this job
 
 
 JOBS: dict[str, Job] = {
@@ -68,7 +71,22 @@ JOBS: dict[str, Job] = {
         unit="automata-housekeeper",
         task="Automata Housekeeper",
     ),
+    "vault-watchdog": Job(
+        name="vault-watchdog",
+        module="vault_watchdog",
+        args=("--commit-vault", "--commit-reason", "auto Related Concepts backlinks on new session notes"),
+        log_name="vault-watchdog.log",
+        default_time="",
+        timeout_minutes=0,
+        description="Links new Agent_Sessions notes to related vault notes (Related Concepts backlinks).",
+        unit="automata-vault-watchdog",
+        task="Automata Vault Watchdog",
+        background=True,
+        linux_system_unit="/etc/systemd/system/vault-watchdog.service",
+    ),
 }
+
+RESTART_DELAY_SECONDS = 10
 
 
 class ScheduleError(RuntimeError):
@@ -106,6 +124,25 @@ def job_command(job: Job, repo: Path, system: str, retention_days: int) -> list[
 
 # ---------------------------------------------------------------- run
 
+def run_background(job: Job, repo: Path, env: dict, log_path: Path) -> int:
+    """Run a long-lived job forever, appending its output to the log and restarting it after it exits.
+
+    A restart also covers the vault drive not being mounted yet when the job starts at login.
+    """
+    import time
+
+    while True:
+        started = dt.datetime.now().astimezone().isoformat(timespec="seconds")
+        with log_path.open("a", encoding="utf-8") as log:
+            log.write(f"[{started}] starting {job.name}\n")
+            log.flush()
+            code = subprocess.run([sys.executable, "-m", job.module, *job.args], cwd=repo, env=env,  # nosec B603
+                                  stdout=log, stderr=subprocess.STDOUT).returncode
+            log.write(f"[{dt.datetime.now().astimezone().isoformat(timespec='seconds')}] {job.name} exited {code}; "
+                      f"restarting in {RESTART_DELAY_SECONDS}s\n")
+        time.sleep(RESTART_DELAY_SECONDS)
+
+
 def run_job(job_name: str, *, repo: Path = REPO, retention_days: int = 7) -> int:
     job = JOBS[job_name]
     log_dir = repo / ".housekeeper" / "logs"
@@ -115,6 +152,8 @@ def run_job(job_name: str, *, repo: Path = REPO, retention_days: int = 7) -> int
     env = dict(os.environ)
     source = str(repo / "packages" / "agency-common" / "src")
     env["PYTHONPATH"] = os.pathsep.join(p for p in (source, env.get("PYTHONPATH")) if p)
+    if job.background:
+        return run_background(job, repo, env, log_path)
     started = dt.datetime.now().astimezone().isoformat(timespec="seconds")
     # cwd = repo: the vault path comes from .env, which is looked up from the working directory
     result = subprocess.run([sys.executable, "-m", job.module, *args], cwd=repo, env=env,  # nosec B603
@@ -145,6 +184,13 @@ def systemd_quote(arg: str) -> str:
 
 def linux_systemd_plan(job: Job, repo: Path, daily_at: str, retention_days: int, unit_dir: Path) -> Plan:
     command = " ".join(systemd_quote(a) for a in job_command(job, repo, "linux", retention_days))
+    if job.background:
+        service = (f"[Unit]\nDescription={job.description}\n\n[Service]\nType=simple\n"
+                   f"WorkingDirectory={repo}\nExecStart={command}\nRestart=on-failure\nRestartSec=10\n\n"
+                   "[Install]\nWantedBy=default.target\n")
+        return Plan("linux-systemd-user", {str(unit_dir / f"{job.unit}.service"): service},
+                    [["systemctl", "--user", "daemon-reload"],
+                     ["systemctl", "--user", "enable", "--now", f"{job.unit}.service"]])
     service = (f"[Unit]\nDescription={job.description}\n\n[Service]\nType=oneshot\n"
                f"WorkingDirectory={repo}\n"  # systemd reads this path literally: no quotes + ("Nice=10\n" if job.nice else "")
                + f"ExecStart={command}\n")
@@ -157,8 +203,10 @@ def linux_systemd_plan(job: Job, repo: Path, daily_at: str, retention_days: int,
 
 
 def cron_line(job: Job, repo: Path, daily_at: str, retention_days: int) -> str:
-    hour, minute = (int(p) for p in daily_at.split(":"))
     command = " ".join(shlex.quote(a) for a in job_command(job, repo, "linux", retention_days))
+    if job.background:
+        return f"@reboot cd {shlex.quote(str(repo))} && {command} # {job.unit}"
+    hour, minute = (int(p) for p in daily_at.split(":"))
     return f"{minute} {hour} * * * cd {shlex.quote(str(repo))} && {command} # {job.unit}"
 
 
@@ -172,13 +220,17 @@ def windows_plan(job: Job, repo: Path, daily_at: str, retention_days: int) -> Pl
     script = "; ".join([
         f"$a = New-ScheduledTaskAction -Execute {ps_quote(exe)} -Argument {ps_quote(argument)} "
         f"-WorkingDirectory {ps_quote(str(repo))}",
-        f"$t = New-ScheduledTaskTrigger -Daily -At {ps_quote(daily_at)}",
-        f"$s = New-ScheduledTaskSettingsSet -StartWhenAvailable "
-        f"-ExecutionTimeLimit (New-TimeSpan -Minutes {job.timeout_minutes})",
+        ("$t = New-ScheduledTaskTrigger -AtLogOn -User ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"
+         if job.background else f"$t = New-ScheduledTaskTrigger -Daily -At {ps_quote(daily_at)}"),
+        ("$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew "
+         "-ExecutionTimeLimit ([TimeSpan]::Zero)" if job.background else
+         f"$s = New-ScheduledTaskSettingsSet -StartWhenAvailable "
+         f"-ExecutionTimeLimit (New-TimeSpan -Minutes {job.timeout_minutes})"),
         "$p = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) "
         "-LogonType Interactive -RunLevel Limited",
         f"Register-ScheduledTask -TaskName {ps_quote(job.task)} -Action $a -Trigger $t -Settings $s -Principal $p "
         f"-Description {ps_quote(job.description)} -Force | Out-Null",
+        *([f"Start-ScheduledTask -TaskName {ps_quote(job.task)}"] if job.background else []),
         f"Get-ScheduledTask -TaskName {ps_quote(job.task)} | Select-Object TaskName, State",
     ])
     powershell = shutil.which("powershell.exe") or "powershell.exe"
@@ -193,18 +245,26 @@ def systemd_user_available() -> bool:
 
 
 def build_plan(job_name: str, *, repo: Path = REPO, system_name: str | None = None, daily_at: str | None = None,
-               retention_days: int = 7, use_systemd: bool | None = None) -> Plan:
+               retention_days: int = 7, use_systemd: bool | None = None,
+               system_unit_path: str | None = None) -> Plan:
     if job_name not in JOBS:
         raise ScheduleError(f"Unknown job {job_name}; choose from {', '.join(JOBS)}")
     job = JOBS[job_name]
     daily_at = daily_at or job.default_time
-    validate(daily_at, retention_days)
+    if job.background:
+        daily_at = ""
+        if retention_days < 1:
+            raise ScheduleError("Retention must be at least one day")
+    else:
+        validate(daily_at, retention_days)
     repo = Path(repo).resolve()
     if not repo.is_dir() or repo.parent == repo:
         raise ScheduleError("Repo must be an existing non-root directory")
     system = normalize_system(system_name)
     if system == "windows":
         return windows_plan(job, repo, daily_at, retention_days)
+    if job.linux_system_unit and Path(system_unit_path or job.linux_system_unit).exists():
+        return Plan("linux-system-service (already installed; nothing to do)")
     if use_systemd is None:
         use_systemd = systemd_user_available()
     if use_systemd:

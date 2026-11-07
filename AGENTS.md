@@ -162,6 +162,7 @@ python3 scripts/run-agent.py pipeline --brand example-brand --type carousel --to
 python3 scripts/schedule.py run vault-index           # rebuild the vault search index now
 python3 scripts/schedule.py install vault-index       # nightly rebuild (systemd/cron on Linux, Task Scheduler on Windows)
 python3 scripts/schedule.py install housekeeper       # nightly quarantine purge
+python3 scripts/schedule.py install vault-watchdog    # session backlinks, runs from login (Linux: defers to an existing vault-watchdog.service)
 ```
 
 Make equivalents: `make bootstrap`, `make deps`, `make dry-run BRAND=x`, `make research BRAND=x PARALLEL=1`,

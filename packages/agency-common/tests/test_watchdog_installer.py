@@ -62,3 +62,40 @@ def test_unsupported_system_fails_instead_of_guessing():
 def test_invalid_daily_time_is_rejected(repo, daily_at):
     with pytest.raises(WatchdogInstallError, match="HH:MM"):
         build_plan("housekeeper", repo=repo, system_name="Linux", daily_at=daily_at, use_systemd=True)
+
+
+def test_windows_vault_watchdog_starts_at_logon_without_time_limit(repo, monkeypatch):
+    monkeypatch.setattr("shutil.which", lambda _name: "powershell.exe")
+    plan = build_plan("vault-watchdog", repo=repo, system_name="Windows")
+
+    script = plan.commands[0][-1]
+    assert "New-ScheduledTaskTrigger -AtLogOn" in script
+    assert "-ExecutionTimeLimit ([TimeSpan]::Zero)" in script
+    assert "Start-ScheduledTask -TaskName 'Automata Vault Watchdog'" in script
+    assert "schedule.py run vault-watchdog" in script
+
+
+def test_linux_vault_watchdog_is_a_restarting_user_service(repo, tmp_path):
+    plan = build_plan("vault-watchdog", repo=repo, system_name="Linux", use_systemd=True,
+                      system_unit_path=str(tmp_path / "absent.service"))
+
+    service = next(v for k, v in plan.files.items() if k.endswith("automata-vault-watchdog.service"))
+    assert "Type=simple" in service and "Restart=on-failure" in service
+    assert not any(k.endswith(".timer") for k in plan.files)
+    assert ["systemctl", "--user", "enable", "--now", "automata-vault-watchdog.service"] in plan.commands
+
+
+def test_linux_vault_watchdog_defers_to_an_existing_system_service(repo, tmp_path):
+    existing = tmp_path / "vault-watchdog.service"
+    existing.write_text("[Service]\n", encoding="utf-8")
+    plan = build_plan("vault-watchdog", repo=repo, system_name="Linux", use_systemd=True,
+                      system_unit_path=str(existing))
+
+    assert plan.adapter.startswith("linux-system-service")
+    assert plan.files == {} and plan.commands == []
+
+
+def test_cron_runs_background_jobs_at_reboot(tmp_path):
+    line = cron_line(JOBS["vault-watchdog"], tmp_path, "", 7)
+    assert line.startswith("@reboot cd ")
+    assert line.endswith("# automata-vault-watchdog")

@@ -174,12 +174,17 @@ def main(argv: list[str] | None = None) -> int:
                                            for line in dotenv.splitlines())
         (ok if found else warn)(f"{key} {'is set' if found else 'is not set (add it to .env; see env.example)'}")
 
-    step("Nightly jobs (vault index rebuild 02:30, housekeeper purge 03:00)")
+    step("Scheduled jobs (vault index 02:30, housekeeper 03:00, vault watchdog at login if a vault is set)")
     wanted = args.schedules
     if wanted is None:
         wanted = input("     Register them with this machine's scheduler now? [Y/n] ").strip().lower() in ("", "y", "yes")
     if wanted:
-        for job in ("vault-index", "housekeeper"):
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from doctor import vault_configured  # same check the doctor uses
+        jobs = ["vault-index", "housekeeper"] + (["vault-watchdog"] if vault_configured() else [])
+        if "vault-watchdog" not in jobs:
+            warn("no vault configured (OBSIDIAN_VAULT_PATH), so the vault watchdog is not installed")
+        for job in jobs:
             done = run([str(VENV_PYTHON), "scripts/schedule.py", "install", job]).returncode == 0
             (ok if done else warn)(f"{job} {'scheduled' if done else 'not scheduled (see message above)'}")
     else:

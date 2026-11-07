@@ -94,6 +94,28 @@ def check_agents():
         else (FAIL, "agent dry-run failed", out)
 
 
+def vault_configured() -> bool:
+    """True when OBSIDIAN_VAULT_PATH (environment or .env) points to an existing folder."""
+    value = os.environ.get("OBSIDIAN_VAULT_PATH", "")
+    env_file = ROOT / ".env"
+    if not value and env_file.exists():
+        for line in env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+            if line.strip().startswith("OBSIDIAN_VAULT_PATH="):
+                value = line.split("=", 1)[1].strip().strip('"').strip("'")
+    return bool(value) and Path(value).expanduser().is_dir()
+
+
+def watchdog_running() -> bool:
+    if WINDOWS:
+        return run(["schtasks", "/Query", "/TN", "Automata Vault Watchdog"])[0] == 0
+    if shutil.which("systemctl"):
+        if run(["systemctl", "is-active", "vault-watchdog"])[0] == 0:  # system-wide service
+            return True
+        if run(["systemctl", "--user", "is-active", "automata-vault-watchdog"])[0] == 0:
+            return True
+    return shutil.which("crontab") is not None and "# automata-vault-watchdog" in run(["crontab", "-l"])[1]
+
+
 def scheduled(job_unit: str, task: str) -> bool:
     if WINDOWS:
         return run(["schtasks", "/Query", "/TN", task])[0] == 0
@@ -112,10 +134,13 @@ def check_schedules():
     registered = {name: scheduled(unit, task) for name, unit, task in (
         ("vault-index", "automata-vault-index", "Automata Vault Index"),
         ("housekeeper", "automata-housekeeper", "Automata Housekeeper"))}
+    if vault_configured():
+        registered["vault-watchdog"] = watchdog_running()
     missing = [name for name, ok in registered.items() if not ok]
     if missing:
         return WARN, "not registered: " + ", ".join(missing) + " (python scripts/schedule.py install NAME)", ""
-    return PASS, "vault-index and housekeeper registered", ""
+    return PASS, ", ".join(registered) + " registered" + ("" if "vault-watchdog" in registered
+                                                         else " (no vault configured, so no watchdog)"), ""
 
 
 def check_openswarm(quick: bool):
@@ -150,7 +175,7 @@ def main(argv: list[str] | None = None) -> int:
         ("Node for MCP servers", check_mcp_node),
         ("Playwright MCP", (lambda: (SKIP, "slow check skipped (--quick)", "")) if args.quick else check_playwright_mcp),
         ("Agents (dry run)", check_agents),
-        ("Nightly jobs", check_schedules),
+        ("Scheduled jobs", check_schedules),
         ("OpenSwarm server", lambda: check_openswarm(args.quick)),
         ("GIMP MCP plugin", check_gimp),
     ]
