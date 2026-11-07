@@ -13,7 +13,7 @@ from agency_common import workflow_discovery as workflows
 def make_skill(root, name="example"):
     path = root / "skills" / name / "SKILL.md"
     path.parent.mkdir(parents=True)
-    path.write_text(f"---\nname: {name}\ndescription: >\n  First line\n  second line\n---\n\nUse this workflow.\n")
+    path.write_text(f"---\nname: {name}\ndescription: >\n  First line\n  second line\n---\n\nUse this workflow.\n", encoding="utf-8")
     return path
 
 
@@ -21,10 +21,10 @@ def test_catalog_prefers_canonical_and_parses_multiline_metadata(tmp_path):
     source = make_skill(tmp_path)
     shim = tmp_path / ".agents/skills/example/SKILL.md"
     shim.parent.mkdir(parents=True)
-    shim.write_text(source.read_text())
+    shim.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
     agent = tmp_path / "agents/openedswarm_core/docs_agent/instructions.md"
     agent.parent.mkdir(parents=True)
-    agent.write_text("Document specialist")
+    agent.write_text("Document specialist", encoding="utf-8")
     catalog = workflows.workflow_catalog(tmp_path)
     assert len(catalog["skills"]) == 1
     assert catalog["skills"][0]["path"] == str(source)
@@ -35,7 +35,7 @@ def test_catalog_prefers_canonical_and_parses_multiline_metadata(tmp_path):
 def test_read_reference_but_reject_secret_traversal_and_symlink_escape(tmp_path, monkeypatch):
     source = make_skill(tmp_path)
     secret = tmp_path / ".env"
-    secret.write_text("SECRET")
+    secret.write_text("SECRET", encoding="utf-8")
     escape = source.parent / "escape.md"
     escape.symlink_to(secret)
     monkeypatch.setattr(workflows, "repo_root", lambda: tmp_path)
@@ -54,11 +54,11 @@ def test_registration_is_idempotent_detects_drift_and_preserves_conflicts(tmp_pa
     assert module.sync(tmp_path, write=True) == []
     assert module.sync(tmp_path, write=True) == []
     target = tmp_path / ".agents/skills/example/SKILL.md"
-    target.write_text("---\nname: custom\ndescription: Keep me\n---\nUser-owned skill")
+    target.write_text("---\nname: custom\ndescription: Keep me\n---\nUser-owned skill", encoding="utf-8")
     original = target.read_bytes()
     assert module.sync(tmp_path, write=True)
     assert target.read_bytes() == original
-    source.write_text(source.read_text().replace("First line", "Changed"))
+    source.write_text(source.read_text(encoding="utf-8").replace("First line", "Changed"), encoding="utf-8")
     assert any("Metadata differs" in item for item in module.sync(tmp_path))
 
 
@@ -71,7 +71,7 @@ def test_autonomous_harness_can_discover_then_read_real_skill():
     catalog = json.loads(result)
     skill = next(s for s in catalog["skills"] if s["name"] == "visual-video")
     result = runner._execute_tool_call(NormalizedToolCall("2", "read_workflow", json.dumps({"path": skill["path"]})))
-    assert result == Path(skill["path"]).read_text()
+    assert result == Path(skill["path"]).read_text(encoding="utf-8")
 
 
 def test_custom_harness_tools_do_not_advertise_unavailable_discovery():

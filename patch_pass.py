@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 def patch_file(path):
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # We want to replace:
@@ -33,7 +33,7 @@ def patch_file(path):
     new_content = re.sub(r'(^[ \t]*)except Exception:[\s\n]*pass', replacer, content, flags=re.MULTILINE)
     
     if new_content != content:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(new_content)
         print(f"Patched {path}")
 

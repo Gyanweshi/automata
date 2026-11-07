@@ -6,6 +6,8 @@ Checks tracked files for:
                   (write the logic once in Python instead; a launcher may wrap it)
   machine-path    a hardcoded user/machine path (/home/<user>, /mnt/<disk>, C:\\Users\\<name>, /Users/<name>)
   crlf-shell      a shell script with Windows line endings (bash fails on them)
+  no-encoding     Python text I/O without encoding= (read_text(), write_text(x), open(f, "r"/"w")): the
+                  default is UTF-8 on Linux but cp1252 on Windows, so non-ASCII text breaks only there
 
 Known debt lives in scripts/cross-platform-baseline.txt; only findings not in it fail the check, so new
 work must be cross-platform while old work is migrated over time.
@@ -29,6 +31,7 @@ WINDOWS_SCRIPTS = {".ps1", ".cmd", ".bat"}
 CODE_SUFFIXES = {".py", ".sh", ".bash", ".ps1", ".cmd", ".bat", ".js", ".mjs", ".ts", ".tsx", ".json", ".toml",
                  ".yaml", ".yml", ".cfg", ".ini"}
 SKIP_PATHS = {".claude/settings.local.json", "scripts/cross-platform-baseline.txt", "scripts/check-cross-platform.py"}
+TEXT_IO = re.compile(r"""\.read_text\(\s*\)|\.write_text\(|\bopen\([^()]*?,\s*(['"])[rwa]\+?\1\s*\)""")
 MACHINE_PATH = re.compile(r"(/home/[a-z][\w.-]*/|/mnt/sd[a-z]|[A-Za-z]:\\\\?Users\\\\?[\w.-]+|/Users/[\w.-]+/)")
 
 
@@ -42,6 +45,16 @@ def stem_key(path: str) -> str:
     """install-skills.sh and Install-Skills.ps1 are the same script for two OSes."""
     p = Path(path)
     return str(p.parent / re.sub(r"[_\s]+", "-", p.stem).lower())
+
+
+def _call_has_encoding(call: str) -> bool:
+    """True when the write_text(...) call that starts `call` passes encoding=."""
+    start = call.index("(") + 1
+    depth, i = 1, start
+    while depth and i < len(call):
+        depth += {"(": 1, ")": -1}.get(call[i], 0)
+        i += 1
+    return "encoding=" in call[start:i]
 
 
 def findings(files: list[str]) -> list[str]:
@@ -64,6 +77,14 @@ def findings(files: list[str]) -> list[str]:
         if suffix in UNIX_SCRIPTS and b"\r\n" in data:
             results.append(f"crlf-shell\t{f}\tCRLF line endings")
         text = data.decode("utf-8", errors="ignore")
+        if suffix == ".py":
+            for match in TEXT_IO.finditer(text):
+                if "os.devnull" in match.group(0):
+                    continue
+                if "write_text(" in match.group(0) and _call_has_encoding(text[match.start():]):
+                    continue
+                number = text.count("\n", 0, match.start()) + 1
+                results.append(f"no-encoding\t{f}\tline {number}: {match.group(0).strip()[:40]}")
         for match in sorted(set(MACHINE_PATH.findall(text))):
             results.append(f"machine-path\t{f}\t{match}")
     return sorted(set(results))

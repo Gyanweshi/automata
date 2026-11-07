@@ -60,7 +60,7 @@ class WorkspaceManager:
             payload = data.model_dump()
         else:
             payload = data
-        with open(out_path, "w") as f:
+        with open(out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, default=str)
         return out_path
 
@@ -70,7 +70,7 @@ class WorkspaceManager:
         files = sorted(dir_path.glob("*.json"))
         if not files:
             return None
-        with open(files[-1], "r") as f:
+        with open(files[-1], "r", encoding="utf-8") as f:
             return json.load(f)
 
     def read_latest_as(self, agent: str, brand: str, model: Type[BaseModel]) -> BaseModel | None:

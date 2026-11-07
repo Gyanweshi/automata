@@ -202,7 +202,7 @@ def main():
     if args.format == "json":
         print(json.dumps(output.model_dump(), indent=2, default=str))
     elif args.format == "markdown" and md_path:
-        print(md_path.read_text())
+        print(md_path.read_text(encoding="utf-8"))
     elif args.format == "prompts":
         print(f"\n{'='*60}")
         print("GENERATION PROMPTS")

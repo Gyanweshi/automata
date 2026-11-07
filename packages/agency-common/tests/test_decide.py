@@ -119,4 +119,4 @@ def test_log_truncates_state_and_is_valid_jsonl(tmp_path):
     log = DecisionLog(tmp_path)
     decide("x" * 5000, [COLOUR], RulesBackend({"colour": lambda s: "red"}), log=log)
     (path,) = (tmp_path / "_decisions").glob("*.jsonl")
-    assert len(json.loads(path.read_text().splitlines()[0])["state"]) == 2000
+    assert len(json.loads(path.read_text(encoding="utf-8").splitlines()[0])["state"]) == 2000

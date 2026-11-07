@@ -43,23 +43,24 @@ def test_every_pin_agrees_across_files(manifest):
 
 
 def test_pin_problems_flags_a_second_version(tmp_path):
-    (tmp_path / "a.json").write_text('"pkg@1.0" "pkg@2.0"')
+    (tmp_path / "a.json").write_text('"pkg@1.0" "pkg@2.0"', encoding="utf-8")
     dep = {"id": "x", "pin": "1.0", "pin_files": [{"file": "a.json", "pattern": "pkg@{version}"}]}
     assert deps.pin_problems(dep, tmp_path) == ["a.json also has pkg@2.0"]
 
 
 def test_set_pin_rewrites_configs_and_manifest(tmp_path):
-    (tmp_path / "a.json").write_text('{"args": ["-y", "pkg@1.0"]}')
-    (tmp_path / "b.json").write_text('{"args": ["pkg@1.0", "--flag"]}')
+    (tmp_path / "a.json").write_text('{"args": ["-y", "pkg@1.0"]}', encoding="utf-8")
+    (tmp_path / "b.json").write_text('{"args": ["pkg@1.0", "--flag"]}', encoding="utf-8")
     manifest = tmp_path / "dependencies.toml"
     manifest.write_text(
         '[[dependency]]\nid = "x"\npin = "1.0"\n'
         'pin_files = [{ file = "a.json", pattern = "pkg@{version}" }, { file = "b.json", pattern = "pkg@{version}" }]\n\n'
-        '[[dependency]]\nid = "y"\npin = "1.0"\n'
+        '[[dependency]]\nid = "y"\npin = "1.0"\n',
+        encoding="utf-8",
     )
     changed = deps.set_pin("x", "1.1", manifest, tmp_path)
     assert changed == ["a.json", "b.json", "dependencies.toml"]
-    assert "pkg@1.1" in (tmp_path / "a.json").read_text()
+    assert "pkg@1.1" in (tmp_path / "a.json").read_text(encoding="utf-8")
     updated = deps.load(manifest)
     assert [d["pin"] for d in updated["dependency"]] == ["1.1", "1.0"]  # only x moved
 

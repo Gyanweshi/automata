@@ -133,7 +133,7 @@ def run_check(dep: dict, os_name: str | None = None) -> tuple[str, str]:
     command = dep.get(f"check_{os_name}") or dep.get("check")
     if dep["kind"] == "github-release":
         marker = Path.home() / f".{dep['id']}" / ".installed-version"
-        installed = marker.read_text().strip() if marker.exists() else None
+        installed = marker.read_text(encoding="utf-8").strip() if marker.exists() else None
         if not shutil.which(dep["id"]):
             return "missing", f"{dep['id']} not on PATH"
         if installed and dep.get("pin") and installed != dep["pin"]:
@@ -248,7 +248,7 @@ def install_github_release(dep: dict, release: dict, version: str | None = None,
     binary = release["binary"] + (".exe" if plat.startswith("windows") else "")
     if not (prefix / "bin" / binary).exists():
         raise SystemExit(f"deps: {asset} did not contain bin/{binary}")
-    (prefix / ".installed-version").write_text(version)
+    (prefix / ".installed-version").write_text(version, encoding="utf-8")
     print(f"deps: installed {dep['id']} {version} in {prefix}")
 
     bin_dir = prefix / "bin"

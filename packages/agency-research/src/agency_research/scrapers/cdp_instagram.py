@@ -158,7 +158,7 @@ class CDPInstagramScraper:
                 "maxPostsPerSearch": post_count,
                 "maxCompetitorPosts": min(post_count, 20),
             }
-            (project_dir / "config.json").write_text(json.dumps(config, indent=2))
+            (project_dir / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
 
             # Create subfolders the scraper expects
             (project_dir / "transcripts").mkdir(exist_ok=True)
@@ -190,7 +190,7 @@ class CDPInstagramScraper:
                 logger.warning("[CDPInstagramScraper] no raw-posts.json produced")
                 return [], []
 
-            data = json.loads(raw_posts_file.read_text())
+            data = json.loads(raw_posts_file.read_text(encoding="utf-8"))
             raw_posts: list[dict] = data.get("posts", [])
 
         # Split into competitor posts vs hashtag posts
