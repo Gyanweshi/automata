@@ -83,6 +83,20 @@ install = { linux = "sudo apt-get install -y git", windows = "winget install -e 
 update = "Package manager upgrade."
 on_break = "Line-ending trouble: .gitattributes pins *.sh/*.py to LF and *.cmd to CRLF; run `git add --renormalize .` once if a script shows CRLF."
 
+[[dependency]]
+id = "gh"
+name = "GitHub CLI (gh)"
+kind = "runtime"
+category = "Runtimes"
+purpose = "Browser login to GitHub for cloning and pushing the private repo; lets agents read CI results."
+used_by = ["README fresh-machine setup", "git push (gh auth setup-git)", "CI checks"]
+required = false
+check = ["gh", "--version"]
+version_regex = 'gh version (\d+\.\d+\.\d+)'
+install = { linux = "sudo apt-get install -y gh", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id GitHub.cli", macos = "brew install gh" }
+update = "Package manager upgrade."
+on_break = "`gh auth status`; if logged out: `gh auth login --web --git-protocol https`, then `gh auth setup-git`. Pushing workflow files needs the workflow scope: `gh auth refresh -s workflow`."
+
 # ---------------------------------------------------------------- python and node libraries
 
 [[dependency]]

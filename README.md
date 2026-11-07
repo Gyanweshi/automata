@@ -86,58 +86,47 @@ automata/
 
 ---
 
-## 🚀 Quick Start (fresh machine)
+## 🚀 Quick Start
 
-`git clone` only copies files; it never installs anything. On a machine with nothing installed (not even
-Python), you install two things by hand, **Git** and **uv**, and one command does the rest: uv downloads
-Python 3.12 if the machine has none, and the setup script installs Node.js and anything else missing, builds
-the environment from the lockfiles, offers to register the nightly jobs, and then checks every part of the
-setup one step at a time with a pass/fail summary. It is safe to re-run whenever something looks broken.
+### New machine: one paste
 
-<details open>
-<summary><strong>Windows (PowerShell)</strong></summary>
+Works on a machine with nothing installed, not even Python. Open a terminal, paste the block for your OS,
+approve the GitHub login that opens in your browser, and wait (about 5–10 minutes, mostly downloads). Running it
+again later is safe: it skips whatever is already there.
 
+**Windows** (PowerShell; winget ships with Windows 10 and 11):
 ```powershell
-# 1. Git and uv (winget ships with Windows 10/11)
-winget install -e --id Git.Git
-winget install -e --id astral-sh.uv
-
-# 2. Load the new PATH into this window (installers only update PATH for new windows)
-$env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")
-
-# 3. Clone, then run the one setup command
-git clone https://github.com/Gyanweshi/automata.git
-cd automata
-uv run --no-project --python 3.12 scripts\bootstrap.py
+foreach ($id in "Git.Git", "GitHub.cli", "astral-sh.uv") { winget install -e --id $id --accept-source-agreements --accept-package-agreements }
+$env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User") + ";$env:LOCALAPPDATA\Microsoft\WinGet\Links"
+gh auth status 2>$null; if ($LASTEXITCODE) { gh auth login --web --git-protocol https }; gh auth setup-git
+if (-not (Test-Path automata)) { gh repo clone Gyanweshi/automata }; Set-Location automata
+uv run --no-project --python 3.12 scripts\bootstrap.py --yes
 ```
 
-The first `git clone` may open a browser to sign in to GitHub: approve it once. The setup asks before
-installing anything (add `--yes` to skip the questions). Then copy `env.example` to `.env` and add your keys.
+**Linux** (Ubuntu, Mint, Debian; macOS: replace the first line with `xcode-select --install; brew install gh`):
+```bash
+sudo apt-get update && sudo apt-get install -y git curl gh
+command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh; export PATH="$HOME/.local/bin:$PATH"
+gh auth status >/dev/null 2>&1 || gh auth login --web --git-protocol https; gh auth setup-git
+[ -d automata ] || gh repo clone Gyanweshi/automata; cd automata
+uv run --no-project --python 3.12 scripts/bootstrap.py --yes
+```
 
-</details>
+What happens: Git, the GitHub CLI and uv are installed; you log in to GitHub once in the browser (the repo is
+private); the repo is cloned; then the setup script downloads Python 3.12 if the machine has none, installs
+Node.js and every other missing tool, builds the environment from the lockfiles, installs the browsers, asks
+once whether to register the nightly jobs, and finishes by checking every part of the setup with a
+`PASS` / `WARN` / `FAIL` summary. A `WARN` is an optional tool, listed with the command that installs it.
 
-<details>
-<summary><strong>Linux (Ubuntu, Mint, Debian) / macOS</strong></summary>
+Last step: copy `env.example` to `.env` and add your API keys.
+
+### Machine already set up
 
 ```bash
-# 1. Git and uv
-sudo apt install -y git curl                        # macOS: xcode-select --install
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source ~/.local/bin/env                             # or open a new terminal
-
-# 2. Clone, then run the one setup command
-git clone https://github.com/Gyanweshi/automata.git
-cd automata
-uv run --no-project --python 3.12 scripts/bootstrap.py
+git pull
+python scripts/bootstrap.py          # repair / update after a pull (Windows: python scripts\bootstrap.py)
+python scripts/doctor.py             # only check, changes nothing (or: make doctor)
 ```
-
-On a headless server add `--skip-browsers`. Then `cp env.example .env` and add your keys. The venv is created
-by uv, so Debian/Ubuntu's separate `python3-venv` package is not needed.
-
-</details>
-
-**Already set up?** The same command repairs a machine after a `git pull`. To only check (changes nothing):
-`python scripts/doctor.py` (or `make doctor`).
 
 <details>
 <summary><strong>Docker & Dev Containers</strong></summary>
@@ -346,22 +335,18 @@ make dry-run BRAND=my-brand
 ## ❓ Troubleshooting & FAQ
 
 <details>
-<summary><strong>Fresh machine troubleshooting: "not recognized" / "command not found"</strong></summary>
+<summary><strong>Fresh machine troubleshooting</strong></summary>
 
-- **Installed it, but the terminal still says "not recognized":** the window still has the old PATH. Run the
-  PATH reload line from Quick Start step 3 (Windows), or open a new terminal.
-- **winget says "Found an existing package" but the command is still not recognized:** it is installed but not
-  on PATH. Find it, e.g. `Get-ChildItem "C:\Program Files\Git\cmd" -Filter git.exe`, and add that folder:
-  `[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";C:\Program Files\Git\cmd", "User")`,
-  then reload PATH. GitHub Desktop and VS Code ship their own git that PowerShell cannot see; install Git for
-  Windows anyway.
-- **`py` / `python` not recognized, or `python` opens the Microsoft Store:** you don't need a system Python;
-  use `uv run --no-project --python 3.12 scripts\bootstrap.py`, which brings its own. After setup, the repo's
-  Python is `.venv\Scripts\python.exe` (Linux `.venv/bin/python`).
-- **uv missing:** install it (Quick Start step 1), reload PATH, then run the setup command again.
-- **Node.js missing or too old:** re-run the setup command and answer yes, or `python scripts/deps.py install node`.
-- **MCP servers say no compatible Node.js:** `node scripts/mcp-npx.mjs --which` shows which Node they will use;
-  `none` means install Node 22+ (`python scripts/deps.py install node`).
+- **Something is "not recognized" right after installing it:** the terminal still has the old PATH. Run the
+  second line of the Windows block again (or open a new terminal), then re-run the last line.
+- **`winget` is not recognized:** update "App Installer" from the Microsoft Store, then paste the block again.
+- **`python` opens the Microsoft Store or is missing:** that's fine; the setup never needs a system Python
+  (`uv run --python 3.12` brings its own). After setup, the repo's Python is `.venv\Scripts\python.exe`
+  (Linux `.venv/bin/python`).
+- **GitHub Desktop or VS Code cloned the repo but `git` is not recognized:** they bundle a private git;
+  the paste block installs the real one.
+- **A step failed:** fix what the summary says and run `python scripts/bootstrap.py` again; it picks up where
+  things are missing. `docs/DEPENDENCIES.md` lists every tool, how to update it, and what to do when it breaks.
 </details>
 
 <details>

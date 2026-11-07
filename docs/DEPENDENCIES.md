@@ -110,6 +110,7 @@ Update one dependency per commit, so a break points at exactly one change.
 | **uv** (`uv`) | Installs the locked Python environment (uv sync) and runs uvx MCP servers and uv tools. | yes | OS package manager | - |
 | **Node.js (for MCP servers)** (`node`) | Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper. | yes | >= 22.12 | - |
 | **Git** (`git`) | Repo sync between the two machines; the cross-platform checker lists files with it. | yes | OS package manager | - |
+| **GitHub CLI (gh)** (`gh`) | Browser login to GitHub for cloning and pushing the private repo; lets agents read CI results. | no | OS package manager | - |
 
 ### Libraries
 
@@ -191,6 +192,11 @@ Update one dependency per commit, so a break points at exactly one change.
 - **Install:** linux: `sudo apt-get install -y git`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Git.Git`; macos: `xcode-select --install`
 - **Update:** Package manager upgrade.
 - **If it breaks:** Line-ending trouble: .gitattributes pins *.sh/*.py to LF and *.cmd to CRLF; run `git add --renormalize .` once if a script shows CRLF.
+
+#### GitHub CLI (gh) (`gh`)
+- **Install:** linux: `sudo apt-get install -y gh`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id GitHub.cli`; macos: `brew install gh`
+- **Update:** Package manager upgrade.
+- **If it breaks:** `gh auth status`; if logged out: `gh auth login --web --git-protocol https`, then `gh auth setup-git`. Pushing workflow files needs the workflow scope: `gh auth refresh -s workflow`.
 
 #### Python packages (root project) (`python-packages`)
 - **Install:** all: `uv sync --locked`
