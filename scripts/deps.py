@@ -54,6 +54,10 @@ def deps_by_id(manifest: dict) -> dict[str, dict]:
 ALL_ROLES = ("research", "video", "slides", "images", "3d")
 
 
+# winget exit codes that mean "it is already here": no applicable upgrade, package already installed
+WINGET_ALREADY_INSTALLED = {0x8A15002B, 0x8A150061}
+
+
 def path_dirs(dep: dict) -> list[Path]:
     """Folders a tool installs into that its installer leaves off PATH (manifest `path_dirs`, per OS)."""
     raw = (dep.get("path_dirs") or {}).get(os_key(), [])
@@ -516,7 +520,9 @@ def cmd_install(manifest: dict, ids: list[str], version: str | None, skills: boo
             command = f'"{sys.executable}" ' + command[len("python "):]
         print(f"deps: {dep_id}: {command}")
         result = subprocess.run(command, shell=True, cwd=ROOT)  # nosec B602 - command text comes from the repo manifest
-        if result.returncode != 0:
+        if command.startswith("winget") and result.returncode & 0xFFFFFFFF in WINGET_ALREADY_INSTALLED:
+            print(f"deps: {dep_id} is already installed (winget has nothing newer)")
+        elif result.returncode != 0:
             print(f"deps: {dep_id} install exited {result.returncode}")
             return result.returncode
         ensure_path_dirs(dep)
