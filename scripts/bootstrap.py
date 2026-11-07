@@ -62,6 +62,11 @@ def refresh_path() -> None:
                     parts.append(os.path.expandvars(winreg.QueryValueEx(handle, "Path")[0]))
             except OSError:
                 continue
+        # where winget links portable tools (uv), Astral's own installer, cargo, and the Node.js MSI put binaries
+        local = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+        known = [local / "Microsoft" / "WinGet" / "Links", Path.home() / ".local" / "bin", Path.home() / ".cargo" / "bin",
+                 Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "nodejs"]
+        parts += [str(d) for d in known if d.is_dir()]
         os.environ["PATH"] = os.pathsep.join([*parts, os.environ.get("PATH", "")])
     else:
         extra = [str(Path.home() / d) for d in (".local/bin", ".cargo/bin") if (Path.home() / d).is_dir()]
