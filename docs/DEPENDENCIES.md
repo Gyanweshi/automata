@@ -152,7 +152,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | 0.0.84 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
 | **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | 0.23.0 | `mcp/agents/research.json`, `dependencies.toml` |
 | **@roomi-fields/notebooklm-mcp** (`notebooklm-mcp`) | Grounded Q&A against NotebookLM sources. | no | 1.5.9 | `mcp/agents/research.json`, `dependencies.toml` |
-| **@apify/actors-mcp-server** (`apify-mcp`) | Apify actors (Instagram, LinkedIn extraction). | no | 0.9.20 | `mcp/agents/research.json`, `dependencies.toml` |
+| **@apify/actors-mcp-server** (`apify-mcp`) | Apify actors (Instagram, LinkedIn extraction). | no | 0.21.4 | `mcp/agents/research.json`, `dependencies.toml` |
 | **blender-mcp** (`blender-mcp`) | Drive Blender from the storyboard agent (asset prep, Blender-only shots). | no | 2.0.0 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
 | **gimp-mcp (server + GIMP plugin)** (`gimp-mcp`) | Local non-generative image editing through GIMP 3.2. | no | 732586538554 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
 | **Higgsfield MCP (remote)** (`higgsfield-mcp`) | Image and video generation. | no | hosted by vendor | `.mcp.json` |
