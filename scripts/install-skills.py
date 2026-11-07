@@ -61,7 +61,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--global", dest="global_", action="store_true", help="also link skills into a user folder")
     parser.add_argument("--dest", default=str(Path.home() / ".claude" / "skills"))
     args = parser.parse_args(argv)
-    result = subprocess.run([sys.executable, str(ROOT / "scripts" / "sync-skills.py"), "--sync"], cwd=ROOT)  # nosec B603
+    venv_python = ROOT / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    python = str(venv_python) if venv_python.exists() else sys.executable  # sync-skills needs python-frontmatter
+    result = subprocess.run([python, str(ROOT / "scripts" / "sync-skills.py"), "--sync"], cwd=ROOT)  # nosec B603
     if args.global_:
         install_global(Path(os.path.expandvars(args.dest)).expanduser())
     return result.returncode
