@@ -11,11 +11,24 @@ from agency_common.knowledge_reader import (
 )
 
 
-def test_get_vault_path_requires_env(monkeypatch, tmp_path):
-    monkeypatch.delenv("OBSIDIAN_VAULT_PATH", raising=False)
-    monkeypatch.chdir(tmp_path)
+def test_no_vault_configured_means_the_local_vault_in_the_checkout(monkeypatch, tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "packages").mkdir(parents=True)
+    (repo / "AGENTS.md").write_text("x", encoding="utf-8")
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("OBSIDIAN_VAULT_PATH", "")  # empty = no vault (absent behaves the same)
 
-    with pytest.raises(VaultPathError, match="OBSIDIAN_VAULT_PATH is not set"):
+    path = get_vault_path()
+    assert path == repo / "workspace" / "vault" and path.is_dir()
+    assert "local vault" in (path / "README.md").read_text(encoding="utf-8")
+    from agency_common.knowledge_reader import vault_mode
+    assert vault_mode() == "local"
+
+
+def test_configured_but_missing_vault_is_an_error_not_a_silent_switch(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("OBSIDIAN_VAULT_PATH", str(tmp_path / "unmounted-drive"))
+    with pytest.raises(VaultPathError, match="does not exist"):
         get_vault_path()
 
 

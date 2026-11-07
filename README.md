@@ -99,11 +99,16 @@ gh auth status >/dev/null 2>&1 || gh auth login --web --git-protocol https; gh a
 uv run --no-project --python 3.12 scripts/bootstrap.py --yes
 ```
 
-What happens: Git, the GitHub CLI and uv are installed; you log in to GitHub once in the browser (the repo is
-private); the repo is cloned; then the setup script downloads Python 3.12 if the machine has none, installs
-Node.js and every other missing tool, builds the environment from the lockfiles, installs the browsers, asks
-once whether to register the nightly jobs, and finishes by checking every part of the setup with a
-`PASS` / `WARN` / `FAIL` summary. A `WARN` is an optional tool, listed with the command that installs it.
+What happens: Git, the GitHub CLI and uv are installed; you log in to GitHub once in the browser; the repo is
+cloned; then the setup script downloads Python 3.12 if the machine has none, installs Node.js and the rest,
+builds the environment from the lockfiles and installs the browsers. It asks three things once:
+- **Your Obsidian vault folder**, or Enter for none: without a vault, notes, drafts and session logs stay in
+  `workspace/vault` with the same layout, and everything works the same.
+- **What this machine is for** (`research`, `video`, `slides`, `images`, `3d`, or `all`): it installs only those
+  optional tools, and the checks only expect those. Change later with `--roles`.
+- **Whether to register the nightly jobs.**
+
+It finishes by checking every part of the setup with a `PASS` / `WARN` / `FAIL` summary.
 
 Last step: copy `env.example` to `.env` and add your API keys.
 

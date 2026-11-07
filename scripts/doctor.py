@@ -50,6 +50,27 @@ def check_dependencies():
         else (PASS, "all installed", "")
 
 
+def env_vault_value() -> str | None:
+    """OBSIDIAN_VAULT_PATH from the environment or .env; None when the key is absent, '' when set to empty."""
+    if "OBSIDIAN_VAULT_PATH" in os.environ:
+        return os.environ["OBSIDIAN_VAULT_PATH"].strip()
+    env_file = ROOT / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+            if line.strip().startswith("OBSIDIAN_VAULT_PATH="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return None
+
+
+def check_vault():
+    value = env_vault_value()
+    if value:
+        path = Path(value).expanduser()
+        return (PASS, f"Obsidian vault at {path}", "") if path.is_dir() else \
+            (FAIL, f"OBSIDIAN_VAULT_PATH={value} does not exist (drive not mounted?); set it to empty to work without a vault", "")
+    return PASS, "no Obsidian vault: notes stay in workspace/vault (set OBSIDIAN_VAULT_PATH in .env to use one)", ""
+
+
 def check_cross_platform():
     code, out = run([sys.executable, "scripts/check-cross-platform.py"])
     if code == 0:
@@ -161,6 +182,7 @@ def main(argv: list[str] | None = None) -> int:
     checks = [
         ("Dependencies installed (deps.py check)", check_dependencies),
         ("Python environment", check_venv),
+        ("Vault", check_vault),
         ("Cross-platform rules", check_cross_platform),
         ("Node for MCP servers", check_mcp_node),
         ("Playwright MCP", (lambda: (SKIP, "slow check skipped (--quick)", "")) if args.quick else check_playwright_mcp),

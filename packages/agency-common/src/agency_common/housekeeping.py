@@ -24,6 +24,8 @@ DECISION_REVIEW = "review"
 DECISION_SAFE_DELETE = "safe-delete"
 
 SAFE_CACHE_DIRS = {"__pycache__", ".pytest_cache", ".playwright-mcp", ".tmp"}
+# workspace/vault is the local vault on machines without Obsidian: durable notes, never cleaned or quarantined.
+LOCAL_VAULT_DIR = "vault"
 SAFE_FILE_SUFFIXES = {".pyc", ".pyo", ".stackdump", ".tmp"}
 REPO_ARTIFACT_SUFFIXES = {
     ".csv", ".docx", ".html", ".jpeg", ".jpg", ".json", ".md", ".pdf",
@@ -303,22 +305,18 @@ def _protected_vault_note(relative: Path) -> bool:
 
 
 def resolve_vault_path(explicit: str | Path | None = None) -> Path:
-    candidates: list[Path] = []
+    """--vault, else the configured Obsidian vault, else workspace/vault (machines without Obsidian)."""
+    from .knowledge_reader import VaultPathError, get_vault_path
+
     if explicit:
-        candidates.append(Path(explicit))
-    env_value = os.environ.get("OBSIDIAN_VAULT_PATH")
-    if env_value:
-        candidates.append(Path(env_value))
-    if os.name == "nt":
-        candidates.append(Path(r"D:\Brainiac2"))
-    for candidate in candidates:
-        expanded = candidate.expanduser().resolve()
+        expanded = Path(explicit).expanduser().resolve()
         if expanded.is_dir():
             return expanded
-    raise HousekeepingError(
-        "Vault not found. Pass --vault or set OBSIDIAN_VAULT_PATH; "
-        "Windows also checks D:\\Brainiac2."
-    )
+        raise HousekeepingError(f"Vault not found at {expanded}")
+    try:
+        return get_vault_path()
+    except VaultPathError as exc:
+        raise HousekeepingError(str(exc)) from exc
 
 
 def _collect_repo_artifacts(repo: Path, tracked: set[str]) -> tuple[list[_RepoArtifact], list[Finding]]:
@@ -326,6 +324,8 @@ def _collect_repo_artifacts(repo: Path, tracked: set[str]) -> tuple[list[_RepoAr
     findings: list[Finding] = []
     workspace = repo / "workspace"
     for candidate in _walk_files(workspace, SAFE_CACHE_DIRS):
+        if candidate.relative_to(workspace).parts[:1] == (LOCAL_VAULT_DIR,):
+            continue
         if candidate.name == ".gitkeep" or candidate.suffix.lower() in SAFE_FILE_SUFFIXES:
             continue
         relative = candidate.relative_to(repo).as_posix()
@@ -727,6 +727,9 @@ def clear_workspace(
 
     def quarantine_entry(source: Path) -> None:
         relative = source.relative_to(repo).as_posix()
+        if source == workspace / LOCAL_VAULT_DIR:
+            preserved.append(relative)  # the local vault holds notes, not scratch
+            return
         if source.is_symlink():
             skipped.append(f"{relative}: symlink requires manual review")
             return
@@ -753,6 +756,7 @@ def clear_workspace(
         candidate.relative_to(repo).as_posix()
         for candidate in workspace.rglob("*")
         if candidate.is_file() and candidate.name != ".gitkeep"
+        and candidate.relative_to(workspace).parts[:1] != (LOCAL_VAULT_DIR,)
     ]
     if remaining:
         skipped.extend(f"{path}: workspace cleanup incomplete" for path in remaining)

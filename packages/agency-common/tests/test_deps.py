@@ -123,3 +123,25 @@ def test_platform_pins_name_known_platforms(manifest):
     for dep_id, release in manifest.get("releases", {}).items():
         for plat in (release.get("platform_pins") or {}):
             assert plat in release["assets"], f"{dep_id}: platform_pins names unknown platform {plat}"
+
+
+def test_machine_roles_parse_all_none_and_lists(monkeypatch):
+    monkeypatch.setenv("AUTOMATA_ROLES", "video, research")
+    assert deps.machine_roles() == {"video", "research"}
+    monkeypatch.setenv("AUTOMATA_ROLES", "all")
+    assert deps.machine_roles() == set(deps.ALL_ROLES)
+    monkeypatch.setenv("AUTOMATA_ROLES", "")
+    assert deps.machine_roles() == set()
+
+
+def test_needed_here_keeps_required_deps_and_filters_role_tools():
+    assert deps.needed_here({"id": "uv", "required": True}, set())
+    assert deps.needed_here({"id": "x", "roles": ["video"]}, {"video"})
+    assert not deps.needed_here({"id": "gimp", "roles": ["images"]}, {"video"})
+    assert deps.needed_here({"id": "playwright-mcp"}, set())  # untagged optional deps stay visible
+
+
+def test_every_role_tag_is_a_known_role(manifest):
+    for dep in manifest["dependency"]:
+        assert set(dep.get("roles", [])) <= set(deps.ALL_ROLES), dep["id"]
+        assert not (dep.get("required") and dep.get("roles")), f"{dep['id']}: required deps need no role"

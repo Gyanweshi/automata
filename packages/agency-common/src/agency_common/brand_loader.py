@@ -27,12 +27,14 @@ _VAULT_BRANDS_SUBDIR = "Brands"
 
 
 def _vault_brands_dir() -> Path | None:
-    """Return the Brands/ folder inside the Obsidian vault, if configured and present."""
+    """Return the Brands/ folder of the vault in use (Obsidian, or workspace/vault), if present."""
+    from .knowledge_reader import VaultPathError, get_vault_path
+
     load_dotenv(find_dotenv(usecwd=True))
-    vault_raw = os.environ.get("OBSIDIAN_VAULT_PATH")
-    if not vault_raw:
+    try:
+        vault_brands = get_vault_path() / _VAULT_BRANDS_SUBDIR
+    except VaultPathError:
         return None
-    vault_brands = Path(vault_raw).expanduser().resolve() / _VAULT_BRANDS_SUBDIR
     return vault_brands if vault_brands.is_dir() else None
 
 

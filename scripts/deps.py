@@ -5,6 +5,7 @@
     python scripts/deps.py check                   installed? right version? do all pinned files agree?
     python scripts/deps.py check --pins-only       only the pin agreement (what CI runs)
     python scripts/deps.py install ID [ID ...]     install one dependency the right way for this OS
+    python scripts/deps.py install-roles           install the optional tools this machine's roles need (AUTOMATA_ROLES)
     python scripts/deps.py outdated                newest upstream version for every pinned dependency
     python scripts/deps.py verify-downloads        each platform's pinned GitHub-release build exists (network)
     python scripts/deps.py update [--report F]     the quarterly routine: safe updates (cool-down, no majors, MCP smoke)
@@ -48,6 +49,29 @@ def load(path: Path = MANIFEST) -> dict:
 
 def deps_by_id(manifest: dict) -> dict[str, dict]:
     return {d["id"]: d for d in manifest["dependency"]}
+
+
+ALL_ROLES = ("research", "video", "slides", "images", "3d")
+
+
+def machine_roles() -> set[str]:
+    """Roles this machine was set up for (AUTOMATA_ROLES in the environment or .env): 'all', none, or a list."""
+    raw = os.environ.get("AUTOMATA_ROLES")
+    if raw is None:
+        env_file = ROOT / ".env"
+        if env_file.exists():
+            for line in env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+                if line.strip().startswith("AUTOMATA_ROLES="):
+                    raw = line.split("=", 1)[1]
+    roles = {r.strip().lower() for r in (raw or "").split(",") if r.strip()}
+    return set(ALL_ROLES) if "all" in roles else roles
+
+
+def needed_here(dep: dict, roles: set[str] | None = None) -> bool:
+    """Required deps always; role-tagged optional deps only when this machine has one of their roles."""
+    if dep.get("required") or not dep.get("roles"):
+        return True
+    return bool(set(dep["roles"]) & (machine_roles() if roles is None else roles))
 
 
 def os_key(system: str | None = None) -> str:
@@ -314,7 +338,7 @@ def render_docs(manifest: dict) -> str:
     for dep in manifest["dependency"]:
         categories.setdefault(dep["category"], []).append(dep)
     for category, deps in categories.items():
-        lines += [f"### {category}", "", "| Dependency | Needed for | Required | Version | Pinned in |", "|---|---|---|---|---|"]
+        lines += [f"### {category}", "", "| Dependency | Needed for | Required | Roles | Version | Pinned in |", "|---|---|---|---|---|---|"]
         for dep in deps:
             unpinned = {"mcp-remote": "hosted by vendor", "browser": "per playwright version", "external-skills": "hashes in lock",
                         "ci-action": "tag in workflow", "python-lock": "lockfile", "node-lock": "lockfile"}
@@ -326,7 +350,8 @@ def render_docs(manifest: dict) -> str:
             if dep.get("pin"):
                 files.append("`dependencies.toml`")
             files = ", ".join(files) or "-"
-            lines.append(f"| **{dep['name']}** (`{dep['id']}`) | {dep['purpose']} | {'yes' if dep.get('required') else 'no'} | {version} | {files} |")
+            roles = ", ".join(dep.get("roles", [])) or ("all" if dep.get("required") else "-")
+            lines.append(f"| **{dep['name']}** (`{dep['id']}`) | {dep['purpose']} | {'yes' if dep.get('required') else 'no'} | {roles} | {version} | {files} |")
         lines.append("")
     lines += ["### Install, update, and what to do when it breaks", ""]
     for dep in manifest["dependency"]:
@@ -371,8 +396,16 @@ def cmd_list(manifest: dict) -> int:
 
 def cmd_check(manifest: dict, pins_only: bool, only: list[str]) -> int:
     errors = 0
+    roles = machine_roles()
     for dep in manifest["dependency"]:
         if only and dep["id"] not in only:
+            continue
+        if not only and not pins_only and not needed_here(dep, roles):
+            print(f"-     {dep['id']:22} not needed here (roles: {', '.join(dep['roles'])}; this machine: "
+                  f"{', '.join(sorted(roles)) or 'none'})")
+            for problem in pin_problems(dep):
+                print(f"PIN   {dep['id']:22} {problem}")
+                errors += 1
             continue
         for problem in pin_problems(dep):
             print(f"PIN   {dep['id']:22} {problem}")
@@ -409,12 +442,42 @@ def cmd_install(manifest: dict, ids: list[str], version: str | None, skills: boo
             continue
         venv_python = ROOT / ".venv" / ("Scripts/python.exe" if os_key() == "windows" else "bin/python")
         command = command.replace(".venv python", f'"{venv_python}"')
+        if command.startswith("python "):  # `python` is `python3` on Linux and may not exist: use this interpreter
+            command = f'"{sys.executable}" ' + command[len("python "):]
         print(f"deps: {dep_id}: {command}")
         result = subprocess.run(command, shell=True, cwd=ROOT)  # nosec B602 - command text comes from the repo manifest
         if result.returncode != 0:
             print(f"deps: {dep_id} install exited {result.returncode}")
             return result.returncode
     return 0
+
+
+def cmd_install_roles(manifest: dict, roles: set[str] | None = None) -> int:
+    """Install every missing optional tool the machine's roles need (stops at nothing; reports what failed)."""
+    roles = machine_roles() if roles is None else roles
+    if not roles:
+        print("deps: no machine roles set (AUTOMATA_ROLES); nothing optional to install")
+        return 0
+    failed, manual = [], []
+    for dep in manifest["dependency"]:
+        if not dep.get("roles") or not set(dep["roles"]) & roles:
+            continue
+        state, _ = run_check(dep, release=manifest.get("releases", {}).get(dep["id"]))
+        if state == "ok":
+            continue
+        if state == "n/a":  # no automatic check: never re-run an installer blindly; say what to do instead
+            manual.append(f"{dep['id']} ({install_command(dep) or 'see docs/DEPENDENCIES.md'})")
+            continue
+        print(f"deps: {dep['id']} is needed for {', '.join(sorted(set(dep['roles']) & roles))}; installing")
+        if cmd_install(manifest, [dep["id"]], None, True):
+            failed.append(dep["id"])
+    if failed:
+        print(f"deps: could not install {', '.join(failed)}; see the messages above (some need admin rights or the app)")
+    else:
+        print(f"deps: everything the {', '.join(sorted(roles))} role(s) need that can be checked is installed")
+    if manual:
+        print("deps: cannot check automatically, install by hand if missing: " + "; ".join(manual))
+    return 1 if failed else 0
 
 
 def cmd_verify_downloads(manifest: dict) -> int:
@@ -465,6 +528,8 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument("--no-skills", action="store_true")
     sub.add_parser("outdated")
     sub.add_parser("verify-downloads", help="check each platform's pinned GitHub-release build exists (network)")
+    roles_cmd = sub.add_parser("install-roles", help="install the optional tools this machine's roles need")
+    roles_cmd.add_argument("--roles", help=f"comma list ({', '.join(ALL_ROLES)}, all); default: AUTOMATA_ROLES")
     upd = sub.add_parser("update", help="safe dependency update routine (see scripts/deps_update.py)")
     upd.add_argument("--cooldown-days", type=int, default=14)
     upd.add_argument("--no-smoke", action="store_true", help="skip MCP server smoke tests (no network/Node)")
@@ -487,6 +552,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_outdated(manifest)
     if args.command == "verify-downloads":
         return cmd_verify_downloads(manifest)
+    if args.command == "install-roles":
+        chosen = None
+        if args.roles is not None:
+            chosen = {r.strip().lower() for r in args.roles.split(",") if r.strip()}
+            chosen = set(ALL_ROLES) if "all" in chosen else chosen
+        return cmd_install_roles(manifest, chosen)
     if args.command == "update":
         sys.path.insert(0, str(ROOT / "scripts"))
         import deps_update

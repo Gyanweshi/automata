@@ -12,7 +12,7 @@ This applies across all domains and on every fresh session or material scope cha
 
 ## Output Location — Hybrid Vault Policy
 
-Human-readable research, brand work, briefs, scripts, and project notes go directly to the Obsidian vault at `D:\Brainiac2`. Active notes use `status: draft`; approval changes them to `status: final`. Canonical brand Memory remains approval-gated.
+Human-readable research, brand work, briefs, scripts, and project notes go directly to the Obsidian vault at `D:\Brainiac2`. Machines without a vault (`OBSIDIAN_VAULT_PATH` empty) use `workspace/vault/` with the same layout; always resolve it with `agency_common.get_vault_path()` rather than a hardcoded path. Active notes use `status: draft`; approval changes them to `status: final`. Canonical brand Memory remains approval-gated.
 
 | What | Where in vault |
 |------|---------------|

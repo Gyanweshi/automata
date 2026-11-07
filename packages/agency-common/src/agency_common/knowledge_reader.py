@@ -31,21 +31,57 @@ class VaultPathError(KnowledgeReaderError):
     """Raised when the configured vault path is missing or invalid."""
 
 
-def get_vault_path(env_var: str = DEFAULT_VAULT_ENV_VAR) -> Path:
-    """Return the absolute vault path from the configured environment variable."""
+LOCAL_VAULT_PARTS = ("workspace", "vault")
+LOCAL_VAULT_NOTE = (
+    "This folder is the local vault: this machine has no Obsidian vault configured (OBSIDIAN_VAULT_PATH is empty),\n"
+    "so notes, drafts and session logs live here with the same layout (Brands/, Research/, Agent_Sessions/).\n"
+    "It is git-ignored and never cleaned by the housekeeper. To use an Obsidian vault instead, set\n"
+    "OBSIDIAN_VAULT_PATH in .env (and move these notes into it).\n"
+)
+
+
+def repo_root() -> Path:
+    """The automata checkout: walk up from the working directory, then from this file, to AGENTS.md + packages/."""
+    for origin in (Path.cwd(), Path(__file__).resolve()):
+        for parent in (origin, *origin.parents):
+            if (parent / "AGENTS.md").is_file() and (parent / "packages").is_dir():
+                return parent
+    return Path.cwd()
+
+
+def local_vault_path() -> Path:
+    """workspace/vault inside the checkout: the vault for machines without Obsidian."""
+    path = repo_root().joinpath(*LOCAL_VAULT_PARTS)
+    path.mkdir(parents=True, exist_ok=True)
+    readme = path / "README.md"
+    if not readme.exists():
+        readme.write_text(LOCAL_VAULT_NOTE, encoding="utf-8")
+    return path
+
+
+def vault_mode(env_var: str = DEFAULT_VAULT_ENV_VAR) -> str:
+    """'obsidian' when a vault path is configured, 'local' when notes stay in workspace/vault."""
     load_dotenv(find_dotenv(usecwd=True))
-    raw_path = os.environ.get(env_var)
+    return "obsidian" if os.environ.get(env_var, "").strip() else "local"
+
+
+def get_vault_path(env_var: str = DEFAULT_VAULT_ENV_VAR) -> Path:
+    """Where notes go: the Obsidian vault named by OBSIDIAN_VAULT_PATH, or workspace/vault when it is not set.
+
+    A configured but missing vault (an unmounted drive, a typo) is an error, never a silent switch to the local
+    vault: that would split notes between two places.
+    """
+    load_dotenv(find_dotenv(usecwd=True))
+    raw_path = os.environ.get(env_var, "").strip()
     if not raw_path:
-        raise VaultPathError(
-            f"{env_var} is not set. Set it to the absolute path of your Obsidian vault."
-        )
+        return local_vault_path()
 
     vault_path = Path(raw_path).expanduser().resolve()
     if not vault_path.exists():
-        raise VaultPathError(f"{env_var} points to a path that does not exist: {vault_path}")
+        raise VaultPathError(f"{env_var} points to a path that does not exist: {vault_path} "
+                             "(drive not mounted? To work without a vault, set it to empty in .env)")
     if not vault_path.is_dir():
         raise VaultPathError(f"{env_var} must point to a directory: {vault_path}")
-
     return vault_path
 
 

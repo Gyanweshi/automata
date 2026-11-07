@@ -322,3 +322,21 @@ def test_report_has_required_vault_metadata_and_short_memory(sandbox_path):
     memory = markdown.split("## Memory", 1)[1]
     memory = memory.split("\n## ", 1)[0]
     assert len([line for line in memory.splitlines() if line.startswith("-")]) <= 10
+
+
+
+def test_local_vault_in_workspace_is_never_cleaned(tmp_path):
+    from agency_common.housekeeping import clear_workspace
+
+    repo = tmp_path / "repo"
+    (repo / "workspace" / "vault" / "Brands").mkdir(parents=True)
+    note = repo / "workspace" / "vault" / "Brands" / "brand-a.md"
+    note.write_text("# Brand A\n", encoding="utf-8")
+    (repo / "workspace" / "scratch.json").write_text("{}", encoding="utf-8")
+    subprocess_run = __import__("subprocess").run
+    subprocess_run(["git", "init", "-q", str(repo)], check=True)
+
+    clear_workspace(repo, confirm="quarantine-workspace", retention_days=7)
+
+    assert note.exists()  # the local vault holds notes, not scratch
+    assert not (repo / "workspace" / "scratch.json").exists()

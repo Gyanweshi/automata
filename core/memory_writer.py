@@ -2,19 +2,32 @@
 Memory Writer — keeps the Brainiac2 curated memory layer up to date.
 
 Runs after every Automata agent session to update:
-- C:\\Brainiac2\\memory\\STATUS.md  (project status)
-- C:\\Brainiac2\\memory\\BRANDS.md  (brand intelligence index)
-- C:\\Brainiac2\\AGENTS.md         (recent sessions summary in Layer 0)
+- <vault>/memory/STATUS.md  (project status)
+- <vault>/memory/BRANDS.md  (brand intelligence index)
+- <vault>/AGENTS.md         (recent sessions summary in Layer 0)
 """
 import re
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
 
-BRAINIAC2_ROOT = Path("C:/Brainiac2")
-STATUS_FILE = BRAINIAC2_ROOT / "memory" / "STATUS.md"
-BRANDS_FILE = BRAINIAC2_ROOT / "memory" / "BRANDS.md"
-AGENTS_FILE = BRAINIAC2_ROOT / "AGENTS.md"
+def _vault() -> Path:
+    """The Obsidian vault, or workspace/vault on machines without one (resolved at call time)."""
+    from agency_common.knowledge_reader import get_vault_path
+
+    return get_vault_path()
+
+
+def _status_file() -> Path:
+    return _vault() / "memory" / "STATUS.md"
+
+
+def _brands_file() -> Path:
+    return _vault() / "memory" / "BRANDS.md"
+
+
+def _agents_file() -> Path:
+    return _vault() / "AGENTS.md"
 
 
 def _replace_section(content: str, start_marker: str, end_marker: str, new_content: str) -> str:
@@ -44,10 +57,10 @@ def update_status(
     next_steps : list, optional
         Upcoming tasks
     """
-    if not STATUS_FILE.exists():
+    if not _status_file().exists():
         return
 
-    content = STATUS_FILE.read_text(encoding="utf-8")
+    content = _status_file().read_text(encoding="utf-8")
     today = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # Update the "Last updated" line
@@ -57,7 +70,7 @@ def update_status(
         content,
     )
 
-    STATUS_FILE.write_text(content, encoding="utf-8")
+    _status_file().write_text(content, encoding="utf-8")
 
 
 def update_brand(
@@ -86,10 +99,10 @@ def update_brand(
     next_steps : list, optional
         What to do next for this brand
     """
-    if not BRANDS_FILE.exists():
+    if not _brands_file().exists():
         return
 
-    content = BRANDS_FILE.read_text(encoding="utf-8")
+    content = _brands_file().read_text(encoding="utf-8")
     today = datetime.now().strftime("%Y-%m-%d")
 
     # Build the brand section
@@ -139,7 +152,7 @@ def update_brand(
         else:
             content += "\n" + new_section
 
-    BRANDS_FILE.write_text(content, encoding="utf-8")
+    _brands_file().write_text(content, encoding="utf-8")
 
 
 def append_recent_session_to_agents_md(
@@ -160,10 +173,10 @@ def append_recent_session_to_agents_md(
     one_liner : str
         Single sentence summary of what was done
     """
-    if not AGENTS_FILE.exists():
+    if not _agents_file().exists():
         return
 
-    content = AGENTS_FILE.read_text(encoding="utf-8")
+    content = _agents_file().read_text(encoding="utf-8")
     today = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     new_entry = f"- `{today}` · **{agent_name}** · {brand_or_project} — {one_liner}"
@@ -190,4 +203,4 @@ def append_recent_session_to_agents_md(
         new_block = "\n".join(all_entries)
 
         content = _replace_section(content, start_marker, end_marker, new_block)
-        AGENTS_FILE.write_text(content, encoding="utf-8")
+        _agents_file().write_text(content, encoding="utf-8")

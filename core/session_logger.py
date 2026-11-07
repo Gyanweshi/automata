@@ -1,5 +1,5 @@
 """
-Unified Session Logger — writes rich Markdown session logs to C:\\Brainiac2\\Agent_Sessions\\
+Unified Session Logger — writes rich Markdown session logs to <vault>/Agent_Sessions/
 
 Each log is a structured Markdown file readable in Obsidian and by any AI tool
 that reads the Brainiac2 vault at session start.
@@ -12,9 +12,11 @@ from typing import Optional
 # Where this code lives
 WORKSPACE_ROOT = Path(__file__).parent.parent
 
-# Brainiac2 vault — shared memory across all AI tools
-BRAINIAC2_ROOT = Path("C:/Brainiac2")
-AGENT_SESSIONS_DIR = BRAINIAC2_ROOT / "Agent_Sessions"
+# Vault (Obsidian, or workspace/vault on machines without one), resolved when a session is logged
+def _agent_sessions_dir() -> Path:
+    from agency_common.knowledge_reader import get_vault_path
+
+    return get_vault_path() / "Agent_Sessions"
 
 # Fallback: also write a lightweight JSON log locally
 LOCAL_LOGS_DIR = WORKSPACE_ROOT / "data" / "logs"
@@ -32,7 +34,7 @@ def log_agent_session(
     next_steps: Optional[list] = None,
 ) -> Path:
     """
-    Log an agent session as a rich Markdown file in C:\\Brainiac2\\Agent_Sessions\\
+    Log an agent session as a rich Markdown file in <vault>/Agent_Sessions/
 
     Parameters
     ----------
@@ -70,7 +72,8 @@ def log_agent_session(
     filename = f"{date_str}_{topic_slug}.md"
 
     # Ensure session dirs exist
-    AGENT_SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+    sessions_dir = _agent_sessions_dir()
+    sessions_dir.mkdir(parents=True, exist_ok=True)
     LOCAL_LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
     # --- Build Markdown content ---
@@ -138,7 +141,7 @@ def log_agent_session(
     markdown_content = "\n".join(md_lines)
 
     # Write Markdown log to Brainiac2
-    md_path = AGENT_SESSIONS_DIR / filename
+    md_path = sessions_dir / filename
 
     # If file already exists (same brand, same day), append with a separator
     if md_path.exists():

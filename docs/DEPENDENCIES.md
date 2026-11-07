@@ -43,6 +43,16 @@ install command.
 | System tools and apps | not pinned (OS package manager versions) | `deps.py install ID` runs the per-OS command, or prints the manual step |
 | Third-party skills | content hashes in `skills-lock.json` | the `skills` CLI that wrote the lock file |
 
+**Machine roles.** Optional tools are tagged with the roles that need them (`research`, `video`, `slides`,
+`images`, `3d`). Each machine records its roles in `.env` as `AUTOMATA_ROLES` (the bootstrap asks once, or
+`--roles video,research`, or `all`); the bootstrap installs those tools (`python scripts/deps.py install-roles`),
+and `deps.py check` and the doctor only expect them. Tools that cannot be checked automatically (GIMP, Chrome,
+Blender, Cairo) are listed with their install command, never reinstalled blindly.
+
+**No vault.** The Obsidian vault is optional too: with `OBSIDIAN_VAULT_PATH` empty, notes, drafts and session logs
+live in `workspace/vault/` in the same layout (git-ignored, never cleaned by the housekeeper). A configured vault
+that is missing (drive not mounted) stops the agents instead of silently writing to the local folder.
+
 Rules that keep the two machines identical:
 
 - **Pin exactly** anything fetched at run time (`npx`, `uvx`, GitHub releases). An unpinned `uvx blender-mcp`
@@ -155,70 +165,70 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 ### Runtimes
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **Python** (`python`) | Runs every agent package, script and test. | yes | >= 3.12 | - |
-| **uv** (`uv`) | Installs the locked Python environment (uv sync) and runs uvx MCP servers and uv tools. | yes | OS package manager | - |
-| **Node.js** (`node`) | Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper. | yes | >= 22.12 | - |
-| **Git** (`git`) | Repo sync between the two machines; the cross-platform checker lists files with it. | yes | OS package manager | - |
-| **GitHub CLI (gh)** (`gh`) | Browser login to GitHub for cloning and pushing the private repo; lets agents read CI results. | no | OS package manager | - |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **Python** (`python`) | Runs every agent package, script and test. | yes | all | >= 3.12 | - |
+| **uv** (`uv`) | Installs the locked Python environment (uv sync) and runs uvx MCP servers and uv tools. | yes | all | OS package manager | - |
+| **Node.js** (`node`) | Runs npm MCP servers through scripts/mcp-npx.mjs, the HTML-to-PPTX tool and the ig-research scraper. | yes | all | >= 22.12 | - |
+| **Git** (`git`) | Repo sync between the two machines; the cross-platform checker lists files with it. | yes | all | OS package manager | - |
+| **GitHub CLI (gh)** (`gh`) | Browser login to GitHub for cloning and pushing the private repo; lets agents read CI results. | no | - | OS package manager | - |
 
 ### Libraries
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **Python packages (root project)** (`python-packages`) | All Python libraries for the four agency packages and the root tooling, locked exactly in uv.lock. | yes | lockfile | `uv.lock` |
-| **Node packages (root)** (`node-packages`) | playwright (HTML-to-PPTX screenshots), pptxgenjs, animate.css. | no | lockfile | `package-lock.json` |
-| **Node packages (ig-research scraper)** (`ig-research-packages`) | puppeteer-core for the CDP Instagram scraper. | no | lockfile | `agents/automata_core/ig-research/package-lock.json` |
-| **Playwright Chromium builds** (`playwright-browsers`) | Headless Chromium for the Node playwright (1.61) and the Python playwright (1.59); each version needs its own browser build. | no | per playwrig | - |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **Python packages (root project)** (`python-packages`) | All Python libraries for the four agency packages and the root tooling, locked exactly in uv.lock. | yes | all | lockfile | `uv.lock` |
+| **Node packages (root)** (`node-packages`) | playwright (HTML-to-PPTX screenshots), pptxgenjs, animate.css. | no | - | lockfile | `package-lock.json` |
+| **Node packages (ig-research scraper)** (`ig-research-packages`) | puppeteer-core for the CDP Instagram scraper. | no | - | lockfile | `agents/automata_core/ig-research/package-lock.json` |
+| **Playwright Chromium builds** (`playwright-browsers`) | Headless Chromium for the Node playwright (1.61) and the Python playwright (1.59); each version needs its own browser build. | no | - | per playwrig | - |
 
 ### MCP servers
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | 0.0.84 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
-| **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | 1.12.0 | `mcp/agents/research.json`, `dependencies.toml` |
-| **@roomi-fields/notebooklm-mcp** (`notebooklm-mcp`) | Grounded Q&A against NotebookLM sources. | no | 4.4.0 | `mcp/agents/research.json`, `dependencies.toml` |
-| **@apify/actors-mcp-server** (`apify-mcp`) | Apify actors (Instagram, LinkedIn extraction). | no | 0.21.4 | `mcp/agents/research.json`, `dependencies.toml` |
-| **blender-mcp** (`blender-mcp`) | Drive Blender from the storyboard agent (asset prep, Blender-only shots). | no | 2.0.0 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
-| **gimp-mcp (server + GIMP plugin)** (`gimp-mcp`) | Local non-generative image editing through GIMP 3.2. | no | 732586538554 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
-| **Higgsfield MCP (remote)** (`higgsfield-mcp`) | Image and video generation. | no | hosted by vendor | `.mcp.json` |
-| **Magnific MCP (remote)** (`magnific-mcp`) | Upscaling, restyling, generation history. | no | hosted by vendor | `.mcp.json` |
-| **Figma desktop MCP** (`figma-mcp`) | Read/write Figma frames for editable final assets. | no | hosted by vendor | `.mcp.json` |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | - | 0.0.84 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
+| **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | - | 1.12.0 | `mcp/agents/research.json`, `dependencies.toml` |
+| **@roomi-fields/notebooklm-mcp** (`notebooklm-mcp`) | Grounded Q&A against NotebookLM sources. | no | - | 4.4.0 | `mcp/agents/research.json`, `dependencies.toml` |
+| **@apify/actors-mcp-server** (`apify-mcp`) | Apify actors (Instagram, LinkedIn extraction). | no | - | 0.21.4 | `mcp/agents/research.json`, `dependencies.toml` |
+| **blender-mcp** (`blender-mcp`) | Drive Blender from the storyboard agent (asset prep, Blender-only shots). | no | 3d | 2.0.0 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
+| **gimp-mcp (server + GIMP plugin)** (`gimp-mcp`) | Local non-generative image editing through GIMP 3.2. | no | images | 732586538554 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
+| **Higgsfield MCP (remote)** (`higgsfield-mcp`) | Image and video generation. | no | - | hosted by vendor | `.mcp.json` |
+| **Magnific MCP (remote)** (`magnific-mcp`) | Upscaling, restyling, generation history. | no | - | hosted by vendor | `.mcp.json` |
+| **Figma desktop MCP** (`figma-mcp`) | Read/write Figma frames for editable final assets. | no | - | hosted by vendor | `.mcp.json` |
 
 ### Tools
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **raea (Render Anything Engine)** (`raea`) | Local GPU renderer for 3D previz (greybox keyframes and camera-move clips). | no | 0.1.0-canary.3 | `dependencies.toml` |
-| **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | 1.6.2 | `dependencies.toml` |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **raea (Render Anything Engine)** (`raea`) | Local GPU renderer for 3D previz (greybox keyframes and camera-move clips). | no | video, 3d | 0.1.0-canary.3 | `dependencies.toml` |
+| **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | research | 1.6.2 | `dependencies.toml` |
 
 ### System tools
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **ffmpeg / ffprobe** (`ffmpeg`) | Upscale and crop-to-motion b-roll, video agent edits, raea media. | no | OS package manager | - |
-| **Poppler (pdftoppm)** (`poppler`) | PDF page rendering for slide checks and pdf2image. | no | OS package manager | - |
-| **ImageMagick (magick)** (`imagemagick`) | Raster image conversion for slide work and the Higgsfield brand kit. | no | OS package manager | - |
-| **LibreOffice (soffice)** (`libreoffice`) | PPTX to PDF/thumbnail rendering for slide work. | no | OS package manager | - |
-| **Cairo / Pango libraries** (`cairo-pango`) | Native libraries behind weasyprint and cairosvg (PDF and SVG rendering). | no | OS package manager | - |
-| **Android platform-tools (adb)** (`adb`) | Mobile-only Instagram search through redroid/BlueStacks. | no | OS package manager | - |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **ffmpeg / ffprobe** (`ffmpeg`) | Upscale and crop-to-motion b-roll, video agent edits, raea media. | no | video | OS package manager | - |
+| **Poppler (pdftoppm)** (`poppler`) | PDF page rendering for slide checks and pdf2image. | no | slides | OS package manager | - |
+| **ImageMagick (magick)** (`imagemagick`) | Raster image conversion for slide work and the Higgsfield brand kit. | no | slides, images | OS package manager | - |
+| **LibreOffice (soffice)** (`libreoffice`) | PPTX to PDF/thumbnail rendering for slide work. | no | slides | OS package manager | - |
+| **Cairo / Pango libraries** (`cairo-pango`) | Native libraries behind weasyprint and cairosvg (PDF and SVG rendering). | no | slides | OS package manager | - |
+| **Android platform-tools (adb)** (`adb`) | Mobile-only Instagram search through redroid/BlueStacks. | no | research | OS package manager | - |
 
 ### Apps
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **Google Chrome or Microsoft Edge** (`chrome`) | Persistent logged-in Instagram profile for CDP research. | no | OS package manager | - |
-| **GIMP 3.2** (`gimp`) | Host app for the GIMP MCP. | no | OS package manager | - |
-| **Blender** (`blender`) | Host app for the Blender MCP. | no | OS package manager | - |
-| **Obsidian vault (Brainiac2)** (`obsidian-vault`) | Brand notes, drafts and research; source for the vault search index. | yes | OS package manager | - |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **Google Chrome or Microsoft Edge** (`chrome`) | Persistent logged-in Instagram profile for CDP research. | no | research | OS package manager | - |
+| **GIMP 3.2** (`gimp`) | Host app for the GIMP MCP. | no | images | OS package manager | - |
+| **Blender** (`blender`) | Host app for the Blender MCP. | no | 3d | OS package manager | - |
+| **Obsidian vault (optional)** (`obsidian-vault`) | Brand notes, drafts and research; source for the vault search index. Optional: without it, notes stay in workspace/vault. | no | - | OS package manager | - |
 
 ### Skills and CI
 
-| Dependency | Needed for | Required | Version | Pinned in |
-|---|---|---|---|---|
-| **Third-party agent skills** (`external-skills`) | browser-act and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | hashes in lock | `skills-lock.json` |
-| **GitHub Actions** (`github-actions`) | actions/checkout, setup-python and setup-node in the Security and Cross-platform workflows. | no | tag in workflow | `.github/workflows/security.yml`, `.github/workflows/cross-platform.yml` |
+| Dependency | Needed for | Required | Roles | Version | Pinned in |
+|---|---|---|---|---|---|
+| **Third-party agent skills** (`external-skills`) | browser-act and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | - | hashes in lock | `skills-lock.json` |
+| **GitHub Actions** (`github-actions`) | actions/checkout, setup-python and setup-node in the Security and Cross-platform workflows. | no | - | tag in workflow | `.github/workflows/security.yml`, `.github/workflows/cross-platform.yml` |
 
 ### Install, update, and what to do when it breaks
 
@@ -363,10 +373,10 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **Update:** App update; keep the BlenderMCP addon version matched to blender-mcp.
 - **If it breaks:** See blender-mcp.
 
-#### Obsidian vault (Brainiac2) (`obsidian-vault`)
-- **Install:** all: `manual: set OBSIDIAN_VAULT_PATH in .env (Linux: the vault drive's fstab mount point; Windows: D:\Brainiac2)`
+#### Obsidian vault (optional) (`obsidian-vault`)
+- **Install:** all: `manual: the bootstrap asks for the vault folder and writes OBSIDIAN_VAULT_PATH to .env (empty = no vault)`
 - **Update:** Synced between machines outside git.
-- **If it breaks:** Linux I/O errors on the NTFS drive: run chkdsk on Windows. Index stale: make vault-index.
+- **If it breaks:** `OBSIDIAN_VAULT_PATH ... does not exist`: the drive is not mounted (the agents stop rather than write elsewhere). Linux I/O errors on an NTFS drive: run chkdsk on Windows. Index stale: make vault-index. To work without a vault, set OBSIDIAN_VAULT_PATH to empty.
 
 #### Third-party agent skills (`external-skills`)
 - **Update:** Re-install through the `skills` CLI that wrote skills-lock.json (`npx skills --help`), review the diff, commit.

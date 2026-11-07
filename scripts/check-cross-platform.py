@@ -32,7 +32,8 @@ CODE_SUFFIXES = {".py", ".sh", ".bash", ".ps1", ".cmd", ".bat", ".js", ".mjs", "
                  ".yaml", ".yml", ".cfg", ".ini"}
 SKIP_PATHS = {".claude/settings.local.json", "scripts/cross-platform-baseline.txt", "scripts/check-cross-platform.py"}
 TEXT_IO = re.compile(r"""\.read_text\(\s*\)|\.write_text\(|\bopen\([^()]*?,\s*(['"])[rwa]\+?\1\s*\)""")
-MACHINE_PATH = re.compile(r"(/home/[a-z][\w.-]*/|/mnt/sd[a-z]|[A-Za-z]:\\\\?Users\\\\?[\w.-]+|/Users/[\w.-]+/)")
+MACHINE_PATH = re.compile(r"(/home/[a-z][\w.-]*/|/mnt/sd[a-z]|[A-Za-z]:\\\\?Users\\\\?[\w.-]+|/Users/[\w.-]+/"
+                          r"|[A-Za-z]:[\\/]+Brainiac2)")  # a vault root belongs in OBSIDIAN_VAULT_PATH
 
 
 def tracked_files() -> list[str]:

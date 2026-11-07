@@ -14,7 +14,6 @@ from .knowledge_reader import VaultPathError, get_vault_path
 
 
 _SAFE_PATH_COMPONENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-_WINDOWS_VAULT_FALLBACK = Path(r"D:\Brainiac2")
 
 
 class OutputWriter:
@@ -104,12 +103,7 @@ class OutputWriter:
             if not root.is_dir():
                 raise VaultPathError(f"Vault path must be an existing directory: {root}")
         else:
-            try:
-                root = get_vault_path()
-            except VaultPathError:
-                if os.name != "nt" or not _WINDOWS_VAULT_FALLBACK.is_dir():
-                    raise
-                root = _WINDOWS_VAULT_FALLBACK.resolve()
+            root = get_vault_path()  # the Obsidian vault, or workspace/vault on machines without one
 
         brand_dir = root / "Brands" / brand
         if status == "draft":

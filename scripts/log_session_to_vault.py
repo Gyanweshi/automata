@@ -35,7 +35,7 @@ SESSION_HISTORY_HEADING = "## Session History"
 
 def get_vault() -> Path | None:
     raw = os.environ.get(VAULT_ENV)
-    if not raw:
+    if raw is None:
         env_path = Path(".env")
         if env_path.exists():
             for line in env_path.read_text(encoding="utf-8").splitlines():
@@ -43,8 +43,10 @@ def get_vault() -> Path | None:
                 if sep and key.strip() == VAULT_ENV:
                     raw = value.strip()
                     break
-    if not raw:
-        return None
+    if not raw.strip():  # no Obsidian vault on this machine: the local vault inside the checkout
+        local = Path(__file__).resolve().parents[1] / "workspace" / "vault"
+        local.mkdir(parents=True, exist_ok=True)
+        return local
     p = Path(raw).expanduser().resolve()
     return p if p.is_dir() else None
 
@@ -267,7 +269,10 @@ def main() -> int:
     if not commit_reason:
         print("Vault Logger: blocked; --commit-reason is required", file=sys.stderr)
         return 2
-    if "--codex-current" in args:
+    if "--latest" in args:  # the newest Claude Code transcript: the session running /sess (any OS)
+        transcripts = sorted(PROJECTS_DIR.glob("*/*.jsonl"), key=lambda p: p.stat().st_mtime) if PROJECTS_DIR.is_dir() else []
+        payload = {"session_id": transcripts[-1].stem if transcripts else ""}
+    elif "--codex-current" in args:
         mode = "codex"
         payload = {"session_id": os.environ.get("CODEX_THREAD_ID", "")}
     else:
@@ -285,7 +290,7 @@ def main() -> int:
 
     vault = get_vault()
     if not vault:
-        print("Vault Logger: Could not find Obsidian Vault path from OBSIDIAN_VAULT_PATH", file=sys.stderr)
+        print("Vault Logger: OBSIDIAN_VAULT_PATH points to a folder that does not exist (drive not mounted?)", file=sys.stderr)
         return 1
 
     jsonl_path = find_codex_jsonl(session_id) if mode == "codex" else find_jsonl(session_id)

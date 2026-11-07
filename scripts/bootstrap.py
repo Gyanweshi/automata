@@ -130,6 +130,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skip-browsers", "--skip-playwright-browser", action="store_true")
     parser.add_argument("--yes", "-y", action="store_true", help="install missing tools without asking")
+    parser.add_argument("--roles", help="what this machine is for: comma list of research, video, slides, images, 3d, "
+                                        "or all / none (saved to .env as AUTOMATA_ROLES; asked once if not given)")
     schedules = parser.add_mutually_exclusive_group()
     schedules.add_argument("--schedules", dest="schedules", action="store_true", default=None,
                            help="register the nightly jobs without asking")
@@ -210,6 +212,44 @@ def main(argv: list[str] | None = None) -> int:
         (ok if node_ok else warn)("Chromium for the Node playwright (html_to_pptx.js)")
         py_ok = run([str(VENV_PYTHON), "-m", "playwright", "install", "chromium"]).returncode == 0
         (ok if py_ok else warn)("Chromium for the Python playwright (research scraper)")
+
+    step("Vault (where notes, drafts and session logs go)")
+    env_file = ROOT / ".env"
+    env_text = env_file.read_text(encoding="utf-8", errors="ignore") if env_file.exists() else ""
+    has_key = "OBSIDIAN_VAULT_PATH" in os.environ or any(l.strip().startswith("OBSIDIAN_VAULT_PATH=") for l in env_text.splitlines())
+    if has_key:
+        ok("vault setting found (python scripts/doctor.py shows which mode)")
+    elif args.yes or not sys.stdin.isatty():
+        warn("no vault configured: notes stay in workspace/vault. To use an Obsidian vault, add "
+             "OBSIDIAN_VAULT_PATH=<folder> to .env")
+    else:
+        answer = input("     Path to your Obsidian vault (Enter = no vault; notes stay in workspace/vault): ").strip().strip('"')
+        if answer and not Path(answer).expanduser().is_dir():
+            warn(f"{answer} is not a folder; keeping notes in workspace/vault for now (fix OBSIDIAN_VAULT_PATH in .env)")
+            answer = ""
+        with env_file.open("a", encoding="utf-8") as fh:
+            fh.write(f"\n# Vault: an Obsidian folder, or empty for no vault (notes stay in workspace/vault)\nOBSIDIAN_VAULT_PATH={answer}\n")
+        ok(f"vault set to {answer}" if answer else "no vault: notes stay in workspace/vault")
+
+    step("Machine roles (which optional tools this machine needs)")
+    env_text = env_file.read_text(encoding="utf-8", errors="ignore") if env_file.exists() else ""
+    has_roles = "AUTOMATA_ROLES" in os.environ or any(l.strip().startswith("AUTOMATA_ROLES=") for l in env_text.splitlines())
+    roles_answer = args.roles
+    if roles_answer is None and not has_roles and not args.yes and sys.stdin.isatty():
+        print("     research = Chrome, browser-act, Android tools    video = ffmpeg, raea    slides = LibreOffice, Poppler,")
+        print("     ImageMagick, Cairo    images = GIMP, ImageMagick    3d = Blender, raea")
+        roles_answer = input("     Roles for this machine (comma list, 'all', or Enter for none): ").strip()
+    if roles_answer is not None:
+        roles_answer = "" if roles_answer.lower() == "none" else roles_answer.replace(" ", "")
+        lines = [l for l in env_text.splitlines() if not l.strip().startswith("AUTOMATA_ROLES=")]
+        lines.append(f"AUTOMATA_ROLES={roles_answer}")
+        env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        os.environ["AUTOMATA_ROLES"] = roles_answer
+        ok(f"roles: {roles_answer or 'none'} (saved to .env; change with --roles)")
+    elif not has_roles:
+        warn("no machine roles set: optional tools are not installed (rerun with --roles research,video,... or 'all')")
+    if run([sys.executable, "scripts/deps.py", "install-roles"]).returncode:
+        warn("some tools for this machine's roles could not be installed (see above)")
 
     step("API keys")
     env_file = ROOT / ".env"

@@ -53,7 +53,7 @@ This is an agency multi-agent monorepo for:
 - Canonical agent skills: `skills/*/SKILL.md`
 - Skill discovery shims: `.agents/skills/` for Codex and `.claude/skills/` for Claude Code
 - Brand configs: `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` — frontmatter is the agent config, body is the brand narrative and memory (not committed to repo)
-- Durable research, results, briefs, scripts, captions, plans, and other knowledge Markdown: `$OBSIDIAN_VAULT_PATH/` (use `D:\Brainiac2` as the Windows fallback when unset)
+- Durable research, results, briefs, scripts, captions, plans, and other knowledge Markdown: `$OBSIDIAN_VAULT_PATH/`; on machines without a vault (`OBSIDIAN_VAULT_PATH` empty) the same layout lives in `workspace/vault/` (git-ignored, never cleaned). Code resolves it with `agency_common.get_vault_path()`; never hardcode a vault path.
 - Machine-readable run data and disposable working files: `workspace/<brand-slug>/research/`, `workspace/<brand-slug>/storyboards/`, `workspace/<brand-slug>/content/`
 
 ## Vault Output Policy
