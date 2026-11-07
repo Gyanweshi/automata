@@ -121,6 +121,7 @@ approved storyboard note; never overwrite an existing vault note or asset withou
 
 ## Updating raea
 
-`python scripts/deps.py outdated` shows newer releases. `python scripts/deps.py set-pin raea NEW`,
-`python scripts/deps.py install raea`, then re-render `templates/greybox-shot.tsx` and lint it before relying on
+`python scripts/deps.py outdated` shows newer releases. `python scripts/deps.py set-pin raea NEW`, then
+`python scripts/deps.py verify-downloads` (canaries sometimes skip Windows; if so, keep Windows on the last release
+with a build via `platform_pins` in `[releases.raea]`), `python scripts/deps.py install raea`, then re-render `templates/greybox-shot.tsx` and lint it before relying on
 the new version.

@@ -6,6 +6,7 @@
     python scripts/deps.py check --pins-only       only the pin agreement (what CI runs)
     python scripts/deps.py install ID [ID ...]     install one dependency the right way for this OS
     python scripts/deps.py outdated                newest upstream version for every pinned dependency
+    python scripts/deps.py verify-downloads        each platform's pinned GitHub-release build exists (network)
     python scripts/deps.py set-pin ID VERSION      move a pin everywhere it is written (configs + manifest)
     python scripts/deps.py docs [--check]          regenerate the register in docs/DEPENDENCIES.md
 
@@ -127,7 +128,7 @@ def set_pin(dep_id: str, new: str, manifest_path: Path = MANIFEST, root: Path = 
 
 # ---------------------------------------------------------------- presence
 
-def run_check(dep: dict, os_name: str | None = None) -> tuple[str, str]:
+def run_check(dep: dict, os_name: str | None = None, release: dict | None = None) -> tuple[str, str]:
     """(state, detail): state is ok | missing | old | n/a."""
     os_name = os_name or os_key()
     command = dep.get(f"check_{os_name}") or dep.get("check")
@@ -136,8 +137,9 @@ def run_check(dep: dict, os_name: str | None = None) -> tuple[str, str]:
         installed = marker.read_text(encoding="utf-8").strip() if marker.exists() else None
         if not shutil.which(dep["id"]):
             return "missing", f"{dep['id']} not on PATH"
-        if installed and dep.get("pin") and installed != dep["pin"]:
-            return "old", f"installed {installed}, pinned {dep['pin']}"
+        expected = pin_for(dep, release)
+        if installed and expected and installed != expected:
+            return "old", f"installed {installed}, pinned {expected}"
         return "ok", installed or "installed (version unknown)"
     if not command:
         return "n/a", "no automatic check"
@@ -163,6 +165,11 @@ def run_check(dep: dict, os_name: str | None = None) -> tuple[str, str]:
 
 
 # ---------------------------------------------------------------- github release installer
+
+def pin_for(dep: dict, release: dict | None, plat: str | None = None) -> str:
+    """The version this platform should run: a per-platform pin when a release lacks a build for it."""
+    plat = plat or detect_platform()
+    return ((release or {}).get("platform_pins") or {}).get(plat) or dep.get("pin", "")
 
 def detect_platform(system: str | None = None, machine: str | None = None) -> str:
     system = system or platform.system()
@@ -226,7 +233,7 @@ def install_github_release(dep: dict, release: dict, version: str | None = None,
     template = release["assets"].get(plat)
     if not template:
         raise SystemExit(f"deps: {dep['id']} has no build for {plat}")
-    version = version or dep["pin"]
+    version = version or pin_for(dep, release, plat)
     asset = template.format(version=version)
     url = f"https://github.com/{release['repo']}/releases/download/v{version}/{asset}"
     prefix = Path.home() / f".{dep['id']}"
@@ -371,7 +378,7 @@ def cmd_check(manifest: dict, pins_only: bool, only: list[str]) -> int:
             errors += 1
         if pins_only:
             continue
-        state, detail = run_check(dep)
+        state, detail = run_check(dep, release=manifest.get("releases", {}).get(dep["id"]))
         if state == "ok":
             print(f"ok    {dep['id']:22} {detail}")
         elif state == "n/a":
@@ -409,6 +416,27 @@ def cmd_install(manifest: dict, ids: list[str], version: str | None, skills: boo
     return 0
 
 
+def cmd_verify_downloads(manifest: dict) -> int:
+    """Every platform's pinned build of every GitHub-release tool exists (asset + checksum). Needs network."""
+    problems = 0
+    for dep in manifest["dependency"]:
+        release = manifest.get("releases", {}).get(dep["id"])
+        if dep["kind"] != "github-release" or not release:
+            continue
+        for plat, template in release["assets"].items():
+            version = pin_for(dep, release, plat)
+            url = f"https://github.com/{release['repo']}/releases/download/v{version}/{template.format(version=version)}"
+            try:
+                fetch(url + ".sha256")
+                print(f"ok    {dep['id']:12} {plat:16} {version}")
+            except Exception as exc:  # 404 or network
+                problems += 1
+                print(f"FAIL  {dep['id']:12} {plat:16} {version}: no build ({exc.__class__.__name__}); "
+                      f"set [releases.{dep['id']}].platform_pins.{plat} to a version that has one")
+    print(f"deps: {problems} missing build(s)")
+    return 1 if problems else 0
+
+
 def cmd_outdated(manifest: dict) -> int:
     for dep in manifest["dependency"]:
         if not dep.get("upstream"):
@@ -435,6 +463,7 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument("--version", help="install this version instead of the pin (github-release only)")
     install.add_argument("--no-skills", action="store_true")
     sub.add_parser("outdated")
+    sub.add_parser("verify-downloads", help="check each platform's pinned GitHub-release build exists (network)")
     pin = sub.add_parser("set-pin")
     pin.add_argument("id")
     pin.add_argument("version")
@@ -451,6 +480,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_install(manifest, args.ids, args.version, not args.no_skills)
     if args.command == "outdated":
         return cmd_outdated(manifest)
+    if args.command == "verify-downloads":
+        return cmd_verify_downloads(manifest)
     if args.command == "set-pin":
         for name in set_pin(args.id, args.version):
             print(f"deps: updated {name}")

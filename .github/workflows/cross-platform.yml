@@ -37,6 +37,8 @@ jobs:
         run: python scripts/deps.py check --pins-only
       - name: Dependency register matches dependencies.toml
         run: python scripts/deps.py docs --check
+      - name: Every platform's pinned tool builds exist
+        run: python scripts/deps.py verify-downloads
       - name: MCP launcher finds a compatible Node and runs npx
         run: node scripts/mcp-npx.mjs --which && node scripts/mcp-npx.mjs --version
       - name: Repo scripts start on this OS

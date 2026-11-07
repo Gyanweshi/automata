@@ -295,10 +295,10 @@ category = "Tools"
 purpose = "Local GPU renderer for 3D previz (greybox keyframes and camera-move clips)."
 used_by = ["skills/previz-3d"]
 required = false
-pin = "0.1.0-canary.2"
+pin = "0.1.0-canary.3"
 check = ["raea", "help"]
 upstream = "github-release:shinyobjectz/raea"
-update = "`python scripts/deps.py outdated` shows the newest engine release; `python scripts/deps.py set-pin raea NEW`, `python scripts/deps.py install raea`, then re-render skills/previz-3d/templates/greybox-shot.tsx and run `raea scene lint` on it."
+update = "`python scripts/deps.py outdated` shows the newest engine release; `python scripts/deps.py set-pin raea NEW`, `python scripts/deps.py install raea`, then re-render skills/previz-3d/templates/greybox-shot.tsx and run `raea scene lint` on it. Canary releases sometimes skip a platform: `python scripts/deps.py verify-downloads` checks, and `[releases.raea].platform_pins` keeps that platform on the last release that has a build."
 on_break = "Canary software. Roll back: `python scripts/deps.py set-pin raea OLD && python scripts/deps.py install raea`. Upstream's own installer can pick a web-* release and 404; use deps.py instead."
 
 [releases.raea]
@@ -306,6 +306,9 @@ repo = "shinyobjectz/raea"
 binary = "raea"
 skills_dir = "share/raea/skills"
 assets = { linux-x86_64 = "raea-{version}-linux-x86_64.tar.gz", windows-x86_64 = "raea-{version}-windows-x86_64.zip", macos-arm64 = "raea-{version}-macos-arm64.tar.gz" }
+# canary.3 shipped no Windows build: Windows stays on the newest release that has one. Remove the line once a
+# release ships all three (python scripts/deps.py verify-downloads tells you).
+platform_pins = { windows-x86_64 = "0.1.0-canary.2" }
 
 [[dependency]]
 id = "browser-act"

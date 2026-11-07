@@ -162,7 +162,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 | Dependency | Needed for | Required | Version | Pinned in |
 |---|---|---|---|---|
-| **raea (Render Anything Engine)** (`raea`) | Local GPU renderer for 3D previz (greybox keyframes and camera-move clips). | no | 0.1.0-canary.2 | `dependencies.toml` |
+| **raea (Render Anything Engine)** (`raea`) | Local GPU renderer for 3D previz (greybox keyframes and camera-move clips). | no | 0.1.0-canary.3 | `dependencies.toml` |
 | **browser-act CLI** (`browser-act`) | Stealth browser extraction for research (--scraper browser-act). | no | 1.6.2 | `dependencies.toml` |
 
 ### System tools
@@ -281,7 +281,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 #### raea (Render Anything Engine) (`raea`)
 - **Install:** `python scripts/deps.py install raea`
-- **Update:** `python scripts/deps.py outdated` shows the newest engine release; `python scripts/deps.py set-pin raea NEW`, `python scripts/deps.py install raea`, then re-render skills/previz-3d/templates/greybox-shot.tsx and run `raea scene lint` on it.
+- **Update:** `python scripts/deps.py outdated` shows the newest engine release; `python scripts/deps.py set-pin raea NEW`, `python scripts/deps.py install raea`, then re-render skills/previz-3d/templates/greybox-shot.tsx and run `raea scene lint` on it. Canary releases sometimes skip a platform: `python scripts/deps.py verify-downloads` checks, and `[releases.raea].platform_pins` keeps that platform on the last release that has a build.
 - **If it breaks:** Canary software. Roll back: `python scripts/deps.py set-pin raea OLD && python scripts/deps.py install raea`. Upstream's own installer can pick a web-* release and 404; use deps.py instead.
 
 #### browser-act CLI (`browser-act`)

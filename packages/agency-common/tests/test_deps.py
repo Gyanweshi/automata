@@ -109,3 +109,17 @@ def test_install_command_prefers_os_then_all():
 def test_raea_has_a_build_for_both_machines(manifest):
     assets = manifest["releases"]["raea"]["assets"]
     assert {"linux-x86_64", "windows-x86_64"} <= set(assets)
+
+
+def test_platform_pin_overrides_the_pin_only_for_that_platform():
+    dep = {"id": "tool", "pin": "2.0"}
+    release = {"platform_pins": {"windows-x86_64": "1.9"}}
+    assert deps.pin_for(dep, release, "windows-x86_64") == "1.9"
+    assert deps.pin_for(dep, release, "linux-x86_64") == "2.0"
+    assert deps.pin_for(dep, None, "linux-x86_64") == "2.0"
+
+
+def test_platform_pins_name_known_platforms(manifest):
+    for dep_id, release in manifest.get("releases", {}).items():
+        for plat in (release.get("platform_pins") or {}):
+            assert plat in release["assets"], f"{dep_id}: platform_pins names unknown platform {plat}"
