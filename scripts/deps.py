@@ -468,7 +468,8 @@ def cmd_list(manifest: dict) -> int:
     return 0
 
 
-def cmd_check(manifest: dict, pins_only: bool, only: list[str]) -> int:
+def cmd_check(manifest: dict, pins_only: bool, only: list[str], strict: bool = False) -> int:
+    """strict: a missing tool this machine's roles need counts as a problem too (the fresh-setup CI uses it)."""
     errors = 0
     roles = machine_roles()
     for dep in manifest["dependency"]:
@@ -492,8 +493,9 @@ def cmd_check(manifest: dict, pins_only: bool, only: list[str]) -> int:
         elif state == "n/a":
             print(f"-     {dep['id']:22} {detail}")
         else:
-            label = "FAIL " if dep.get("required") else ("warn " if dep.get("roles") else "info ")
-            errors += 1 if dep.get("required") else 0
+            hard = dep.get("required") or (strict and dep.get("roles"))
+            label = "FAIL " if hard else ("warn " if dep.get("roles") else "info ")
+            errors += 1 if hard else 0
             hint = install_command(dep) or f"python scripts/deps.py install {dep['id']}"
             print(f"{label} {dep['id']:22} {state}: {detail}  ->  {hint}")
     print(f"deps: {errors} problem(s)" + (" in pins" if pins_only else ""))
@@ -600,6 +602,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("list")
     check = sub.add_parser("check")
     check.add_argument("--pins-only", action="store_true")
+    check.add_argument("--strict", action="store_true", help="tools this machine's roles need must be installed too")
     check.add_argument("ids", nargs="*")
     install = sub.add_parser("install")
     install.add_argument("ids", nargs="+")
@@ -625,7 +628,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "list":
         return cmd_list(manifest)
     if args.command == "check":
-        return cmd_check(manifest, args.pins_only, args.ids)
+        return cmd_check(manifest, args.pins_only, args.ids, args.strict)
     if args.command == "install":
         return cmd_install(manifest, args.ids, args.version, not args.no_skills)
     if args.command == "outdated":

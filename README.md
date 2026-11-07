@@ -75,6 +75,9 @@ automata/
 
 ## 🚀 Quick Start
 
+> **Full guide:** [docs/SETUP.md](docs/SETUP.md) covers the steps, how to check a machine, and a troubleshooting
+> table for every problem seen so far on fresh Windows and Linux machines. Send new people there.
+
 ### New machine: one paste
 
 Works on a machine with nothing installed, not even Python. Open a terminal, paste the block for your OS,
@@ -139,8 +142,8 @@ Open this folder in VS Code with the **Dev Containers** extension installed. It 
 
 ### After setup
 
-- **Optional tools** (ffmpeg, GIMP, Blender, raea, ImageMagick, ...) show as `warn` in `deps.py check`, each with
-  its install command; `python scripts/deps.py install ID` installs one. The full list, what each is for, and
+- **Optional tools** are installed per machine role (`python scripts/bootstrap.py --roles ...`); a missing one
+  shows as `warn` in `deps.py check` with its install command, and `python scripts/deps.py install ID` installs one. The full list, what each is for, and
   how to update or fix it is in [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 - **Scheduled jobs:** `python scripts/schedule.py install vault-index`, `... install housekeeper` and `... install vault-watchdog`
   register them with this machine's scheduler (Task Scheduler on Windows, systemd/cron on Linux).
@@ -321,20 +324,8 @@ make dry-run BRAND=my-brand
 
 ## ❓ Troubleshooting & FAQ
 
-<details>
-<summary><strong>Fresh machine troubleshooting</strong></summary>
-
-- **Something is "not recognized" right after installing it:** the terminal still has the old PATH. Run the
-  second line of the Windows block again (or open a new terminal), then re-run the last line.
-- **`winget` is not recognized:** update "App Installer" from the Microsoft Store, then paste the block again.
-- **`python` opens the Microsoft Store or is missing:** that's fine; the setup never needs a system Python
-  (`uv run --python 3.12` brings its own). After setup, the repo's Python is `.venv\Scripts\python.exe`
-  (Linux `.venv/bin/python`).
-- **GitHub Desktop or VS Code cloned the repo but `git` is not recognized:** they bundle a private git;
-  the paste block installs the real one.
-- **A step failed:** fix what the summary says and run `python scripts/bootstrap.py` again; it picks up where
-  things are missing. `docs/DEPENDENCIES.md` lists every tool, how to update it, and what to do when it breaks.
-</details>
+**Setup problems** ("not recognized", `FAIL` / `warn` in the checks, winget codes, PATH): see the
+troubleshooting table in [docs/SETUP.md](docs/SETUP.md#4-troubleshooting).
 
 <details>
 <summary><strong>Playwright cannot launch browser</strong></summary>

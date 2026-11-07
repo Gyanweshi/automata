@@ -140,6 +140,9 @@ commands above before they run and names the replacement.
 
 ## Keeping Machines in Step
 
+Setting up a machine or helping someone with a setup problem: follow `docs/SETUP.md` (steps plus a symptom ->
+cause -> fix table). When you fix a new setup problem, fix it in the setup scripts and add its row there.
+
 If the session starts with "SETUP OUT OF DATE", run the bootstrap it names before anything else and report the
 doctor summary. The bootstrap records a setup stamp and installs post-merge/post-rewrite git hooks
 (`scripts/setup_state.py`), so later pulls that change the setup re-run it automatically. Its automatic mode

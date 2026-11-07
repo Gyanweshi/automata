@@ -1,0 +1,84 @@
+name: Fresh setup
+
+# Does what a new laptop does, the way docs/SETUP.md says: the README paste-block tools, then the full bootstrap with
+# every machine role, then the checks from a NEW step (a new process, like opening a new terminal, so PATH problems
+# show). Catches first-run bugs before a person hits them. Slow (~20-30 min), so weekly and when setup files change.
+# Hosted runners come with some tools preinstalled, so this is close to a fresh machine, not identical.
+on:
+  schedule:
+    - cron: "0 4 * * 1"   # Mondays 04:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/bootstrap.py
+      - scripts/deps.py
+      - scripts/doctor.py
+      - scripts/setup_state.py
+      - scripts/schedule.py
+      - scripts/mcp-npx.mjs
+      - dependencies.toml
+      - uv.lock
+      - package-lock.json
+      - .mcp.json
+      - .github/workflows/fresh-setup.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fresh-setup-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fresh-setup:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-2025]   # windows-2025 ships winget, like Windows 10/11
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    env:
+      AUTOMATA_ROLES: all
+      OBSIDIAN_VAULT_PATH: ""     # no vault: notes go to workspace/vault, as on a machine without Obsidian
+      PYTHONIOENCODING: ""        # leave Windows on its default code page, like a real terminal
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Paste-block tools (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          winget --version
+          winget install -e --id astral-sh.uv --accept-source-agreements --accept-package-agreements
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne -1978335189) { exit $LASTEXITCODE }   # -1978335189 = already installed
+          $global:LASTEXITCODE = 0
+
+      - name: Paste-block tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Bootstrap with every role (README command, Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # reload PATH the way the README block does, so uv is found right after installing it
+          $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User") + ";$env:LOCALAPPDATA\Microsoft\WinGet\Links;$env:Path"
+          uv run --no-project --python 3.12 scripts\bootstrap.py --yes --roles all --no-schedules
+          exit $LASTEXITCODE
+
+      - name: Bootstrap with every role (README command, Linux)
+        if: runner.os == 'Linux'
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          uv run --no-project --python 3.12 scripts/bootstrap.py --yes --roles all --no-schedules
+
+      - name: Checks from a new terminal
+        shell: bash
+        run: |
+          py=.venv/bin/python; [ -x "$py" ] || py=.venv/Scripts/python.exe
+          "$py" scripts/deps.py check --strict
+          "$py" scripts/doctor.py
+          "$py" scripts/setup_state.py --check
