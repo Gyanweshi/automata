@@ -12,6 +12,16 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-repo-root-images.js\""
           }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 10,
+            "command": "p=\"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\"; [ -x \"$p\" ] || p=\"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; [ -x \"$p\" ] || p=python3; \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/repo_guard.py\""
+          }
+        ]
       }
     ],
     "SessionStart": [

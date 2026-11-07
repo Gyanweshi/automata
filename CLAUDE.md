@@ -137,6 +137,8 @@ There are three layers of context. Use all three, in order, before doing any bra
 
 ## Cross-Platform
 
+Use the repo's tools, not the old way: see the table in `AGENTS.md` (a guard hook blocks the clear-cut cases and a git pre-commit hook blocks rule-breaking commits).
+
 This repo runs on a Linux machine and a Windows machine. Follow the **Cross-Platform Rule** in `AGENTS.md`: new scripts are one Python implementation (no new `.sh` + `.ps1` pairs), no machine paths, and `make check-cross-platform` passes before work is called done. The `Cross-platform` workflow tests both OSes on every push.
 
 ## 3D Previz

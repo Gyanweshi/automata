@@ -7,6 +7,7 @@
     python scripts/deps.py install ID [ID ...]     install one dependency the right way for this OS
     python scripts/deps.py outdated                newest upstream version for every pinned dependency
     python scripts/deps.py verify-downloads        each platform's pinned GitHub-release build exists (network)
+    python scripts/deps.py update [--report F]     the quarterly routine: safe updates (cool-down, no majors, MCP smoke)
     python scripts/deps.py set-pin ID VERSION      move a pin everywhere it is written (configs + manifest)
     python scripts/deps.py docs [--check]          regenerate the register in docs/DEPENDENCIES.md
 
@@ -464,6 +465,10 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument("--no-skills", action="store_true")
     sub.add_parser("outdated")
     sub.add_parser("verify-downloads", help="check each platform's pinned GitHub-release build exists (network)")
+    upd = sub.add_parser("update", help="safe dependency update routine (see scripts/deps_update.py)")
+    upd.add_argument("--cooldown-days", type=int, default=14)
+    upd.add_argument("--no-smoke", action="store_true", help="skip MCP server smoke tests (no network/Node)")
+    upd.add_argument("--report", type=Path)
     pin = sub.add_parser("set-pin")
     pin.add_argument("id")
     pin.add_argument("version")
@@ -482,6 +487,11 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_outdated(manifest)
     if args.command == "verify-downloads":
         return cmd_verify_downloads(manifest)
+    if args.command == "update":
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import deps_update
+
+        return deps_update.update(args.cooldown_days, smoke=not args.no_smoke, report=args.report)
     if args.command == "set-pin":
         for name in set_pin(args.id, args.version):
             print(f"deps: updated {name}")

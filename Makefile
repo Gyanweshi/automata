@@ -1,4 +1,4 @@
-.PHONY: install install-skills bootstrap doctor deps deps-install deps-outdated check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval research storyboard content pipeline week dry-run clean help
+.PHONY: install install-skills bootstrap doctor deps deps-install deps-outdated deps-update check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval research storyboard content pipeline week dry-run clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -52,6 +52,7 @@ help:
 	@echo "  make deps           Check every external dependency (dependencies.toml)"
 	@echo "  make deps-install ID=raea  Install one dependency the right way for this OS"
 	@echo "  make deps-outdated  Show newer upstream versions of pinned dependencies"
+	@echo "  make deps-update    Run the dependency update routine (cool-down, no majors, MCP smoke tests)"
 	@echo "  make check-cross-platform  Flag code that would only work on Linux or only on Windows"
 	@echo "  make list-workflows List local skills and the routing policy"
 	@echo "  make install-housekeeper-watchdog  Install the native cleanup scheduler"
@@ -99,6 +100,9 @@ deps-install:
 
 deps-outdated:
 	$(PYTHON_CMD) scripts/deps.py outdated
+
+deps-update:
+	$(PYTHON_CMD) scripts/deps.py update --report workspace/dependency-update.md
 
 bootstrap:
 	uv run --no-project --python 3.12 scripts/bootstrap.py

@@ -54,6 +54,34 @@ Rules that keep the two machines identical:
 - **One implementation:** installers and launchers are Python (or Node for MCP launch), never a `.sh` + `.ps1`
   pair. See the Cross-Platform Rule in `AGENTS.md`.
 
+## Quarterly update routine
+
+Dependencies are updated on a schedule, not ad hoc. The `Dependency update` workflow
+(`.github/workflows/dependency-update.yml`) runs at 03:00 UTC on 1 January, April, July and October, and on
+demand from GitHub (Actions -> Dependency update -> Run workflow). It:
+
+1. computes safe updates (`python scripts/deps.py update`, also runnable by hand on Linux or Windows, or
+   `make deps-update`);
+2. tests them on Ubuntu **and** Windows: the cross-platform checks, the pinned-build check, the test suite and the
+   security audit of the updated `uv.lock`;
+3. pushes them to a `deps/update-YYYY-MM-DD` branch and opens an issue with the report and a one-click link to
+   create the pull request. **Nothing reaches `main` until you merge it.** After merging, every machine updates
+   itself on its next `git pull`.
+
+What it will and will not do:
+
+| Rule | Why |
+|---|---|
+| Only versions published at least **14 days** ago (`--cooldown-days`) | brand-new releases are where broken and malicious versions show up |
+| **Never a major version** (or a 0.x minor, where minors break): listed under *Needs a person* | majors change APIs; they need a changelog read and a deliberate update |
+| **MCP servers are started and handshaken** before and after; a bump that removes a tool is reverted | skills, hooks and settings call MCP tools by name |
+| **Never downgrades**; a package already newer than the cool-down (a recent security fix) keeps its version | the cool-down must not undo a security bump |
+| Node libraries are held back as a group if any changed package is too new | npm cannot exempt one package |
+| GIMP, Blender and raea are **report-only** | they need the app or a GPU to verify |
+
+What you do each quarter: open the issue, read *Needs a person*, merge the pull request if CI is green. The
+majors it lists are the manual work for that quarter (one per commit, with the steps below).
+
 ## Updating a dependency
 
 1. `python scripts/deps.py outdated` to see what is behind.

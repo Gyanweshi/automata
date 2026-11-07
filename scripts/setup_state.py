@@ -28,10 +28,22 @@ INPUTS = ("uv.lock", "package-lock.json", "agents/automata_core/ig-research/pack
 BOOTSTRAP = "uv run --no-project --python 3.12 scripts/bootstrap.py --yes"
 HOOK_MARKER = "# automata-setup-hook"
 HOOK_NAMES = ("post-merge", "post-rewrite")
+PRE_COMMIT_BODY = f"""#!/bin/sh
+{HOOK_MARKER}: installed by scripts/bootstrap.py. Block commits that break the repo's rules (fast checks).
+cd "$(git rev-parse --show-toplevel)" || exit 0
+[ -f scripts/hooks/pre_commit.py ] || exit 0
+for p in .venv/Scripts/python.exe .venv/bin/python; do
+  [ -x "$p" ] && exec "$p" scripts/hooks/pre_commit.py
+done
+command -v python3 >/dev/null 2>&1 && exec python3 scripts/hooks/pre_commit.py
+command -v python >/dev/null 2>&1 && exec python scripts/hooks/pre_commit.py
+exit 0
+"""
 HOOK_BODY = f"""#!/bin/sh
 {HOOK_MARKER}: installed by scripts/bootstrap.py. After a pull, bring this machine's setup up to date.
 cd "$(git rev-parse --show-toplevel)" || exit 0
 [ -f scripts/setup_state.py ] || exit 0
+[ "$(basename "$0")" = post-rewrite ] && [ "$1" = amend ] && exit 0  # amending a commit is not a pull
 for p in .venv/Scripts/python.exe .venv/bin/python; do
   [ -x "$p" ] && exec "$p" scripts/setup_state.py --after-pull
 done
@@ -86,12 +98,13 @@ def install_hooks(root: Path = ROOT) -> list[str]:
         return ["not a git checkout; no update hooks installed"]
     hooks_dir = hooks_dir if hooks_dir.is_absolute() else root / hooks_dir
     hooks_dir.mkdir(parents=True, exist_ok=True)
-    for name in HOOK_NAMES:
+    bodies = {**{name: HOOK_BODY for name in HOOK_NAMES}, "pre-commit": PRE_COMMIT_BODY}
+    for name, body in bodies.items():
         hook = hooks_dir / name
         if hook.exists() and HOOK_MARKER not in hook.read_text(encoding="utf-8", errors="ignore"):
-            notes.append(f"kept your existing {name} hook; add `python scripts/setup_state.py --after-pull` to it")
+            notes.append(f"kept your existing {name} hook; add the repo's check to it by hand (see scripts/setup_state.py)")
             continue
-        hook.write_text(HOOK_BODY, encoding="utf-8", newline="\n")
+        hook.write_text(body, encoding="utf-8", newline="\n")
         hook.chmod(0o755)
     return notes
 

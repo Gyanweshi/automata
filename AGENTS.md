@@ -115,6 +115,29 @@ without a rebuild there.
 - The `Cross-platform` GitHub workflow runs the checks and tests on Ubuntu and Windows on every push.
   If you can only verify on one OS locally, say which, and point at that workflow for the other.
 
+## Use the Repo's Tools, Not the Old Way
+
+Each of these replaced something; reaching for the old way costs time and usually breaks on the other OS.
+
+| Instead of | Use |
+|---|---|
+| `bootstrap.sh` / `.ps1` / `.cmd`, manual `pip`/`npm` installs | `uv run --no-project --python 3.12 scripts/bootstrap.py` |
+| `run-agent.ps1`, `run-pipeline.sh` | `python scripts/run-agent.py <command>` (Make targets call it) |
+| `install-*.sh/.ps1`, upstream installers (`curl raea.io/install`, `uv tool install browser-act-cli`) | `python scripts/deps.py install ID` (pinned, checksummed, per OS) |
+| editing a version in one config file | `python scripts/deps.py set-pin ID VERSION` (moves every copy) |
+| ad-hoc dependency bumps | the quarterly routine: `python scripts/deps.py update` / the Dependency update workflow |
+| starting an MCP server by hand to see if it works | `python scripts/mcp-smoke.py NAME [--save/--compare]` |
+| cron/Task Scheduler edits by hand | `python scripts/schedule.py install JOB` |
+| a new `.sh` + `.ps1` pair | one Python script (Cross-Platform Rule) |
+| guessing whether a machine is healthy | `python scripts/doctor.py` |
+| any `browser-act` command first | `browser-act get-skills core --skill-version 2.0.2`, then the command |
+| grepping the vault for knowledge | `.venv/bin/agency-vault-search "query"` (cited sections) |
+
+Enforcement: a git **pre-commit** hook (installed by the bootstrap, so it applies to Claude Code, Codex and
+people alike) blocks commits that break the cross-platform rules, pin agreement, the dependency register or skill
+registrations; Claude Code also has a guard hook (`scripts/hooks/repo_guard.py`) that stops the clear-cut old-way
+commands above before they run and names the replacement.
+
 ## Keeping Machines in Step
 
 If the session starts with "SETUP OUT OF DATE", run the bootstrap it names before anything else and report the
@@ -160,6 +183,7 @@ uv run --no-project --python 3.12 scripts/bootstrap.py   # set up or repair this
 python3 scripts/doctor.py                             # check everything, step by step (read-only)
 python3 scripts/setup_state.py --check                # is the setup in step with this checkout? (git hooks re-run setup after pulls)
 python3 scripts/deps.py check                         # every external dependency (dependencies.toml)
+python3 scripts/deps.py update --report r.md          # quarterly update routine (cool-down, no majors); CI runs it
 python3 scripts/run-agent.py status
 python3 scripts/run-agent.py dry-run --brand example-brand
 python3 scripts/run-agent.py research --brand example-brand [--parallel --max-workers 4] [--scraper browser-act --platforms ig]
