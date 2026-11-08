@@ -7,6 +7,12 @@ description: Audit and clean the Automata repo and its Obsidian vault when the u
 
 Keep Automata lean without losing source material, durable knowledge, or brand history.
 
+For disk pressure, unexplained growth, large-folder analysis or requests to find more
+cleanup opportunities, read [storage-investigation.md](references/storage-investigation.md).
+It adds measured inventory, active-use checks and recovery accounting adapted from
+Charles's storage workflow. It does not expand this skill beyond Automata and its
+vault or change the CLI's deletion classifications.
+
 ## Safety boundary
 
 - Treat an audit as read-only. Do not mutate anything merely because this skill was invoked.
@@ -15,7 +21,7 @@ Keep Automata lean without losing source material, durable knowledge, or brand h
 - A workspace or loose root artifact is safe-delete only when an exact byte-for-byte copy exists in the vault.
 - Disposable caches are safe-delete only after the configured age threshold.
 - After explicit authorization, delete fingerprint-verified safe-delete items immediately. These are exact vault copies or expired disposable caches.
-- Quarantine ambiguous workspace material in `.housekeeper/quarantine/<timestamp>/` for seven days, then purge it automatically.
+- Quarantine authorized ambiguous workspace material in `.housekeeper/quarantine/<timestamp>/` for seven days, then purge it automatically.
 - Before touching outputs for a specific brand, read `Brands/<slug>.md`, especially `## Memory`.
 
 ## Decisions
@@ -32,12 +38,12 @@ The CLI implements these decisions deterministically in `agency_common.housekeep
 ## Workflow
 
 1. Read the repo `AGENTS.md` and inspect `git status --short`. Preserve unrelated dirty worktree changes.
-2. Resolve the vault from `OBSIDIAN_VAULT_PATH`, falling back to `D:\Brainiac2` on Windows.
+2. Resolve the vault with `agency_common.get_vault_path()`; the no-vault fallback is
+   `workspace/vault/`, which remains protected knowledge, never disposable workspace.
 3. Run an audit and save the machine plan and working Markdown report in `.housekeeper/`. Do not write the report to the vault during an active cleanup. Promote it only if the user explicitly asks to save/finalize the report.
 
    ```powershell
    $stamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-   $vaultPath = if ($env:OBSIDIAN_VAULT_PATH) { $env:OBSIDIAN_VAULT_PATH } else { "D:\Brainiac2" }
    .\.venv\Scripts\python.exe -m agency_common.housekeeping audit `
      --repo . `
      --plan ".housekeeper\plans\$stamp.json" `
@@ -45,7 +51,10 @@ The CLI implements these decisions deterministically in `agency_common.housekeep
    ```
 
 4. Summarize safe-delete and review findings for the user. Explain any uncertain classification.
-5. Pause for explicit authorization before applying the plan. After authorization, permanently delete only unchanged safe-delete candidates:
+5. Apply only within explicit authorization for the selected batch; do not ask again
+   when that exact batch is already authorized. Refresh fingerprints and active-use
+   checks immediately before applying. Permanently delete only unchanged, inactive
+   safe-delete candidates. A CLI classification does not prove that no job is using a file:
 
    ```powershell
    .\.venv\Scripts\python.exe -m agency_common.housekeeping apply `
@@ -53,7 +62,8 @@ The CLI implements these decisions deterministically in `agency_common.housekeep
      --confirm delete-safe
    ```
 
-6. Re-audit after applying. Ambiguous workspace material uses a seven-day quarantine.
+6. Re-audit after applying. Quarantine ambiguous workspace material for seven days
+   only when that move is authorized; an audit never grants quarantine permission.
 7. Purge only expired quarantine batches. The scheduled watchdog runs this daily:
 
    ```powershell

@@ -5,6 +5,13 @@ description: Use this skill whenever the user asks to create, improve, audit, or
 
 # AI Director, Screenwriter & Editor
 
+For editing supplied footage into a finished video, route to
+[agency-video-editing](../agency-video-editing/SKILL.md). For rendered, code-driven
+motion graphics or narration-timed arcade scenes, route to
+[agency-motion-design](../agency-motion-design/SKILL.md). Return here for portions
+that require AI video prompts or a director/shot treatment. The mandatory model
+reading below applies to prompt work, not deterministic cutting or motion rendering.
+
 Hybrid role. You direct (see frame, emotion, motivated camera), write (build beat, action, consequence, final image), and edit (cut rhythm, protect continuity, drive montage). Prompt engineering is fourth — it serves the first three.
 
 A beautiful frame without dramaturgy is wallpaper. A dramaturgically clean prompt without details is mush. The whole craft of this skill lives in the reference files. The body of this SKILL.md is intentionally thin so you cannot fake a result by reading it alone.

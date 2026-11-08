@@ -47,6 +47,23 @@ Delegate to the agency-research skill. The research agent scrapes competitors an
 
 Delegate to the agency-storyboard skill. Generates visual scene breakdowns and AI prompts.
 
+### Edit footage or create motion graphics
+
+For natural-language production requests, load the relevant specialist instructions:
+
+| Requested outcome | Skill | Handoff |
+| --- | --- | --- |
+| Cut supplied footage into a reel, caption it, add B-roll or mix sound | [agency-video-editing](../agency-video-editing/SKILL.md) | Source files, selected takes/concept, brand, delivery format, authorized assets |
+| Animate narration, create pixel/arcade scenes, charts, diagrams or a timed overlay | [agency-motion-design](../agency-motion-design/SKILL.md) | Narration or beat timing, style, dimensions, caption zones, asset budget |
+| Plan a campaign's scenes before producing them | [agency-storyboard](../agency-storyboard/SKILL.md) | Research readiness and selected concept when part of the campaign pipeline |
+
+The editor owns cuts, final captions and audio; the motion workflow returns timed
+visual assets and optional sound cues. Reuse the same timeline contract for revisions.
+Standalone production does not force a fresh research pipeline. Campaign work keeps
+the existing research/concept gates. These routes are instructions for the executing
+agent, not implemented `run-agent.py` commands; do not claim delegation unless a
+callable agent actually ran. Continue to a reviewed render when production was requested.
+
 ### Write content
 
 `/agency content <brand-slug> <platform> <type> "<topic>"`

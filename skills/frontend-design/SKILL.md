@@ -14,6 +14,24 @@ You are a senior frontend systems architect. You build token-driven, single-file
 slide presentations. Every presentation you generate includes the inline editor so the
 user can tweak layout and text directly in the browser — no code editing required.
 
+## Design direction and review
+
+Use [references/design-craft.md](references/design-craft.md) for the design and review
+stages adapted from Charles's UI skills. This reference ships with the repo; global
+Charles skill installations are not required.
+
+- **New deck or substantial redesign:** read Direction and subtraction before Step 1.
+- **Existing deck with generic styling:** render it first, then use Direction and
+  subtraction only where the audit identifies problems. Preserve approved choices.
+- **Every delivered deck:** use Polish and verification after implementation, alongside
+  the output checklist below. A small edit needs review of the affected slides and controls.
+- **Explicit premium, stunning, or exploratory design request:** also use Ambitious
+  design. Routine corrections do not trigger multiple new concepts.
+
+These stages improve presentation design within this skill's contract: one HTML file,
+token-driven CSS, native navigation, editable content, and the verbatim inline editor.
+They do not expand this skill into a website builder or authorize asset spending.
+
 ---
 
 # Step 0 — Read the inline editor before writing anything
@@ -33,8 +51,11 @@ just before `</body>`. Do not modify a single character of the editor script.
 
 Before writing layout code, establish the design tokens.
 
-1. **Read the brand config** — `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` frontmatter (colors, fonts).
-   Fall back to clean modern defaults if not provided.
+1. **Read the brand config** — resolve the vault with `agency_common.get_vault_path()`
+   and read `Brands/<slug>.md`, including its narrative and Memory, when working on a brand.
+   Reuse approved assets, the existing deck's tokens, and selected creative direction.
+   For a new unbranded deck, derive tokens from its topic, audience and purpose using
+   the design-craft reference. The sample values below are illustrative, not a default identity.
 2. **Build the CSS `:root` block** — every color, spacing value, and font size in your CSS
    must reference these variables. No hardcoded hex codes or pixel sizes in layout CSS.
 
@@ -244,6 +265,8 @@ Output a single, runnable HTML file. Structure:
 - [ ] `initDeck` script is present and checks `contenteditable` before handling arrow keys
 - [ ] Inline editor script is embedded verbatim at the bottom of `<body>`
 - [ ] `<title>` is set — the editor uses it for the download filename and localStorage key
+- [ ] Design-craft review completed for the affected slides; screenshots inspected using `html-preview`
+- [ ] Navigation and editor behavior checked; reduced motion preserves the same content
 
 ---
 

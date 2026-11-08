@@ -148,6 +148,7 @@ PATH until you **restart the whole IDE**.
 | Node errors: sharp needs Node ≥ 20, or MCP servers need ≥ 22.12 | The system Node is too old (common on Linux: Node 18) | The setup and the MCP launcher pick a compatible Node themselves. On Linux, add fnm's lines to `~/.bashrc` and `~/.profile` so terminals get it too. |
 | Playwright cannot launch a browser | Browsers missing, or Linux system libraries missing | `python scripts/bootstrap.py`; on Linux, run the `apt-get` command Playwright prints. |
 | "SETUP OUT OF DATE" at the start of a Claude Code session | The checkout changed since this machine was set up | `python scripts/bootstrap.py --yes`. |
+| Bootstrap stops at the schedule question with `EOFError` | Older bootstrap still prompted with `--yes` or without an interactive terminal | Update the checkout; these modes now use automatic schedule handling and preserve jobs owned by another checkout. On older copies, add `--auto-schedules`. |
 | `OBSIDIAN_VAULT_PATH points to a path that does not exist` | A vault is configured but its drive is not mounted | Plug in or mount the drive. To work without a vault, leave `OBSIDIAN_VAULT_PATH=` empty in `.env`. |
 | Vault drive gives I/O errors on Linux | NTFS drive marked dirty by Windows | Run `chkdsk /f` on it from Windows. |
 | Nightly jobs are missing | You answered no, or the setup ran with `--no-schedules` (the vault watchdog is only set up when a vault is configured) | `python scripts/schedule.py install vault-index` (also `housekeeper`, `vault-watchdog`). |

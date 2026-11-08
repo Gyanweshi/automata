@@ -27,6 +27,23 @@ the ideation skill's brief audit as a fallback, but must not invent unsupported
 audience, proposition, or product claims. Do not silently re-ideate an already
 selected concept.
 
+## Motion graphics and editing handoffs
+
+For a voiceover-led graphic sequence, pixel/arcade animation, animated chart, or
+product walkthrough, use [agency-motion-design](../agency-motion-design/SKILL.md).
+Carry the selected concept, brand assets, exact narration, timing, output dimensions
+and caption exclusion zones into its beat plan. Adopt its literal action and
+word-synchronization methods when useful; a retro look is a creative choice, not
+the default for every brand. A planning request ends with the plan; a rendering
+request continues through asset preparation, rendering and review.
+
+For supplied footage that needs cutting, captions, overlays or sound, use
+[agency-video-editing](../agency-video-editing/SKILL.md). The editor owns the final
+timeline and commissions motion assets at exact dimensions and timestamps. Use
+`visual-video` only for the portions that need AI video prompts; editing existing
+footage does not require regenerating it. These are agent-led skill routes, not
+additional Python CLI subcommands or new callable agents.
+
 ## Standalone Images (`--type image`)
 
 Use `image` for a single, freestanding visual that isn't part of a storyboard/scene

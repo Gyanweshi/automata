@@ -252,6 +252,8 @@ def main(argv: list[str] | None = None) -> int:
 
     step("Scheduled jobs (vault index 02:30, housekeeper 03:00, vault watchdog at login if a vault is set)")
     wanted = args.schedules
+    if wanted is None and (args.yes or not sys.stdin.isatty()):
+        wanted = "auto"
     if wanted is None:
         wanted = input("     Register them with this machine's scheduler now? [Y/n] ").strip().lower() in ("", "y", "yes")
     if wanted:
