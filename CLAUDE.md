@@ -123,6 +123,8 @@ There are three layers of context. Use all three, in order, before doing any bra
 
 **1. Memory files** (`~/.claude/projects/.../memory/`) — loaded automatically. Contains working rules, preferences, and brand decisions. Never ask the user to re-explain things that are already in memory.
 
+**Find it first:** `make brand-context BRAND=<brand>` (or `python3 scripts/brand_context.py <brand>`; Windows `py scripts\brand_context.py <brand>`) lists the brand note, the `Brands/<slug>/` drafts folder, the workspace and other vault matches, using any Python. A brand with no note can still have a full drafts folder. Never silence vault lookups with `2>/dev/null`. (System Python can't import `agency_common`; use the venv Python for that: `.venv/bin/python`, or `.venv\Scripts\python.exe` on Windows.)
+
 **2. Brand note** (`$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`) — read this before working on any brand. The frontmatter is the authoritative config. The markdown body has the brand essence, key constraints, audience, and the `## Memory` section — distilled run history maintained automatically by agents after every run. Read it with the `Read` tool directly. This is the single source of truth for brand-specific context.
 
 **Do not call `search_second_brain` for brand-specific context.** The `## Memory` section in the brand note already contains what matters — past decisions, research findings, what worked, what was rejected. It is always current. Vault RAG is for broad queries only: topic research, general knowledge, things genuinely not in the brand file.

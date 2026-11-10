@@ -15,11 +15,12 @@ sys.path.insert(0, str(ROOT / "packages/agency-common/src"))
 FIRST_ACTION = """AGENTS.md "First Action" is mandatory, not advisory:
 1. Before the first substantive tool call, match the request against the skills below and the session's own skill catalog.
 2. Read the best-matching SKILL.md (and the references it requires) before using tools for the task. Name the chosen skill in one line.
-3. Load project context first: brand note in the vault, prior decisions, existing assets and design systems. Do not invent a new direction where one exists.
+3. Load project context first: run `make brand-context BRAND=<brand>` (or `python3`/Windows `py` `scripts/brand_context.py <brand>`; stdlib only, fails loudly) to find the brand note AND the Brands/<slug>/ drafts folder, then read prior decisions, existing assets and design systems. No brand note does not mean no prior work. Do not invent a new direction where one exists.
 4. Re-run this routing whenever scope changes (e.g. a quick look becomes research, research becomes a deck). Context compaction does not reset these rules."""
 
 PROMPT_REMINDER = ("AGENTS.md routing check: if this prompt starts new work or changes scope, match it to a skill "
-                   "(`make list-workflows`), read that SKILL.md and the brand/project context before acting, and "
+                   "(`make list-workflows`), read that SKILL.md and the brand/project context (`make brand-context "
+                   "BRAND=<brand>`) before acting, and "
                    "name the skill used. Skip only for pure follow-ups inside work already routed.")
 
 

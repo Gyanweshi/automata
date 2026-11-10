@@ -158,6 +158,8 @@ doctor summary. The bootstrap records a setup stamp and installs post-merge/post
 
 ## Context Layers — Load These Before Any Brand Work
 
+**0. Find it first:** run `make brand-context BRAND=<brand>`, or directly `python3 scripts/brand_context.py <brand>` (Windows: `py scripts\brand_context.py <brand>`; add `--contents` to search note text too). It uses the standard library only, so it works with any Python on any OS, and it lists the brand note, the `Brands/<slug>/` drafts folder, `workspace/<slug>/` and other vault matches. Many brands have a drafts folder but no note yet, so "no `Brands/<slug>.md`" never means "no prior work". Exit 1 means nothing was found anywhere and exit 2 means the vault path is broken. Never hide a vault lookup's errors with `2>/dev/null`; a failed import or an unmounted drive must not look like an empty result.
+
 **1. Brand note** — read `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md` before working on any brand. This is the single source of truth. The frontmatter is the agent config (voice, vocabulary, writing rules, audience, competitors, platforms). The markdown body contains:
 - Brand essence and the one rule that matters most
 - Audience and platform summaries

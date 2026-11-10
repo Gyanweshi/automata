@@ -1,4 +1,4 @@
-.PHONY: install install-skills bootstrap doctor deps deps-install deps-outdated deps-update check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search rag-eval research storyboard content pipeline week dry-run clean help
+.PHONY: install install-skills bootstrap doctor deps deps-install deps-outdated deps-update check-skills check-cross-platform list-workflows install-housekeeper-watchdog uninstall test vault-index install-vault-index vault-search brand-context rag-eval research storyboard content pipeline week dry-run clean help
 
 BRAND ?= example-brand
 TOPIC ?= "5 tips for entrepreneurs"
@@ -75,6 +75,7 @@ help:
 	@echo "  make vault-index    Rebuild the chunked vault search index now"
 	@echo "  make install-vault-index  Schedule the nightly index rebuild"
 	@echo "  make vault-search Q=\"...\"  Search the vault index"
+	@echo "  make brand-context BRAND=x  List all vault and workspace context for a brand"
 	@echo "  make rag-eval       Score vault retrieval: legacy index vs v2"
 	@echo "  make clean         Remove workspace outputs"
 	@echo "  make status         Show installed packages"
@@ -147,6 +148,9 @@ install-vault-index:
 
 vault-search:
 	$(PYTHON) -m agency_common.vault_search $(Q)
+
+brand-context:
+	$(PYTHON_CMD) scripts/brand_context.py "$(BRAND)"
 
 rag-eval:
 	$(PYTHON) -m agency_common.rag_eval --collection second_brain --collection second_brain_v2 --verbose
