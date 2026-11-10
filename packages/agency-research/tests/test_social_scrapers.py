@@ -82,6 +82,39 @@ def test_linkedin_logged_in_markup():
     assert (post.post_id, post.caption, post.likes, post.comments) == ("9", "Hello", 57, 8)
 
 
+def test_linkedin_follower_count_ignores_other_pages():
+    # logged in: own count in the top card; 'Pages people also viewed' and embedded JSON carry other companies' counts
+    html = ('<code>{"text":"126,890 followers"}</code>'
+            '<section><h3>Pages people also viewed</h3><p>Instamart 126,890 followers</p></section>'
+            '<div class="org-top-card-summary-info-list">Software San Francisco 4K  followers 11-50 employees</div>')
+    assert parse_linkedin_company(html, "h").follower_count == 4000
+    sidebar_only = '<section><h3>Pages people also viewed</h3><p>Deel 881,367 followers</p></section>'
+    assert parse_linkedin_company(sidebar_only, "h").follower_count == 0
+
+
+def test_linkedin_logged_in_post_rendered_twice_counts_once():
+    card = ('<div data-urn="urn:li:activity:9"><div class="update-components-text">Hello</div>'
+            '<span class="social-details-social-counts__reactions-count">57</span></div>')
+    assert [p.post_id for p in parse_linkedin_posts(card + card)] == ["9"]
+
+
+def test_linkedin_server_driven_profile_activity():
+    def card(key, head, text, likes, comments, reposts, images):
+        reposts_btn = f'<button aria-label="Repost"><span>{reposts}</span></button>' if reposts else ""
+        return (f'<div role="listitem" componentkey="update-card-focus{key}FeedType_CREATOR_PROFILE_ALL_CONTENT_VIEW">'
+                f'<h2><span>Feed post</span></h2>{head}<span>1w</span>{"<img>" * images}'
+                f'<div data-testid="expandable-text-box">{text}</div>'
+                f'<button aria-label="Reaction button state: no reaction"><span>{likes}</span></button>'
+                f'<button aria-label="Comment"><span>{comments}</span></button>{reposts_btn}'
+                f'<div>{likes} reactions</div></div>')
+    html = card("abc", "<span>Manny</span>", "Seat pricing is dead #ai", 154, 39, 1, 2) + \
+        card("def", "<span>Manny reposted this</span>", "Someone else's post", 1200, 80, 0, 1)
+    own, repost = parse_linkedin_posts(html)
+    assert (own.post_id, own.likes, own.comments, own.shares, own.timestamp, own.media_type, own.hashtags) == \
+        ("abc", 154, 39, 1, "1w", "image", ["ai"])
+    assert (repost.likes, repost.media_type) == (1200, "repost")
+
+
 def test_facebook_page_and_posts():
     analysis = parse_facebook_page(FACEBOOK, "acme")
     assert analysis.follower_count == 2_100_000 and analysis.bio == "We build CRM tools."

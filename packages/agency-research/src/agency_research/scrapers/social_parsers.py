@@ -61,11 +61,27 @@ def summarize(analysis: CompetitorAnalysis, posts: list[PostData]) -> Competitor
 
 # ----------------------------------------------------------------------------------------------------------- LinkedIn
 
+LINKEDIN_TOP_CARD = ".org-top-card-summary-info-list, .top-card-layout__first-subline, .org-top-card-summary__info-item"
+# sidebars listing other companies, each with its own follower count
+LINKEDIN_OTHER_PAGES = re.compile(r"also viewed|similar pages|affiliated pages|showcase pages|छोड़कर", re.I)
+
+
+def _strip_other_pages(soup: BeautifulSoup) -> None:
+    """Drop markup that carries other companies' follower counts: embedded JSON and the 'people also viewed' sidebars."""
+    for tag in soup.select("script, code, aside"):
+        tag.decompose()
+    for heading in soup.find_all(["h2", "h3"], string=LINKEDIN_OTHER_PAGES):
+        (heading.find_parent("section") or heading.parent).decompose()
+
+
 def parse_linkedin_company(html: str, handle: str) -> CompetitorAnalysis:
     soup = BeautifulSoup(html, "html.parser")
     description = _meta(soup, "og:description", "description")
+    top_card = " ".join(e.get_text(" ", strip=True) for e in soup.select(LINKEDIN_TOP_CARD))
+    _strip_other_pages(soup)
     text = soup.get_text("\n", strip=True)
-    followers = re.search(COUNT + r"\s+" + FOLLOWERS, description) or re.search(COUNT + r"\s+" + FOLLOWERS, text)
+    followers = (re.search(COUNT + r"\s+" + FOLLOWERS, top_card) or re.search(COUNT + r"\s+" + FOLLOWERS, description)
+                 or re.search(COUNT + r"\s+" + FOLLOWERS, text))
     about = soup.select_one('[data-test-id="about-us__description"]') \
         or soup.select_one("section.org-about-module p, p.org-about-us-organization-description__text") \
         or soup.select_one(".org-top-card-summary__tagline")
@@ -74,13 +90,59 @@ def parse_linkedin_company(html: str, handle: str) -> CompetitorAnalysis:
                               bio=bio[:500])
 
 
+LINKEDIN_RELATIVE_TIME = re.compile(r"\d+\s?(?:s|m|h|d|w|mo|yr)")
+
+
+def _linkedin_sdui_count(card, label: str) -> int:
+    """Count inside the action button whose aria-label starts with `label` (new layout: no test ids, hashed classes)."""
+    for span in card.find_all("span"):
+        text = span.get_text(strip=True)
+        if not re.fullmatch(COUNT, text):
+            continue
+        owner = next((p for p in span.parents if p.get("aria-label")), None)
+        if owner is not None and owner.get("aria-label", "").startswith(label):
+            return parse_count(text)
+    return 0
+
+
+def parse_linkedin_sdui_posts(html: str, limit: int = 20) -> list[PostData]:
+    """Logged-in 2026 layout (profile 'recent activity'): server-driven UI cards, hashed class names, no activity
+    URNs. Counts sit in the Reaction / Comment / Repost buttons; reposts of other people's posts are flagged."""
+    soup = BeautifulSoup(html, "html.parser")
+    posts: list[PostData] = []
+    for card in soup.select('div[role="listitem"][componentkey^="update-card-focus"]'):
+        key = card["componentkey"].removeprefix("update-card-focus")
+        key = key.split("FeedType_")[0]
+        body = card.select_one('[data-testid="expandable-text-box"]')
+        caption = body.get_text(" ", strip=True) if body else ""
+        tokens = card.get_text(" | ", strip=True).split(" | ")
+        when = next((t for t in tokens[:20] if LINKEDIN_RELATIVE_TIME.fullmatch(t)), None)
+        reposted = any("reposted this" in t for t in tokens[:6])
+        media = "video" if card.select_one("video") else "image" if len(card.select("img")) > 1 else "text"
+        posts.append(PostData(
+            platform="linkedin", post_id=key, caption=caption[:2000], url="",
+            likes=_linkedin_sdui_count(card, "Reaction"), comments=_linkedin_sdui_count(card, "Comment"),
+            shares=_linkedin_sdui_count(card, "Repost"), timestamp=when, hashtags=_hashtags(caption),
+            media_type="repost" if reposted else media,
+        ))
+        if len(posts) >= limit:
+            break
+    return posts
+
+
 def parse_linkedin_posts(html: str, limit: int = 20) -> list[PostData]:
     soup = BeautifulSoup(html, "html.parser")
     # logged-out: <article data-activity-urn>; logged-in: <div data-urn="urn:li:activity:...">
     cards = soup.select("article[data-activity-urn]") or soup.select('[data-urn^="urn:li:activity:"]')
+    if not cards:  # logged-in server-driven layout (profile activity pages since 2026)
+        return parse_linkedin_sdui_posts(html, limit)
     posts: list[PostData] = []
+    seen: set[str] = set()
     for card in cards:
         urn = card.get("data-activity-urn") or card.get("data-urn") or ""
+        if urn and urn in seen:  # logged in, the same post is rendered twice (wrapper + inner update)
+            continue
+        seen.add(urn)
         body = (card.select_one('[data-test-id="main-feed-activity-card__commentary"]')
                 or card.select_one(".update-components-text, .feed-shared-update-v2__description, .feed-shared-text"))
         caption = body.get_text(" ", strip=True) if body else ""
