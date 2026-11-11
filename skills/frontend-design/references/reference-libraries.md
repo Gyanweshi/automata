@@ -18,8 +18,10 @@ Never copy a reference's content, imagery, brand or wording into client work.
 2. Look at the whole structure (contact sheet or slide grid), not only the cover.
 3. Write down what to take as patterns: section order, how evidence is shown, the
    recurring device, the rhythm of dense and quiet slides. Record them in the brief.
-4. Keep downloads in `workspace/references/`; vault notes get links and findings only.
-   Respect any "confidential" or "internal use" marking: read it, never show or quote it.
+4. Reference files worth keeping (guide PDFs, contact sheets) go in the vault next to
+   the note: `Research/Deck_References/Guides/`. `workspace/` is cleaned regularly, so
+   it holds only disposable scraping output. Respect any "confidential" or
+   "internal use" marking: read it, never show or quote it.
 
 Already-studied references and client-matched picks are in the vault at
 `Research/Deck_References/`. Patterns drawn from them are in
