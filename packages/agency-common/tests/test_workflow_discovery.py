@@ -3,6 +3,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from agency_common import workflow_discovery as workflows
 
 
@@ -25,15 +27,28 @@ def test_catalog_prefers_canonical_and_parses_multiline_metadata(tmp_path):
     assert "agents" not in catalog
 
 
-def test_read_reference_but_reject_secret_traversal_and_symlink_escape(tmp_path, monkeypatch):
+def test_read_reference_but_reject_secret_and_traversal(tmp_path, monkeypatch):
+    source = make_skill(tmp_path)
+    secret = tmp_path / ".env"
+    secret.write_text("SECRET", encoding="utf-8")
+    monkeypatch.setattr(workflows, "repo_root", lambda: tmp_path)
+    assert "Use this workflow" in workflows.read_workflow(str(source))
+    assert "denied" in workflows.read_workflow(str(secret))
+    assert "denied" in workflows.read_workflow("skills/example/../../.env")
+
+
+def test_read_rejects_symlink_escape(tmp_path, monkeypatch):
     source = make_skill(tmp_path)
     secret = tmp_path / ".env"
     secret.write_text("SECRET", encoding="utf-8")
     escape = source.parent / "escape.md"
-    escape.symlink_to(secret)
+    try:
+        escape.symlink_to(secret)
+    except OSError as exc:
+        if sys.platform == "win32" and exc.winerror == 1314:
+            pytest.skip("Windows requires symlink creation privileges for this check")
+        raise
     monkeypatch.setattr(workflows, "repo_root", lambda: tmp_path)
-    assert "Use this workflow" in workflows.read_workflow(str(source))
-    assert "denied" in workflows.read_workflow("skills/example/../../.env")
     assert "denied" in workflows.read_workflow(str(escape))
 
 
