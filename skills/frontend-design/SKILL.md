@@ -20,7 +20,12 @@ Use [references/design-craft.md](references/design-craft.md) for the design and 
 stages adapted from Charles's UI skills. This reference ships with the repo; global
 Charles skill installations are not required.
 
-- **New deck or substantial redesign:** read Direction and subtraction before Step 1.
+- **Any new deck, presentation or visual design:** first look at 3–5 matching examples
+  in the libraries listed in [references/reference-libraries.md](references/reference-libraries.md)
+  (deck.gallery, Chronicle gallery, Branding Style Guides) and note the patterns to take.
+- **New deck or substantial redesign:** read Direction and subtraction before Step 1,
+  and pick slide layouts from [references/deck-patterns.md](references/deck-patterns.md)
+  (claim headlines, stat rows, breath slides, findings summary — observed in real decks).
 - **Existing deck with generic styling:** render it first, then use Direction and
   subtraction only where the audit identifies problems. Preserve approved choices.
 - **Every delivered deck:** use Polish and verification after implementation, alongside
