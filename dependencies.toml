@@ -216,6 +216,25 @@ on_break = "Usually an expired Google session (check with its server_health tool
 upstream = "npm:@roomi-fields/notebooklm-mcp"
 
 [[dependency]]
+id = "earshot"
+name = "Earshot audio analysis and sound design"
+kind = "mcp-uvx"
+category = "MCP servers"
+roles = ["video"]
+purpose = "CPU audio analysis, soundtrack review and procedural SFX for Codex and Claude."
+used_by = ["scripts/earshot.py", "agency-video-editing", "agency-motion-design"]
+required = false
+pin = "4ac3d2ac2b151e1c23376f9ce7f3047a17050013"
+upstream = "github-commit:Leonxlnx/earshot"
+check = ["python", "scripts/earshot.py", "check"]
+check_linux = ["python3", "scripts/earshot.py", "check"]
+check_macos = ["python3", "scripts/earshot.py", "check"]
+install = { all = "python scripts/earshot.py install" }
+install_note = "Isolated Python 3.12 venv with CPU torch; downloads pinned audio models (~1.1 GB). Requires ffmpeg/ffprobe."
+update = "python scripts/deps.py set-pin earshot COMMIT, then python scripts/deps.py install earshot."
+on_break = "Run python scripts/earshot.py doctor --load; model repair: doctor --fetch. Restart both MCP clients after setup."
+
+[[dependency]]
 id = "blender-mcp"
 roles = ["3d"]
 name = "blender-mcp"

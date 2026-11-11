@@ -55,6 +55,10 @@ regions before drawing. For a supplied video edit, the
 
 ## Rendering route
 
+For sound-effect creation or review of a complete video's soundtrack, read the
+shared [Earshot workflow](../agency-video-editing/references/earshot.md). The video
+editor owns the final mix when delivering overlays for an existing edit.
+
 For recreating motion from a supplied screen recording, use the optional
 [Motiscope analysis step](references/motiscope.md) before building the timeline.
 It supplies timing evidence and selected frames; the agent still identifies the

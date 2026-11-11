@@ -49,6 +49,19 @@ optional tools (LibreOffice alone is a large download). Running the block again 
 already there.
 
 ### What the setup does
+
+Earshot audio tools are registered for both Claude (`.mcp.json`) and Codex
+(`.codex/config.toml`) in this checkout. Install with
+`python scripts/deps.py install earshot`, or include the `video` machine role.
+The same installer works on Windows and Linux, creates an isolated CPU environment,
+and downloads about 1.1 GB of local models. Run
+`python scripts/earshot.py doctor --load` and `python scripts/mcp-smoke.py earshot`,
+then restart the clients from the trusted repo root. Missing-model errors: run
+`python scripts/earshot.py doctor --fetch`; missing FFmpeg: install the registered
+`ffmpeg` dependency. See the shared Earshot reference in the video-editing skill.
+If Windows reports that the Earshot interpreter is in use during reinstall, keep
+the existing environment: the installer skips venv creation when its Python exists.
+
 1. Installs Git, the GitHub CLI and uv; uv brings its own Python 3.12, so a system Python is never needed.
 2. Installs Node.js (or picks a version new enough for the MCP servers), builds `.venv` from `uv.lock`, installs
    the Node packages and the Playwright browsers.

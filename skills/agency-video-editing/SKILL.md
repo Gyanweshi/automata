@@ -61,6 +61,9 @@ does not reopen the whole cut, and a finished-video request continues through re
 
 ## Execution tools
 
+For local audio analysis, soundtrack review, SFX selection or procedural sound
+design, read [Earshot](references/earshot.md) and use its shared MCP/CLI route.
+
 Use installed FFmpeg/ffprobe and the repo's `.venv` Python toolkit (MoviePy 1.x,
 Pillow, NumPy) for deterministic local assembly. Check capabilities needed by the
 chosen export, including subtitle filters and codecs. Missing FFmpeg uses

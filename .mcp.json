@@ -1,5 +1,10 @@
 {
   "mcpServers": {
+    "earshot": {
+      "command": "uv",
+      "args": ["run", "--no-project", "--python", "3.12", "scripts/earshot.py", "mcp"],
+      "env": {"EARSHOT_THREADS": "3"}
+    },
     "figma": {
       "type": "http",
       "url": "http://127.0.0.1:3845/mcp"

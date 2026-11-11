@@ -190,6 +190,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | **@playwright/mcp** (`playwright-mcp`) | Browser automation MCP for research; reuses the ~/.agency/chrome-instagram-cdp profile. | no | - | 0.0.84 | `.mcp.json`, `mcp/agents/research.json`, `dependencies.toml` |
 | **chrome-devtools-mcp** (`chrome-devtools-mcp`) | Console, network and screenshot inspection for research. | no | - | 1.12.0 | `mcp/agents/research.json`, `dependencies.toml` |
 | **@roomi-fields/notebooklm-mcp** (`notebooklm-mcp`) | Grounded Q&A against NotebookLM sources. | no | - | 4.4.0 | `mcp/agents/research.json`, `dependencies.toml` |
+| **Earshot audio analysis and sound design** (`earshot`) | CPU audio analysis, soundtrack review and procedural SFX for Codex and Claude. | no | video | 4ac3d2ac2b15 | `dependencies.toml` |
 | **blender-mcp** (`blender-mcp`) | Drive Blender from the storyboard agent (asset prep, Blender-only shots). | no | 3d | 2.0.0 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
 | **gimp-mcp (server + GIMP plugin)** (`gimp-mcp`) | Local non-generative image editing through GIMP 3.2. | no | images | 732586538554 | `.mcp.json`, `mcp/agents/storyboard.json`, `dependencies.toml` |
 | **Higgsfield MCP (remote)** (`higgsfield-mcp`) | Image and video generation. | no | - | hosted by vendor | `.mcp.json` |
@@ -295,6 +296,12 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 #### @roomi-fields/notebooklm-mcp (`notebooklm-mcp`)
 - **Update:** python scripts/deps.py set-pin notebooklm-mcp NEW
 - **If it breaks:** Usually an expired Google session (check with its server_health tool: authenticated false). Log in once in a terminal: `node scripts/mcp-npx.mjs -y -p @roomi-fields/notebooklm-mcp@PIN notebooklm-mcp-setup-auth` (a visible Chrome opens). Since 4.x every tool is renamed (ask_question -> notebook_ask, list_notebooks -> notebook_list, ...); the saved library in ~/.local/share/notebooklm-mcp carries over. Needs Node 22.
+
+#### Earshot audio analysis and sound design (`earshot`)
+- **Install:** all: `python scripts/earshot.py install`
+  Isolated Python 3.12 venv with CPU torch; downloads pinned audio models (~1.1 GB). Requires ffmpeg/ffprobe.
+- **Update:** python scripts/deps.py set-pin earshot COMMIT, then python scripts/deps.py install earshot.
+- **If it breaks:** Run python scripts/earshot.py doctor --load; model repair: doctor --fetch. Restart both MCP clients after setup.
 
 #### blender-mcp (`blender-mcp`)
 - **Update:** python scripts/deps.py set-pin blender-mcp NEW, then install the matching addon.py from the blender-mcp repo into Blender.

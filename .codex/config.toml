@@ -1,3 +1,10 @@
+[mcp_servers.earshot]
+command = "uv"
+args = ["run", "--no-project", "--python", "3.12", "scripts/earshot.py", "mcp"]
+startup_timeout_sec = 60
+tool_timeout_sec = 300
+env = { EARSHOT_THREADS = "3" }
+
 [mcp_servers.magnific]
 url = "https://mcp.magnific.com"
 auth = "oauth"

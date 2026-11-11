@@ -237,6 +237,10 @@ Research agent:
 
 Storyboard agent:
 
+- `earshot`: local CPU audio analysis and procedural SFX, shared by Codex and Claude.
+  For audio tasks read `skills/agency-video-editing/references/earshot.md`.
+  Install with `python scripts/deps.py install earshot`; run via `scripts/earshot.py`.
+
 - `blender`
 - `higgsfield`
 - `magnific`
