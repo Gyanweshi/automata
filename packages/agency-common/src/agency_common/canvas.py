@@ -41,7 +41,7 @@ class Canvas:
     def _id(self, kind: str) -> str:
         counter = len(self._ids)
         while True:
-            digest = hashlib.sha1(f"{self._seed}|{kind}|{counter}".encode()).hexdigest()[:16]
+            digest = hashlib.sha1(f"{self._seed}|{kind}|{counter}".encode(), usedforsecurity=False).hexdigest()[:16]
             if digest not in self._ids:
                 self._ids.add(digest)
                 return digest
