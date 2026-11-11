@@ -36,6 +36,21 @@ def slugify(text: str) -> str:
     return slug[:80].rstrip("-") or "note"
 
 
+def note_kind(artifact_type: str) -> str:
+    """The `type:` for a drafts folder: Storyboards -> storyboard, but Research and Analysis stay whole."""
+    kind = artifact_type.lower()
+    return kind[:-1] if kind.endswith("s") and not kind.endswith(("ss", "is", "us")) else kind
+
+
+def as_tags(value: Any) -> list[str]:
+    """Frontmatter tags as a list. Obsidian also accepts one tag, or several, written as a plain string."""
+    if not value:
+        return []
+    if isinstance(value, str):
+        return [t.lstrip("#") for t in re.split(r"[,\s]+", value) if t.lstrip("#")]
+    return [str(t) for t in value]
+
+
 def note_directory(vault: Path, *, artifact_type: str, brand: str | None, topic: str | None) -> Path:
     if bool(brand) == bool(topic):
         raise NoteError("give exactly one of --brand (client work) or --topic (non-brand research)")
@@ -57,14 +72,14 @@ def save_note(body: str, *, title: str, artifact_type: str, brand: str | None = 
 
     parsed = frontmatter.loads(body)
     day = (today or date.today()).isoformat()
-    kind = artifact_type.lower().rstrip("s") if artifact_type.lower() != "research" else "research"
+    kind = note_kind(artifact_type)
     meta: dict[str, Any] = {"title": title, "type": kind}
     meta.update({k: v for k, v in parsed.metadata.items() if k not in {"status", "brand"}})
     if brand:
         meta["brand"] = brand
     meta["status"] = "draft"
     meta.setdefault("created", day)
-    tag_list = [str(t) for t in (meta.get("tags") or [])] + [kind] + ([brand] if brand else []) + list(tags or [])
+    tag_list = as_tags(meta.get("tags")) + [kind] + ([brand] if brand else []) + list(tags or [])
     meta["tags"] = list(dict.fromkeys(t for t in tag_list if t))
 
     content = parsed.content.strip()

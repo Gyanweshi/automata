@@ -28,7 +28,9 @@ SKIP_DIRS = {".obsidian", ".git", ".stversions", ".stfolder", ".trash", "Claude_
              "Agent_Sessions"}
 MAX_LISTED = 40
 FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---", re.S)
-BRAND_LINE = re.compile(r"^brand:[ \t]*['\"]?([^'\"\r\n#]*)", re.M)
+# `brand:` with an inline value, or a bare `brand:` followed by indented `- item` lines (a YAML block list).
+BRAND_FIELD = re.compile(r"^brand:[ \t]*([^\r\n]*)((?:\r?\n[ \t]+-[^\r\n]*)*)", re.M)
+WIKILINK = re.compile(r"\[\[([^\]|#]+)")
 
 
 class VaultError(RuntimeError):
@@ -131,21 +133,32 @@ def find_context(brand: str, root: Path, vault: Path) -> dict[str, list[Path]]:
             continue
         for name in filenames:
             path = current / name
-            if name.lower().endswith(".md") and path.resolve() not in covered and frontmatter_brand(path) == key:
+            if name.lower().endswith(".md") and path.resolve() not in covered and key in frontmatter_brands(path):
                 found["tagged"].append(path)
     return found
 
 
-def frontmatter_brand(path: Path) -> str:
-    """The normalised `brand:` frontmatter value of a note, or "" (reads only the head of the file)."""
+def brand_values(raw: str) -> set[str]:
+    """Normalised brands named by a raw `brand:` value: `maple`, `"maple"`, `[maple, kerr]`, a block list, or a
+    wikilink such as `"[[Brands/maple|Maple]]"` (which counts as the link target's note name, `maple`)."""
+    values = {normalise(target.strip().rstrip("/").rsplit("/", 1)[-1]) for target in WIKILINK.findall(raw)}
+    rest = "\n".join(line.split(" #", 1)[0] for line in re.sub(r"\[\[[^\]]*\]\]", "", raw).splitlines())
+    for item in re.split(r"[,\n]", rest.strip().strip("[]")):
+        values.add(normalise(item.strip().lstrip("-").strip().strip("'\"")))
+    values.discard("")
+    return values
+
+
+def frontmatter_brands(path: Path) -> set[str]:
+    """The normalised brands in a note's `brand:` frontmatter, or an empty set (reads only the file's head)."""
     try:
         with open(path, encoding="utf-8", errors="replace") as handle:
             head = handle.read(4096)
     except OSError:
-        return ""
+        return set()
     block = FRONTMATTER.match(head)
-    value = BRAND_LINE.search(block.group(1)) if block else None
-    return normalise(value.group(1)) if value else ""
+    field = BRAND_FIELD.search(block.group(1)) if block else None
+    return brand_values(field.group(1) + field.group(2)) if field else set()
 
 
 def find_mentions(brand: str, vault: Path, exclude: list[Path]) -> list[Path]:

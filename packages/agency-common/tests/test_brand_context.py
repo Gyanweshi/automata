@@ -96,3 +96,21 @@ def test_notes_tagged_with_the_brand_are_found_wherever_they_live(tmp_path):
 
     assert found["tagged"] == [scan / "phase1.md"]  # the brand folder's own notes are not repeated
     assert bc.find_context("maple", root, vault)["tagged"] == [scan / "other.md"]
+
+
+def test_brand_property_forms_obsidian_allows(tmp_path):
+    forms = {
+        "brand: rankup": {"rankup"},
+        "brand: 'Rank-Up' # client": {"rankup"},
+        'brand: "[[Brands/rankup|Rank Up]]"': {"rankup"},  # the quoted wikilink CLAUDE.md asks for
+        "brand: [[Brands/rankup]]": {"rankup"},
+        'brand: ["[[Brands/rankup|Rank Up]]", "[[Brands/maple|Maple]]"]': {"rankup", "maple"},
+        "brand: [rankup, maple]": {"rankup", "maple"},
+        "brand:\n  - rankup # main\n  - maple": {"rankup", "maple"},
+        "brand:\ntype: research": set(),
+        "type: research": set(),
+    }
+    for index, (field, expected) in enumerate(forms.items()):
+        note = tmp_path / f"n{index}.md"
+        note.write_text(f"---\n{field}\ntitle: x\n---\nbody", encoding="utf-8")
+        assert bc.frontmatter_brands(note) == expected, field

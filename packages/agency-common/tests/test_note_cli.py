@@ -92,3 +92,20 @@ def test_canvas_for_an_existing_note_and_cli(vault, tmp_path, monkeypatch, capsy
     canvas_for(note, overwrite=True)
     with pytest.raises(SystemExit):  # argparse requires --brand or --topic
         main(["save", "--title", "x", "--body", str(body)])
+
+
+@pytest.mark.parametrize("tags", ["hooks", "hooks, reels", "hooks reels", "[hooks, reels]"])
+def test_string_tags_are_kept_whole_not_split_into_letters(vault, tags):
+    note, _ = save_note(f"---\ntags: {tags}\n---\nbody", title="Tags", artifact_type="Research", topic="X",
+                        vault=vault, canvas=False)
+    saved = frontmatter.loads(note.read_text(encoding="utf-8")).metadata["tags"]
+    assert saved[0] == "hooks" and "h" not in saved
+    assert "research" in saved
+
+
+@pytest.mark.parametrize("folder, kind", [("Research", "research"), ("Storyboards", "storyboard"),
+                                          ("Analysis", "analysis"), ("Ideation", "ideation"),
+                                          ("Scripts", "script"), ("Process", "process")])
+def test_note_kind_singularises_only_plural_folders(folder, kind):
+    from agency_common.note_cli import note_kind
+    assert note_kind(folder) == kind
