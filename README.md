@@ -44,8 +44,7 @@ automata/
 │   ├── agency-housekeeper/        ← Workspace & vault retention hygiene
 │   └── [image, video, design...]  ← Image editing, generation, upscaling, slides
 │
-├── 🤖 agents/automata_core/       ← Autonomous agent loop
-├── ⚙️ core/                       ← Unified CLI runner and session logging
+├── 🤖 agents/automata_core/       ← ig-research (CDP Instagram scraper used by agency-research)
 ├── 🔌 mcp/                        ← Agent-scoped Model Context Protocol manifests
 ├── 🛠️ scripts/                    ← One cross-platform toolchain: bootstrap, doctor, deps, schedule, run-agent
 ├── 🏷️ brands/                     ← Brand configuration template
@@ -236,10 +235,10 @@ py scripts\run-agent.py research --brand example-brand --scraper cdp --platforms
 
 ### Mode 2: Autonomous brand agent
 
-Run the autonomous agent loop for one brand and action (it logs the session to the vault):
+Run the autonomous agent loop (model -> tool call -> observation, logs the session to the vault):
 
 ```bash
-python core/runner.py --brand "example-brand" --action research
+.venv/bin/agency-autonomous --agent research --task "Research example-brand competitors on Instagram"
 ```
 
 ---

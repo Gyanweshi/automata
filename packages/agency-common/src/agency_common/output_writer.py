@@ -105,7 +105,31 @@ class OutputWriter:
         else:
             root = get_vault_path()  # the Obsidian vault, or workspace/vault on machines without one
 
-        brand_dir = root / "Brands" / brand
+        brand_dir = existing_brand_folder(root, brand) or root / "Brands" / brand
         if status == "draft":
             return brand_dir / "Drafts" / artifact_type
         return brand_dir / artifact_type
+
+
+def _brand_key(text: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", text.lower())
+
+
+def existing_brand_folder(vault: Path, brand: str) -> Path | None:
+    """The brand's existing `Brands/<Folder>/`, matched ignoring case and punctuation (slug `kerr-dental` ->
+    `Brands/Kerr-Dental/`), so drafts join the folder people already use instead of creating a twin that
+    splits on Linux and silently merges on Windows. Preference: exact name, same name ignoring case, a
+    folder that already has Drafts/, then alphabetical."""
+    brands = vault / "Brands"
+    if not brands.is_dir():
+        return None
+    key = _brand_key(brand)
+    matches = [d for d in sorted(brands.iterdir()) if d.is_dir() and _brand_key(d.name) == key]
+    if not matches:
+        return None
+    for test in (lambda d: d.name == brand, lambda d: d.name.lower() == brand.lower(),
+                 lambda d: (d / "Drafts").is_dir()):
+        for folder in matches:
+            if test(folder):
+                return folder
+    return matches[0]

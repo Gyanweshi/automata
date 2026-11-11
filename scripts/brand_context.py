@@ -27,6 +27,8 @@ ENV_VAR = "OBSIDIAN_VAULT_PATH"
 SKIP_DIRS = {".obsidian", ".git", ".stversions", ".stfolder", ".trash", "Claude_Sessions", "Codex_Sessions",
              "Agent_Sessions"}
 MAX_LISTED = 40
+FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---", re.S)
+BRAND_LINE = re.compile(r"^brand:[ \t]*['\"]?([^'\"\r\n#]*)", re.M)
 
 
 class VaultError(RuntimeError):
@@ -94,7 +96,7 @@ def find_context(brand: str, root: Path, vault: Path) -> dict[str, list[Path]]:
     if not key:
         raise ValueError("brand must contain letters or digits")
     brands_dir = vault / "Brands"
-    found: dict[str, list[Path]] = {"notes": [], "folders": [], "workspace": [], "other": []}
+    found: dict[str, list[Path]] = {"notes": [], "folders": [], "workspace": [], "other": [], "tagged": []}
 
     if brands_dir.is_dir():
         for entry in sorted(brands_dir.iterdir()):
@@ -120,7 +122,30 @@ def find_context(brand: str, root: Path, vault: Path) -> dict[str, list[Path]]:
                 path = current / name
                 if path.resolve() not in claimed:
                     found["other"].append(path)
+
+    # Notes filed elsewhere but tagged `brand: <slug>` in their frontmatter (e.g. Research/<topic>/ for a client).
+    covered = claimed + [p.resolve() for p in found["other"]]
+    for current, dirnames, filenames in walk(vault):
+        if any(current.resolve() == c or c in current.resolve().parents for c in covered):
+            dirnames[:] = []
+            continue
+        for name in filenames:
+            path = current / name
+            if name.lower().endswith(".md") and path.resolve() not in covered and frontmatter_brand(path) == key:
+                found["tagged"].append(path)
     return found
+
+
+def frontmatter_brand(path: Path) -> str:
+    """The normalised `brand:` frontmatter value of a note, or "" (reads only the head of the file)."""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            head = handle.read(4096)
+    except OSError:
+        return ""
+    block = FRONTMATTER.match(head)
+    value = BRAND_LINE.search(block.group(1)) if block else None
+    return normalise(value.group(1)) if value else ""
 
 
 def find_mentions(brand: str, vault: Path, exclude: list[Path]) -> list[Path]:
@@ -197,15 +222,24 @@ def main(argv: list[str] | None = None) -> int:
         for path in found["other"][:MAX_LISTED]:
             print(f"    {path.relative_to(vault)}")
 
+    if found["tagged"]:
+        print(f"\nNotes tagged brand: {args.brand} elsewhere in the vault:")
+        for path in found["tagged"][:MAX_LISTED]:
+            print(f"    {stamp(path)}  {path.relative_to(vault)}")
+        if len(found["tagged"]) > MAX_LISTED:
+            print(f"    ... {len(found['tagged']) - MAX_LISTED} more")
+
     if args.contents:
-        found["mentions"] = find_mentions(args.brand, vault, found["notes"] + found["folders"] + found["other"])
+        found["mentions"] = find_mentions(
+            args.brand, vault, found["notes"] + found["folders"] + found["other"] + found["tagged"])
         if found["mentions"]:
             print("\nNotes that mention it:")
             for path in found["mentions"][:MAX_LISTED]:
                 print(f"    {path.relative_to(vault)}")
 
     if not any(found.values()):
-        checked = "Brands/<name>.md, Brands/<name>/, workspace/<name>/ and every file and folder name in the vault"
+        checked = ("Brands/<name>.md, Brands/<name>/, workspace/<name>/, every file and folder name in the vault "
+                   "and every note's `brand:` property")
         hint = "" if args.contents else " or rerun with --contents to search note text"
         print(f"\nNOTHING FOUND for '{args.brand}'. Checked: {checked}{' and note text' if args.contents else ''} "
               f"(case and punctuation ignored).\nBefore calling this a new brand, ask the user{hint}.",

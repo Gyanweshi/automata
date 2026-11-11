@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "0.1.0",
+  "name": "Clippings",
+  "behavior": "create",
+  "noteNameFormat": "{{title|safe_name}}",
+  "path": "Clippings",
+  "vault": "Brainiac2",
+  "noteContentFormat": "{{content}}",
+  "properties": [
+    {"name": "type", "value": "clipping", "type": "text"},
+    {"name": "status", "value": "draft", "type": "text"},
+    {"name": "source", "value": "{{url}}", "type": "text"},
+    {"name": "author", "value": "{{author}}", "type": "text"},
+    {"name": "published", "value": "{{published}}", "type": "date"},
+    {"name": "created", "value": "{{date}}", "type": "date"},
+    {"name": "description", "value": "{{description}}", "type": "text"},
+    {"name": "tags", "value": "clippings", "type": "multitext"}
+  ],
+  "triggers": []
+}

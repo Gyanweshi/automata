@@ -79,5 +79,5 @@ scripts/screen_chaos.py
 .claude/*.backup
 
 
-# Runtime vector store written by memory/vector_db.py (per machine, not shared)
+# Old runtime vector store (memory/vector_db.py, removed 2026-11-11); kept ignored for machines that still have one
 memory/automata_db/

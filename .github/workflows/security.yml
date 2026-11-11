@@ -46,7 +46,7 @@ jobs:
           packages/agency-research/src
           packages/agency-storyboard/src
           packages/agency-content/src
-          core scripts agents/automata_core
+          scripts
           -lll
       - name: Scan tracked files for verified secrets
         run: python -m detect_secrets scan --only-verified

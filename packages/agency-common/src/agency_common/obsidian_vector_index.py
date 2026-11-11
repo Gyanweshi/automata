@@ -150,9 +150,14 @@ def prepare_chunk_records(
     return ids, texts, metadatas
 
 
+_BACKUP_DIRS = {".stversions", ".trash"}
+
+
 def _is_sync_conflict(filepath: Any) -> bool:
-    """Syncthing conflict copies duplicate a real note and would crowd it out of results."""
-    return ".sync-conflict-" in str(filepath or "")
+    """Syncthing conflict copies and version backups, or trashed notes: duplicates of a real note (often at
+    an old path) that would crowd it out of results."""
+    text = str(filepath or "")
+    return ".sync-conflict-" in text or any(part in _BACKUP_DIRS for part in Path(text).parts)
 
 
 def _is_chunked(collection: Any) -> bool:

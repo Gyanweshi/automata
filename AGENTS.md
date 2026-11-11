@@ -67,6 +67,8 @@ This is an agency multi-agent monorepo for:
 - Frontmatter must be valid YAML: quote any value containing `[[wikilinks]]`, `: `, or `#`, and write multiple links as a list, e.g. `related: ["[[Brands/a|A]]", "[[Brands/b|B]]"]`. Unquoted wikilink values break parsing and the note is silently dropped from the vault search index.
 - Ongoing research/project notes require a concise `## Memory` section of no more than 10 bullets covering decisions, useful findings, rejected directions, current state, and next step.
 - Brand work updates `Brands/<slug>.md` memory. Non-brand research maintains memory in its research note and records durable policy in `memory/DECISIONS.md`.
+- `Clippings/` is the web-clipping inbox (Obsidian Web Clipper, template in `tools/obsidian/`); clippings stay `status: draft` until moved into `Research/<topic>/` or a brand folder. `Categories/*.base` are Obsidian Bases views that group notes by frontmatter (`type`, `status`, `brand`); add a view there instead of reorganising folders.
+- Storyboard and research drafts get a `.canvas` board (JSON Canvas 1.0) beside the note, written by `agency_common.canvas`.
 - Raw browser dumps, logs, screenshots, and extraction artifacts are not vault notes. Keep them in `workspace/`; never leave misleading scratch files at the repo root.
 
 ## Hybrid Vault Finalization
@@ -132,10 +134,12 @@ Each of these replaced something; reaching for the old way costs time and usuall
 | guessing whether a machine is healthy | `python scripts/doctor.py` |
 | any `browser-act` command first | `browser-act get-skills core --skill-version 2.0.2`, then the command |
 | grepping the vault for knowledge | `.venv/bin/agency-vault-search "query"` (cited sections) |
+| hand-writing a vault note or an ad-hoc save script | `agency-note save --brand <slug> --type <Type> --title ... --body f.md` (folder, `brand:`, draft status, canvas) |
+| a one-off `.py` committed to the repo | the session scratchpad or `workspace/`; repo scripts need a caller (`make check-wiring`) |
 
 Enforcement: a git **pre-commit** hook (installed by the bootstrap, so it applies to Claude Code, Codex and
-people alike) blocks commits that break the cross-platform rules, pin agreement, the dependency register or skill
-registrations; Claude Code also has a guard hook (`scripts/hooks/repo_guard.py`) that stops the clear-cut old-way
+people alike) blocks commits that break the cross-platform rules, pin agreement, the dependency register, skill
+registrations or script wiring; Claude Code also has a guard hook (`scripts/hooks/repo_guard.py`) that stops the clear-cut old-way
 commands above before they run and names the replacement.
 
 ## Keeping Machines in Step

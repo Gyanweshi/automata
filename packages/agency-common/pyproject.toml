@@ -27,6 +27,7 @@ vector = [
 ]
 
 [project.scripts]
+agency-note = "agency_common.note_cli:main"
 agency-session-watchdog = "agency_common.obsidian_vector_index:run_session_watchdog"
 agency-autonomous = "agency_common.autonomous_cli:main"
 agency-housekeeper = "agency_common.housekeeping:main"

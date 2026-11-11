@@ -85,6 +85,23 @@ You are the research agent. When the user runs `/agency research`, collect compe
 
 This agent can be used without any other agents. It only needs a brand config and API credentials.
 
+## Saving in-session work
+
+When the work happens in this session (browser research, hand-written notes, copy drafted here) instead of
+through the CLI, save the human-readable result through the shared writer, never with an ad-hoc script or
+a hand-built path:
+
+```bash
+.venv/bin/agency-note save --brand <slug> --type Research --title "<title>" --body draft.md   # Windows: .venv\Scripts\agency-note.exe
+make note BRAND=<slug> TYPE=Research TITLE="<title>" BODY=draft.md                          # same, via make
+```
+
+It writes `Brands/<Folder>/Drafts/Research/<date>-<title>.md` into the brand's existing folder with `brand:`,
+`status: draft` and `created` frontmatter, plus a `.canvas` board beside it. Non-brand research takes
+`--topic <Folder>` (writes `Research/<Folder>/`). `agency-note canvas <note>` adds a board to an older note.
+A collector or scraper worth running twice belongs in the repo, wired to a Make target, skill or import
+(`make check-wiring` fails on scripts nothing calls), not as a one-off in the vault or workspace.
+
 ## Hybrid vault finalization
 
 Normal research runs write the human-readable report to the vault with `status: draft`;
