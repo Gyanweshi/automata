@@ -32,8 +32,9 @@ storyboard and content work. A recommendation remains distinct from user approva
 3. If they provide a website URL, run `/market brand <url>` to auto-detect voice dimensions.
 4. Write the brand profile as `$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`. Frontmatter contains the structured config; markdown body contains human-readable brand narrative and memory. Never write real brand files to the repo.
 5. The `.md` body must include these sections in order: `## Audience`, `## Platforms` (external links, not wikilinks), `## Competitors` (external links), `## Strategy Notes` (initial decisions from onboarding), `## Memory` (empty block with comment `<!-- Maintained automatically by agents. Max 10 bullets. -->` - do not populate manually).
-6. Create workspace folders for JSON and disposable intermediates: `workspace/<slug>/research/`, `workspace/<slug>/storyboards/`, `workspace/<slug>/content/`. Human-readable drafts go to the matching brand folders in the vault.
-7. Confirm success and show next steps.
+6. Go through [references/brand-guide-checklist.md](references/brand-guide-checklist.md) with the user. Record what the client already has (link their guide or assets), what is missing, and which gaps block production, under `## Strategy Notes`. For examples from the same industry, use the libraries in [../frontend-design/references/reference-libraries.md](../frontend-design/references/reference-libraries.md).
+7. Create workspace folders for JSON and disposable intermediates: `workspace/<slug>/research/`, `workspace/<slug>/storyboards/`, `workspace/<slug>/content/`. Human-readable drafts go to the matching brand folders in the vault.
+8. Confirm success and show next steps.
 
 ### Run research
 

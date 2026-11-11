@@ -16,6 +16,12 @@ Types: `carousel` | `reel` | `post` | `mood_board`
 
 Types: `carousel` | `reel` | `post` | `mood_board` | `image`
 
+## Design references
+
+For a mood board, visual direction or brand image, look at matching examples first in
+the libraries listed in [../frontend-design/references/reference-libraries.md](../frontend-design/references/reference-libraries.md).
+Take structure and patterns from them, never content or imagery.
+
 ## Execution gate
 
 Storyboard is downstream execution, not a substitute for research or strategy. When
