@@ -229,7 +229,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 | Dependency | Needed for | Required | Roles | Version | Pinned in |
 |---|---|---|---|---|---|
-| **Third-party agent skills** (`external-skills`) | browser-act and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | - | hashes in lock | `skills-lock.json` |
+| **Third-party agent skills** (`external-skills`) | browser-act, asd-ste100 and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | - | hashes in lock | `skills-lock.json` |
 | **GitHub Actions** (`github-actions`) | actions/checkout, setup-python and setup-node in the Security and Cross-platform workflows. | no | - | tag in workflow | `.github/workflows/security.yml`, `.github/workflows/cross-platform.yml` |
 
 ### Install, update, and what to do when it breaks
