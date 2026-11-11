@@ -408,6 +408,23 @@ update = "Package manager upgrade."
 on_break = "'cannot load library libgobject' / 'no library called cairo' = the native runtime is missing or not on PATH."
 
 [[dependency]]
+id = "motiscope"
+name = "Motiscope motion analysis"
+kind = "system"
+category = "System tools"
+purpose = "Optional screen-recording timing analysis for agency-motion-design."
+used_by = ["scripts/motiscope.py", "skills/agency-motion-design/SKILL.md"]
+required = false
+pin = "c0ce3ddedfbe59f445b74372a064e908587a648a"
+upstream = "github-commit:KumarSashank/motiscope"
+check = ["python", "scripts/motiscope.py", "check"]
+check_linux = ["python3", "scripts/motiscope.py", "check"]
+check_macos = ["python3", "scripts/motiscope.py", "check"]
+install = { all = "python scripts/motiscope.py install" }
+update = "python scripts/deps.py set-pin motiscope FULL_COMMIT_SHA; install and smoke-test, then regenerate dependency docs."
+on_break = "Use the repo virtualenv with scripts/motiscope.py; install ffmpeg through deps.py if check fails. A modified checkout is refused."
+
+[[dependency]]
 id = "adb"
 roles = ["research"]
 name = "Android platform-tools (adb)"

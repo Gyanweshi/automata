@@ -1,6 +1,6 @@
 ---
 name: agency-motion-design
-description: Create and render narration-timed motion graphics, animated charts, product walkthroughs and pixel or arcade scenes, as standalone videos or exact-size overlays for an edit. Use for code-driven animation and motion assets; not generic AI video prompts, games, or editable slide decks.
+description: Create and render narration-timed motion graphics, animated charts, product walkthroughs and pixel or arcade scenes, as standalone videos or exact-size overlays for an edit. Also use to analyze or recreate an animation from a screen recording, match reference motion or timing, or use Motiscope. For code-driven animation and motion assets; not generic AI video prompts, games, or editable slide decks.
 ---
 
 Read and follow the canonical instructions at

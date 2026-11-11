@@ -1,6 +1,6 @@
 ---
 name: agency-motion-design
-description: Create and render narration-timed motion graphics, animated charts, product walkthroughs and pixel or arcade scenes, as standalone videos or exact-size overlays for an edit. Use for code-driven animation and motion assets; not generic AI video prompts, games, or editable slide decks.
+description: Create and render narration-timed motion graphics, animated charts, product walkthroughs and pixel or arcade scenes, as standalone videos or exact-size overlays for an edit. Also use to analyze or recreate an animation from a screen recording, match reference motion or timing, or use Motiscope. For code-driven animation and motion assets; not generic AI video prompts, games, or editable slide decks.
 ---
 
 # Agency motion design
@@ -54,6 +54,11 @@ regions before drawing. For a supplied video edit, the
    asset in the editor's final composition, not just in isolation.
 
 ## Rendering route
+
+For recreating motion from a supplied screen recording, use the optional
+[Motiscope analysis step](references/motiscope.md) before building the timeline.
+It supplies timing evidence and selected frames; the agent still identifies the
+elements, writes the animation and verifies the rendered result.
 
 The portable local route is the repo `.venv` with MoviePy 1.x, NumPy/Pillow and
 FFmpeg/ffprobe. Write a project-local Python renderer whose frame function depends

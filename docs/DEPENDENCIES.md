@@ -212,6 +212,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 | **ImageMagick (magick)** (`imagemagick`) | Raster image conversion for slide work and the Higgsfield brand kit. | no | slides, images | OS package manager | - |
 | **LibreOffice (soffice)** (`libreoffice`) | PPTX to PDF/thumbnail rendering for slide work. | no | slides | OS package manager | - |
 | **Cairo / Pango libraries** (`cairo-pango`) | Native libraries behind weasyprint and cairosvg (PDF and SVG rendering). | no | slides | OS package manager | - |
+| **Motiscope motion analysis** (`motiscope`) | Optional screen-recording timing analysis for agency-motion-design. | no | - | c0ce3ddedfbe | `dependencies.toml` |
 | **Android platform-tools (adb)** (`adb`) | Mobile-only Instagram search through redroid/BlueStacks. | no | research | OS package manager | - |
 
 ### Apps
@@ -353,6 +354,11 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **Install:** linux: `sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2`; windows: `manual: install the GTK3 runtime (MSYS2: pacman -S mingw-w64-x86_64-pango) and add its bin to PATH`; macos: `brew install pango cairo`
 - **Update:** Package manager upgrade.
 - **If it breaks:** 'cannot load library libgobject' / 'no library called cairo' = the native runtime is missing or not on PATH.
+
+#### Motiscope motion analysis (`motiscope`)
+- **Install:** all: `python scripts/motiscope.py install`
+- **Update:** python scripts/deps.py set-pin motiscope FULL_COMMIT_SHA; install and smoke-test, then regenerate dependency docs.
+- **If it breaks:** Use the repo virtualenv with scripts/motiscope.py; install ffmpeg through deps.py if check fails. A modified checkout is refused.
 
 #### Android platform-tools (adb) (`adb`)
 - **Install:** linux: `sudo apt-get install -y adb`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Google.PlatformTools`; macos: `brew install --cask android-platform-tools`
