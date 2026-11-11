@@ -192,6 +192,23 @@ For platform- or campaign-altitude routes, add a campaign-architecture pass:
   evidence or media planning is still needed. A strong idea without a route to enough
   relevant people is incomplete, but this bank does not perform media planning.
 
+## Saving in-session work
+
+When the work happens in this session (browser research, hand-written concept notes, copy drafted here) instead of
+through the CLI, save the human-readable result through the shared writer, never with an ad-hoc script or
+a hand-built path:
+
+```bash
+.venv/bin/agency-note save --brand <slug> --type Ideation --title "<title>" --body draft.md   # Windows: .venv\Scripts\agency-note.exe
+make note BRAND=<slug> TYPE=Ideation TITLE="<title>" BODY=draft.md                          # same, via make
+```
+
+It writes `Brands/<Folder>/Drafts/Ideation/<date>-<title>.md` into the brand's existing folder with `brand:`,
+`status: draft` and `created` frontmatter, plus a `.canvas` board beside it. Non-brand research takes
+`--topic <Folder>` (writes `Research/<Folder>/`). `agency-note canvas <note>` adds a board to an older note.
+A collector or scraper worth running twice belongs in the repo, wired to a Make target, skill or import
+(`make check-wiring` fails on scripts nothing calls), not as a one-off in the vault or workspace.
+
 ## Handoff
 
 Give each concept an ID and retain its `tool_ids`. Use this structure in run JSON:

@@ -1,0 +1,2 @@
+# Known unwired Python files (scripts/check-wiring.py). Wire them to a Make target, skill,
+# import or schedule, or delete them, then remove their line.

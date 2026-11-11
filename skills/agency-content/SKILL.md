@@ -101,6 +101,23 @@ agency-content --brand <brand-slug> --week --format markdown
 
 Fill in each placeholder topic with specific, brand-appropriate topics based on the brand's content pillars and latest research.
 
+## Saving in-session work
+
+When the work happens in this session (browser research, hand-written captions, copy drafted here) instead of
+through the CLI, save the human-readable result through the shared writer, never with an ad-hoc script or
+a hand-built path:
+
+```bash
+.venv/bin/agency-note save --brand <slug> --type Content --title "<title>" --body draft.md   # Windows: .venv\Scripts\agency-note.exe
+make note BRAND=<slug> TYPE=Content TITLE="<title>" BODY=draft.md                          # same, via make
+```
+
+It writes `Brands/<Folder>/Drafts/Content/<date>-<title>.md` into the brand's existing folder with `brand:`,
+`status: draft` and `created` frontmatter, plus a `.canvas` board beside it. Non-brand research takes
+`--topic <Folder>` (writes `Research/<Folder>/`). `agency-note canvas <note>` adds a board to an older note.
+A collector or scraper worth running twice belongs in the repo, wired to a Make target, skill or import
+(`make check-wiring` fails on scripts nothing calls), not as a one-off in the vault or workspace.
+
 ## Hybrid vault finalization
 
 Human-readable copy drafts and variations go to

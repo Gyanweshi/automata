@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from agency_common.canvas import CARD_WIDTH, CYAN, PURPLE, Canvas, card_height, section_grid, vault_relative
 from agency_common.models import ResearchOutput
 from agency_common.output_writer import OutputWriter
 from agency_common.workspace import WorkspaceManager
@@ -14,10 +15,11 @@ def write_research_output(
     markdown_dir: Path | None = None,
     *,
     status: str = "draft",
+    canvas: bool = True,
 ) -> tuple[Path, Path | None]:
     """
-    Write ResearchOutput to workspace as JSON and optionally to a Markdown directory.
-    Returns (json_path, md_path).
+    Write ResearchOutput to workspace as JSON and optionally to a Markdown directory, with a matching
+    `.canvas` board beside the note. Returns (json_path, md_path).
     """
     json_path = workspace.write("research", output.brand_slug, output)
 
@@ -31,8 +33,87 @@ def write_research_output(
             status=status,
         )
         OutputWriter.write_markdown(md_content, md_path, frontmatter)
+        if canvas:
+            research_canvas(output, md_path).write(md_path.with_suffix(".canvas"))
 
     return json_path, md_path
+
+
+def research_canvas(output: ResearchOutput, md_path: Path) -> Canvas:
+    """A board for Obsidian: summary and the full report on top, one group per finding area below."""
+    board = Canvas(seed=f"{output.brand_slug}/{output.run_id}/research")
+    summary = f"# Research: {output.brand_slug}\n{output.run_id}"
+    if output.summary:
+        summary += f"\n\n{output.summary}"
+    board.text(summary, 0, 0, CARD_WIDTH, color=PURPLE)
+    board.file(vault_relative(md_path), CARD_WIDTH + 80, 0, CARD_WIDTH, 400)
+    top = max(card_height(summary), 400) + 140
+    section_grid(board, _research_sections(output), x=0, y=top, columns=3, color=CYAN)
+    return board
+
+
+def _bullets(items, limit: int = 10) -> str:
+    return "\n".join(f"- {item}" for item in list(items)[:limit])
+
+
+def _research_sections(output: ResearchOutput) -> list[tuple[str, list[str]]]:
+    sections: list[tuple[str, list[str]]] = []
+    for platform, research in output.platforms.items():
+        cards = []
+        if research.competitors:
+            rows = ["| Handle | Followers | Avg ER% |", "|---|---|---|"]
+            rows += [f"| {c.handle} | {c.follower_count:,} | {c.avg_engagement_rate:.2f}% |"
+                     for c in research.competitors[:10]]
+            cards.append("**Competitors**\n\n" + "\n".join(rows))
+        if research.trending_hashtags:
+            cards.append("**Trending hashtags**\n" + _bullets(
+                f"{h.tag} ({h.trend_direction})" for h in research.trending_hashtags))
+        if research.sentiment:
+            s = research.sentiment
+            cards.append(f"**Sentiment** ({s.sample_size} posts)\n- Positive {s.positive_pct}%\n"
+                         f"- Neutral {s.neutral_pct}%\n- Negative {s.negative_pct}%")
+        if cards:
+            sections.append((platform.capitalize(), cards))
+    if output.cross_platform_themes:
+        sections.append(("Themes", [_bullets(
+            f"**{t.theme}** ({t.frequency}): {', '.join(t.keywords[:3])}" for t in output.cross_platform_themes)]))
+    ln = output.listening_node
+    if ln and (ln.top_questions or ln.recurring_debates):
+        cards = []
+        if ln.top_questions:
+            cards.append("**Top questions**\n" + _bullets(ln.top_questions))
+        if ln.recurring_debates:
+            cards.append("**Recurring debates**\n" + _bullets(ln.recurring_debates, 6))
+        sections.append(("Community listening", cards))
+    al = output.ad_library
+    if al and (al.winning_angles or al.top_ctas):
+        cards = []
+        if al.winning_angles:
+            cards.append("**Winning angles (30+ day ads)**\n" + _bullets(al.winning_angles, 8))
+        if al.top_ctas:
+            cards.append("**Dominant CTAs**\n" + _bullets(al.top_ctas, 5))
+        sections.append(("Ad library", cards))
+    vd = output.visual_dna
+    if vd and vd.dominant_aesthetic:
+        rows = [("Aesthetic", vd.dominant_aesthetic), ("Colour", vd.color_palette_trend),
+                ("Typography", vd.typography_trend), ("Pacing", vd.pacing_trend),
+                ("Industry standard", vd.industry_standard_aesthetic)]
+        card = "\n".join(f"- **{k}**: {v}" for k, v in rows if v)
+        if vd.pattern_interrupt_opportunity:
+            card += f"\n\n> **Pattern interrupt**: {vd.pattern_interrupt_opportunity}"
+        sections.append(("Visual DNA", [card]))
+    ca = output.comment_analysis
+    if ca and ca.clusters:
+        cards = [f"**{c.category.replace('_', ' ').title()}**\n" + _bullets(c.items, 6)
+                 for c in ca.clusters if c.items]
+        if ca.content_pillars:
+            cards.append("**Content pillars**\n" + _bullets(ca.content_pillars))
+        if cards:
+            sections.append(("Audience", cards))
+    ar = output.adjacency_report
+    if ar and ar.top_opportunities:
+        sections.append(("Adjacent opportunities", [_bullets(ar.top_opportunities)]))
+    return sections
 
 
 def _render_markdown(output: ResearchOutput) -> str:

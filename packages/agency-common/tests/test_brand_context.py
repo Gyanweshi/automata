@@ -80,3 +80,19 @@ def test_non_ascii_names_print_on_a_windows_console(tmp_path):
     result = subprocess.run([sys.executable, str(ROOT / "scripts" / "brand_context.py"), "rankup"],
                             capture_output=True, env=env)
     assert result.returncode == 0, result.stderr.decode("cp1252", "replace")
+
+
+def test_notes_tagged_with_the_brand_are_found_wherever_they_live(tmp_path):
+    root, vault = make_vault(tmp_path)
+    scan = vault / "Research" / "Insurance_Scan"
+    scan.mkdir(parents=True)
+    (scan / "phase1.md").write_text("---\ntype: research\nbrand: 'rankup'\n---\nbody", encoding="utf-8")
+    (scan / "other.md").write_text("---\nbrand: maple\n---\nbody", encoding="utf-8")
+    (scan / "untagged.md").write_text("no frontmatter, mentions rankup", encoding="utf-8")
+    inside = vault / "Brands" / "rankup" / "Drafts" / "Research" / "tagged.md"
+    inside.write_text("---\nbrand: rankup\n---\n", encoding="utf-8")
+
+    found = bc.find_context("rankup", root, vault)
+
+    assert found["tagged"] == [scan / "phase1.md"]  # the brand folder's own notes are not repeated
+    assert bc.find_context("maple", root, vault)["tagged"] == [scan / "other.md"]

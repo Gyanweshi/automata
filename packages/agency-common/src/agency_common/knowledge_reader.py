@@ -20,6 +20,10 @@ IGNORED_DIRECTORIES = {
     "Claude_Sessions",
     "Codex_Sessions",
     "Agent_Sessions",
+    # Syncthing's file-version backups and Obsidian's trash: old copies that would duplicate real notes.
+    ".stversions",
+    ".stfolder",
+    ".trash",
 }
 
 

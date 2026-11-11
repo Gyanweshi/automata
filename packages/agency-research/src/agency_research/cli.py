@@ -315,6 +315,8 @@ def main():
     print(f"Research complete. Output: {json_path}")
     if md_path:
         print(f"Markdown report: {md_path}")
+        if md_path.with_suffix(".canvas").exists():
+            print(f"Canvas board: {md_path.with_suffix('.canvas')}")
 
     if args.format == "json":
         print(json.dumps(output.model_dump(), indent=2, default=str))

@@ -21,7 +21,11 @@ Human-readable research, brand work, briefs, scripts, and project notes go direc
 | Agent pipeline Markdown drafts | `D:\Brainiac2\Brands\<slug>\Drafts\<type>\` |
 | Agent pipeline JSON outputs | `D:\automata\workspace\` (temporary inter-agent data) |
 | Games / side projects | `D:\Brainiac2\Games\<name>\` |
+| Web clippings (inbox) | `D:\Brainiac2\Clippings\` — Obsidian Web Clipper, template `tools/obsidian/web-clipper-clippings.json`; triage into Research/ or a brand |
+| Property views (Bases) | `D:\Brainiac2\Categories\*.base` — Drafts, Research, Clippings, Boards; group by frontmatter, never move files for them |
 | Spreadsheets / exports | `D:\Brainiac2\Research\<topic>\` |
+
+Storyboard and research runs also write a `.canvas` board (JSON Canvas, `agency_common.canvas`) beside their draft note; pass `canvas=False` to the output writers to skip it.
 
 Use `D:\automata\workspace\` for machine-readable JSON, browser dumps, logs, screenshots, cookies, browser profiles, masks, previews, generated variants, and other disposable or high-volume intermediates. Do not leave human-readable knowledge drafts or deliverables in the repo.
 
@@ -51,6 +55,9 @@ make test                       # pytest packages/*/tests -v
 make vault-index                # Rebuild the chunked vault search index now
 make install-vault-index        # Schedule the nightly rebuild (02:30)
 make vault-search Q="..."       # Search the vault index from the shell
+make note BRAND=x TITLE="..." BODY=f.md [TYPE=Research]  # Save in-session work as a vault draft + canvas
+make canvas NOTE=path           # Add a .canvas board to an existing note
+make check-wiring               # Fail on new scripts nothing calls (CI + pre-commit)
 make rag-eval                   # Score retrieval: legacy whole-note index vs v2
 .venv/bin/python -m pytest packages/agency-common/tests/test_brand_loader.py -v
 
@@ -123,7 +130,7 @@ There are three layers of context. Use all three, in order, before doing any bra
 
 **1. Memory files** (`~/.claude/projects/.../memory/`) — loaded automatically. Contains working rules, preferences, and brand decisions. Never ask the user to re-explain things that are already in memory.
 
-**Find it first:** `make brand-context BRAND=<brand>` (or `python3 scripts/brand_context.py <brand>`; Windows `py scripts\brand_context.py <brand>`) lists the brand note, the `Brands/<slug>/` drafts folder, the workspace and other vault matches, using any Python. A brand with no note can still have a full drafts folder. Never silence vault lookups with `2>/dev/null`. (System Python can't import `agency_common`; use the venv Python for that: `.venv/bin/python`, or `.venv\Scripts\python.exe` on Windows.)
+**Find it first:** `make brand-context BRAND=<brand>` (or `python3 scripts/brand_context.py <brand>`; Windows `py scripts\brand_context.py <brand>`) lists the brand note, the `Brands/<slug>/` drafts folder, the workspace, other vault matches and notes anywhere tagged `brand: <slug>`, using any Python. A brand with no note can still have a full drafts folder. Never silence vault lookups with `2>/dev/null`. (System Python can't import `agency_common`; use the venv Python for that: `.venv/bin/python`, or `.venv\Scripts\python.exe` on Windows.)
 
 **2. Brand note** (`$OBSIDIAN_VAULT_PATH/Brands/<slug>.md`) — read this before working on any brand. The frontmatter is the authoritative config. The markdown body has the brand essence, key constraints, audience, and the `## Memory` section — distilled run history maintained automatically by agents after every run. Read it with the `Read` tool directly. This is the single source of truth for brand-specific context.
 

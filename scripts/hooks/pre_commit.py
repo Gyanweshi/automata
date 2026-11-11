@@ -19,6 +19,7 @@ CHECKS = [
     ("dependency pins agree", ["scripts/deps.py", "check", "--pins-only"]),
     ("dependency register up to date", ["scripts/deps.py", "docs", "--check"]),
     ("skill registrations", ["scripts/sync-skills.py", "--check"]),
+    ("every script has a caller", ["scripts/check-wiring.py"]),
 ]
 
 

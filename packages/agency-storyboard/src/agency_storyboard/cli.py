@@ -185,6 +185,8 @@ def main():
     print(f"Storyboard written: {json_path}")
     if md_path:
         print(f"Markdown: {md_path}")
+        if md_path.with_suffix(".canvas").exists():
+            print(f"Canvas board: {md_path.with_suffix('.canvas')}")
 
     if args.commit_vault:
         from agency_common.obsidian_writer import update_brand_memory

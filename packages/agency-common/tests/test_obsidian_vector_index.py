@@ -686,3 +686,30 @@ def test_find_stale_chunk_ids_prunes_rebuilt_deleted_and_whole_note_records(tmp_
     stale = find_stale_chunk_ids(existing, [f"{rebuilt}::0"], [{"filepath": rebuilt, "chunk": 0}])
 
     assert stale == [f"{rebuilt}::5", "/gone/Old.md::0", "/legacy/Whole.md", f"{conflict}::0"]
+
+
+def test_find_stale_chunk_ids_prunes_syncthing_version_backups(tmp_path):
+    backup = tmp_path / ".stversions" / "Research" / "Note~20261106-230446.md"
+    backup.parent.mkdir(parents=True)
+    backup.write_text("old copy", encoding="utf-8")
+    trashed = tmp_path / ".trash" / "Gone.md"
+    trashed.parent.mkdir(parents=True)
+    trashed.write_text("deleted", encoding="utf-8")
+    existing = {
+        "ids": [f"{backup}::0", f"{trashed}::0"],
+        "metadatas": [{"filepath": str(backup), "chunk": 0}, {"filepath": str(trashed), "chunk": 0}],
+    }
+
+    assert find_stale_chunk_ids(existing, [], []) == [f"{backup}::0", f"{trashed}::0"]
+
+
+def test_vault_reader_skips_syncthing_backups_and_trash(tmp_path):
+    from agency_common.knowledge_reader import iter_markdown_files
+
+    (tmp_path / "Research").mkdir()
+    (tmp_path / "Research" / "Note.md").write_text("real", encoding="utf-8")
+    for hidden in (".stversions/Research", ".trash"):
+        (tmp_path / hidden).mkdir(parents=True)
+        (tmp_path / hidden / "Copy.md").write_text("copy", encoding="utf-8")
+
+    assert iter_markdown_files(tmp_path) == [tmp_path / "Research" / "Note.md"]
