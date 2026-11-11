@@ -172,6 +172,7 @@ Install with `make install-skills`. The orchestrator's `/agency onboard` workflo
 ```bash
 python3 scripts/deps.py check --pins-only
 python3 scripts/check-cross-platform.py
+python3 scripts/check-hooks.py      # hooks start on a fresh clone on any OS
 python3 -m json.tool .mcp.json
 python3 -m json.tool mcp/agents/research.json
 make status

@@ -36,8 +36,10 @@ cd "$(git rev-parse --show-toplevel)" || exit 0
 for p in .venv/Scripts/python.exe .venv/bin/python; do
   [ -x "$p" ] && exec "$p" scripts/hooks/pre_commit.py
 done
-command -v python3 >/dev/null 2>&1 && exec python3 scripts/hooks/pre_commit.py
-command -v python >/dev/null 2>&1 && exec python scripts/hooks/pre_commit.py
+# probe each one: on Windows "python3" can be the Microsoft Store stub, which exists but cannot run
+for p in python3 python py; do
+  "$p" -c '' >/dev/null 2>&1 && exec "$p" scripts/hooks/pre_commit.py
+done
 exit 0
 """
 HOOK_BODY = f"""#!/bin/sh
@@ -48,8 +50,10 @@ cd "$(git rev-parse --show-toplevel)" || exit 0
 for p in .venv/Scripts/python.exe .venv/bin/python; do
   [ -x "$p" ] && exec "$p" scripts/setup_state.py --after-pull
 done
-command -v python3 >/dev/null 2>&1 && exec python3 scripts/setup_state.py --after-pull
-command -v python >/dev/null 2>&1 && exec python scripts/setup_state.py --after-pull
+# probe each one: on Windows "python3" can be the Microsoft Store stub, which exists but cannot run
+for p in python3 python py; do
+  "$p" -c '' >/dev/null 2>&1 && exec "$p" scripts/setup_state.py --after-pull
+done
 exit 0
 """
 

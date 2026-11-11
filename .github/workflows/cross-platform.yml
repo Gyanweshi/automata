@@ -28,6 +28,10 @@ jobs:
           python -m pip install -e "./packages/agency-common[test]" -e "./packages/agency-research[test]" -e ./packages/agency-storyboard -e ./packages/agency-content
       - name: No new one-OS scripts, machine paths, or CRLF shell scripts
         run: python scripts/check-cross-platform.py
+      - name: Hooks start on a fresh clone (no .venv, broken python3), no machine paths or hidden edits
+        run: |
+          python -m pip install "uv>=0.11"
+          python scripts/check-hooks.py
       - name: Skill registrations
         run: python scripts/sync-skills.py --check
       - name: Every script has a caller (no built-and-forgotten tools)

@@ -20,6 +20,7 @@ CHECKS = [
     ("dependency register up to date", ["scripts/deps.py", "docs", "--check"]),
     ("skill registrations", ["scripts/sync-skills.py", "--check"]),
     ("every script has a caller", ["scripts/check-wiring.py"]),
+    ("hooks start on a fresh clone", ["scripts/check-hooks.py"]),
 ]
 
 

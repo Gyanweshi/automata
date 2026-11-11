@@ -79,6 +79,13 @@ def check_cross_platform():
     return WARN, "new findings (often an uncommitted local file)", out
 
 
+def check_hooks():
+    code, out = run([sys.executable, "scripts/check-hooks.py"])
+    if code == 0:
+        return PASS, "every hook starts on a fresh clone", ""
+    return FAIL, "a hook would break on another machine", out
+
+
 def check_venv():
     if not VENV_PYTHON.exists():
         return FAIL, "no .venv: run the bootstrap", ""
@@ -201,6 +208,7 @@ def main(argv: list[str] | None = None) -> int:
         ("Python environment", check_venv),
         ("Vault", check_vault),
         ("Cross-platform rules", check_cross_platform),
+        ("Hooks (Claude, Codex, git)", check_hooks),
         ("Node for MCP servers", check_mcp_node),
         ("Playwright MCP", (lambda: (SKIP, "slow check skipped (--quick)", "")) if args.quick else check_playwright_mcp),
         ("Agents (dry run)", check_agents),
