@@ -36,9 +36,10 @@ cd "$(git rev-parse --show-toplevel)" || exit 0
 for p in .venv/Scripts/python.exe .venv/bin/python; do
   [ -x "$p" ] && exec "$p" scripts/hooks/pre_commit.py
 done
-# probe each one: on Windows "python3" can be the Microsoft Store stub, which exists but cannot run
+# probe each one with an argument, as the hook runs it: on Windows "python3" can be the Microsoft Store stub,
+# and on Linux "py" can be pythonpy, which accepts -c but is not Python
 for p in python3 python py; do
-  "$p" -c '' >/dev/null 2>&1 && exec "$p" scripts/hooks/pre_commit.py
+  "$p" -c 'import sys; sys.exit(len(sys.argv) != 2)' x >/dev/null 2>&1 && exec "$p" scripts/hooks/pre_commit.py
 done
 exit 0
 """
@@ -50,9 +51,10 @@ cd "$(git rev-parse --show-toplevel)" || exit 0
 for p in .venv/Scripts/python.exe .venv/bin/python; do
   [ -x "$p" ] && exec "$p" scripts/setup_state.py --after-pull
 done
-# probe each one: on Windows "python3" can be the Microsoft Store stub, which exists but cannot run
+# probe each one with an argument, as the hook runs it: on Windows "python3" can be the Microsoft Store stub,
+# and on Linux "py" can be pythonpy, which accepts -c but is not Python
 for p in python3 python py; do
-  "$p" -c '' >/dev/null 2>&1 && exec "$p" scripts/setup_state.py --after-pull
+  "$p" -c 'import sys; sys.exit(len(sys.argv) != 2)' x >/dev/null 2>&1 && exec "$p" scripts/setup_state.py --after-pull
 done
 exit 0
 """

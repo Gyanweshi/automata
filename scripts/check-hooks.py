@@ -4,9 +4,11 @@
 Hooks run on every session, prompt and commit, so a hook that only works on the machine that wrote it breaks
 everyone else at once. This checks:
 
-  launch        each hook that runs Python is run in a throwaway copy of the repo with NO .venv and a broken
-                `python3` first on PATH (what Windows ships: the Microsoft Store stub, which exists but exits 49).
-                The hook must still reach a working Python. Hook targets are replaced by stubs, so nothing
+  launch        each hook that runs Python is run in a throwaway copy of the repo with NO .venv and a fixed
+                PATH in front: `python3` is broken (what Windows ships: the Microsoft Store stub, which exists
+                but exits 49), `python` is a look-alike that accepts `-c CODE` but cannot run a script (what
+                Linux `pythonpy` installs as `py`), and only `py` reaches a real Python. The hook must skip both
+                bad ones and reach it, on any machine, whatever Pythons that machine has. Hook targets are replaced by stubs, so nothing
                 real runs.
   machine-path  an absolute path (D:/..., C:\\..., /home/..., /Users/...) in hook or MCP config. Use
                 $CLAUDE_PROJECT_DIR, `git rev-parse --show-toplevel`, or a path relative to the repo root.
@@ -36,6 +38,8 @@ CONFIG_GLOBS = (".claude/settings.json", ".codex/*.json", ".codex/*.toml", ".mcp
 ABSOLUTE_PATH = re.compile(r"(?<![\w$])(?:[A-Za-z]:(?:\\\\|\\|/)|/home/[\w.-]+|/Users/[\w.-]+|/mnt/[\w.-]+)")
 STUB_MARK = "HOOK-REACHED-PYTHON"
 BROKEN_PYTHON = '#!/bin/sh\necho "Python was not found; (simulated Microsoft Store stub)" >&2\nexit 49\n'
+LOOKALIKE_PYTHON = ('#!/bin/sh\n[ "$1" = -c ] && [ $# -eq 2 ] && exit 0\n'
+                    'echo "usage: py [-c PRE_CMD] [expression] (simulated pythonpy look-alike)" >&2\nexit 2\n')
 
 
 def find_bash() -> str | None:
@@ -83,8 +87,11 @@ def check_launch(errors: list[str]) -> None:
         fresh_clone(tmp)
         fake_bin = tmp / "_fake_bin"
         fake_bin.mkdir()
-        (fake_bin / "python3").write_text(BROKEN_PYTHON, encoding="utf-8", newline="\n")
-        (fake_bin / "python3").chmod(0o755)
+        real_python = Path(sys.executable).as_posix()
+        for name, body in (("python3", BROKEN_PYTHON), ("python", LOOKALIKE_PYTHON),
+                           ("py", f'#!/bin/sh\nexec "{real_python}" "$@"\n')):
+            (fake_bin / name).write_text(body, encoding="utf-8", newline="\n")
+            (fake_bin / name).chmod(0o755)
         env = {k: v for k, v in os.environ.items() if k not in ("VIRTUAL_ENV", "PYTHONHOME", "PYTHONPATH")}
         env.update(PATH=str(fake_bin) + os.pathsep + env.get("PATH", ""), CLAUDE_PROJECT_DIR=tmp.as_posix())
 
