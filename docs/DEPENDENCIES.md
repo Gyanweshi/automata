@@ -229,7 +229,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 
 | Dependency | Needed for | Required | Roles | Version | Pinned in |
 |---|---|---|---|---|---|
-| **Third-party agent skills** (`external-skills`) | browser-act and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | - | hashes in lock | `skills-lock.json` |
+| **Third-party agent skills** (`external-skills`) | browser-act, asd-ste100 and eight higgsfield-* skills installed from GitHub, hashes recorded in skills-lock.json. | no | - | hashes in lock | `skills-lock.json` |
 | **GitHub Actions** (`github-actions`) | actions/checkout, setup-python and setup-node in the Security and Cross-platform workflows. | no | - | tag in workflow | `.github/workflows/security.yml`, `.github/workflows/cross-platform.yml` |
 
 ### Install, update, and what to do when it breaks
@@ -393,7 +393,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **If it breaks:** `OBSIDIAN_VAULT_PATH ... does not exist`: the drive is not mounted (the agents stop rather than write elsewhere). Linux I/O errors on an NTFS drive: run chkdsk on Windows. Index stale: make vault-index. To work without a vault, set OBSIDIAN_VAULT_PATH to empty.
 
 #### Third-party agent skills (`external-skills`)
-- **Update:** Re-install through the `skills` CLI that wrote skills-lock.json (`npx skills --help`), review the diff, commit.
+- **Update:** Re-install through the `skills` CLI that wrote skills-lock.json (`npx skills --help`), review the diff, commit. If the CLI turns a `.claude/skills/<name>` shim folder back into a symlink, restore the shim from git: symlinks check out as plain text on Windows.
 - **If it breaks:** Restore a skill folder from git; skills-lock.json holds the hash of the version that worked.
 
 #### GitHub Actions (`github-actions`)
