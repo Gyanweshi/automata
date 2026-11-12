@@ -19,7 +19,7 @@
           {
             "type": "command",
             "timeout": 10,
-            "command": "for p in \"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\" \"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; do [ -x \"$p\" ] && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/repo_guard.py\"; done; for p in python3 python py; do \"$p\" -c '' >/dev/null 2>&1 && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/repo_guard.py\"; done; exit 0"
+            "command": "for p in \"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\" \"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; do [ -x \"$p\" ] && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/repo_guard.py\"; done; for p in python3 python py; do \"$p\" -c 'import sys; sys.exit(len(sys.argv) != 2)' x >/dev/null 2>&1 && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/repo_guard.py\"; done; exit 0"
           }
         ]
       }
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "for p in \"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\" \"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; do [ -x \"$p\" ] && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session; done; for p in python3 python py; do \"$p\" -c '' >/dev/null 2>&1 && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session; done; exit 0",
+            "command": "for p in \"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\" \"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; do [ -x \"$p\" ] && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session; done; for p in python3 python py; do \"$p\" -c 'import sys; sys.exit(len(sys.argv) != 2)' x >/dev/null 2>&1 && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" session; done; exit 0",
             "timeout": 15
           }
         ]
@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "for p in \"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\" \"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; do [ -x \"$p\" ] && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt; done; for p in python3 python py; do \"$p\" -c '' >/dev/null 2>&1 && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt; done; exit 0",
+            "command": "for p in \"$CLAUDE_PROJECT_DIR/.venv/Scripts/python.exe\" \"$CLAUDE_PROJECT_DIR/.venv/bin/python\"; do [ -x \"$p\" ] && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt; done; for p in python3 python py; do \"$p\" -c 'import sys; sys.exit(len(sys.argv) != 2)' x >/dev/null 2>&1 && exec \"$p\" \"$CLAUDE_PROJECT_DIR/scripts/hooks/skill_routing_context.py\" prompt; done; exit 0",
             "timeout": 10
           }
         ]
