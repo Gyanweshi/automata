@@ -519,7 +519,7 @@ purpose = "browser-act, asd-ste100 and eight higgsfield-* skills installed from 
 used_by = [".agents/skills"]
 required = false
 pin_files = [{ file = "skills-lock.json" }]
-update = "Re-install through the `skills` CLI that wrote skills-lock.json (`npx skills --help`), review the diff, commit."
+update = "Re-install through the `skills` CLI that wrote skills-lock.json (`npx skills --help`), review the diff, commit. If the CLI turns a `.claude/skills/<name>` shim folder back into a symlink, restore the shim from git: symlinks check out as plain text on Windows."
 on_break = "Restore a skill folder from git; skills-lock.json holds the hash of the version that worked."
 
 [[dependency]]
