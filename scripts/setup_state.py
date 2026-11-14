@@ -25,7 +25,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INPUTS = ("uv.lock", "package-lock.json", "agents/automata_core/ig-research/package-lock.json",
           "dependencies.toml", ".mcp.json", "scripts/bootstrap.py",
-          "scripts/setup_state.py", "scripts/hooks/pre_commit.py")  # hook code: changes reinstall the hooks
+          "scripts/setup_state.py", "scripts/hooks/pre_commit.py",  # hook code: changes reinstall the hooks
+          ".codex/hooks.json")  # Codex skips changed hooks until approved: the bootstrap says so after the pull
 BOOTSTRAP = "uv run --no-project --python 3.12 scripts/bootstrap.py --yes"
 HOOK_MARKER = "# automata-setup-hook"
 HOOK_NAMES = ("post-merge", "post-rewrite")

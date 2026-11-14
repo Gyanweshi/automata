@@ -207,6 +207,7 @@ the actual `/hooks` executions. Native shell checks supplement this live check.
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| Codex ignores the routing reminders and the gate, with no error | `.codex/hooks.json` changed, so the approval stored in `~/.codex/config.toml` no longer matches and Codex skips those hooks | `python scripts/codex_hooks.py --trust` in a terminal (it asks first), or `/hooks` in Codex. The doctor and the post-pull bootstrap report this; only a person can approve |
 | `deps.py check` shows `FAIL uv` / `node` / `python-packages` "not on PATH" although the setup worked | Old checkout: older versions checked against this terminal's stale PATH | `git pull`. The checks now use the PATH a new terminal would see. |
 | `warn libreoffice` "soffice not on PATH" | LibreOffice's Windows installer leaves its folder off PATH | `git pull`, `python scripts\deps.py install-roles` (it adds `C:\Program Files\LibreOffice\program` to PATH), then open a new terminal. |
 | `install-roles` says "install exited 2316632107" | winget's code for "already installed, nothing newer"; older checkouts counted it as a failure | `git pull`: it now counts as installed. |

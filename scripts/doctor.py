@@ -86,6 +86,13 @@ def check_hooks():
     return FAIL, "a hook would break on another machine", out
 
 
+def check_codex_hooks():
+    code, out = run([sys.executable, "scripts/codex_hooks.py", "--check"])
+    if code == 0:
+        return PASS, out.strip().splitlines()[-1] if out.strip() else "ok", ""
+    return WARN, "Codex skips hooks it has not approved: python scripts/codex_hooks.py --trust", out
+
+
 def check_venv():
     if not VENV_PYTHON.exists():
         return FAIL, "no .venv: run the bootstrap", ""
@@ -209,6 +216,7 @@ def main(argv: list[str] | None = None) -> int:
         ("Vault", check_vault),
         ("Cross-platform rules", check_cross_platform),
         ("Hooks (Claude, Codex, git)", check_hooks),
+        ("Codex hook approval", check_codex_hooks),
         ("Node for MCP servers", check_mcp_node),
         ("Playwright MCP", (lambda: (SKIP, "slow check skipped (--quick)", "")) if args.quick else check_playwright_mcp),
         ("Agents (dry run)", check_agents),

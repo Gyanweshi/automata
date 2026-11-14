@@ -296,6 +296,14 @@ def main(argv: list[str] | None = None) -> int:
         warn(note)
     ok("setup stamp recorded; post-pull hooks installed (a pull that changes the setup re-runs this bootstrap)")
 
+    step("Codex hook approval (Codex silently skips hooks whose approval is out of date)")
+    if run([sys.executable, "scripts/codex_hooks.py", "--check"]).returncode == 0:
+        ok("Codex runs this repo's hooks")
+    elif not args.yes and sys.stdin.isatty():
+        run([sys.executable, "scripts/codex_hooks.py", "--trust"])
+    else:
+        warn("approve them yourself: python scripts/codex_hooks.py --trust (or /hooks in Codex)")
+
     step("Checking everything, one step at a time (scripts/doctor.py)")
     doctor = run([sys.executable, "scripts/doctor.py"]).returncode
 
