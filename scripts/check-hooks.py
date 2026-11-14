@@ -182,7 +182,7 @@ def check_behavior(errors: list[str]) -> None:
          {"tool_name": "Write", "tool_input": {"file_path": "example.txt"}},
          "PreToolUse", "permissionDecision"),
         ("unrouted generation denied", ["repo_guard.py"],
-         {"tool_name": "mcp__higgsfield__generate_image", "tool_input": {}},
+         {"tool_name": "mcp__higgsfield__upscale_image", "tool_input": {}},
          "PreToolUse", "permissionDecision"),
     ]
     for label, args, event, expected_event, field in cases:

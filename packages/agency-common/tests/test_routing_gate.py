@@ -103,3 +103,68 @@ def test_real_prompt_route_and_guard_cycle(tmp_path):
     context = run("skill_routing_context.py", ["prompt"], {"session_id": "test-session"})
     assert "test-session" in context["hookSpecificOutput"]["additionalContext"]
     assert run("repo_guard.py", payload=write)["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+
+@pytest.mark.parametrize("operation", ["upscale_image", "upscale_video", "outpaint_image", "reframe",
+    "motion_control", "dubbing", "voice_change", "execute_preset", "gpu_rent", "gpu_job_start",
+    "share_file", "trash_file", "Artifact", "unknown_action", "create_get_result", "execute_search", "get_or_create"])
+@pytest.mark.parametrize("prefix", ["mcp__higgsfield__", "mcp__codex_apps__higgsfield_"])
+def test_external_tools_default_to_blocked(operation, prefix):
+    assert gate.evaluate(event(prefix + operation))
+
+
+@pytest.mark.parametrize("tool", ["Artifact", "mcp__google_drive__share_file", "mcp__google_drive__trash_file",
+                                 "mcp__codex_apps__google_drive_share_file"])
+def test_publishing_and_sharing_blocked(tool):
+    assert gate.evaluate(event(tool))
+
+
+@pytest.mark.parametrize("tool", ["mcp__higgsfield__get_model", "mcp__higgsfield__list_models",
+    "mcp__codex_apps__higgsfield_get_account_balance", "mcp__gpu__balance", "mcp__gpu__describe_instance",
+    "mcp__codex_apps__google_drive_get_file", "mcp__codex_apps__plugin_management_search_plugins", "Skill"])
+def test_external_discovery_and_builtin_skill_invocation_allowed(tool):
+    assert gate.evaluate(event(tool)) is None
+
+
+@pytest.mark.parametrize("command", [
+    "grep -n hook AGENTS.md | head -20", "find scripts -name '*.py' && git -C packages show HEAD",
+    "sed -n '1,20p' AGENTS.md", "sed -n '/hooks/p' docs/SETUP.md",
+    "git -C 'path with spaces' --no-pager show HEAD", 'cat "$HOME/notes.txt" | grep hooks',
+    'cat "${HOME}/notes.txt"', "cat a; cat b", "cat a\ncat b", "cat a || cat b",
+    "grep '$(' AGENTS.md", "grep ';|&>$' AGENTS.md",
+    "python3 scripts/hooks/routing_gate.py --session test --no-skill --reason 'Maintenance; no match'",
+])
+def test_read_chains_and_quoted_shell_characters_allowed(command):
+    assert gate.evaluate(event("Bash", command)) is None
+
+
+@pytest.mark.parametrize("command", [
+    "cat a && touch b", "cat a | python3 -c 'print(1)'", "find . -delete",
+    "find . -exec touch x ';'", "find . -fprint out.txt", "sed -n '1w out.txt' file",
+    "sed -n 'e touch x' file", "sed -i '1p' file", "sed -n -f script file",
+    "git -C . config key value", "git -C . show --output=out", "cat $(touch x)",
+    'cat "$(touch x)"', 'cat "`touch x`"', "cat a > out", "cat a &", "cat a |",
+    'cat "${X:=value}"', 'cat "unterminated',
+])
+def test_write_chains_and_expansions_remain_blocked(command):
+    assert gate.evaluate(event("Bash", command))
+
+
+@pytest.mark.parametrize("command,diagnostic", [("cat a > b", "'>'"), ("cat $(pwd)", "substitution"),
+                                              ("cat a && touch b", "segment 2"), ("cat a &", "'&'")])
+def test_denial_explains_offending_syntax_or_segment(command, diagnostic):
+    result = gate.evaluate(event("Bash", command))
+    assert diagnostic in result["hookSpecificOutput"]["permissionDecisionReason"]
+
+
+def test_builtin_skill_receipt_is_distinct_from_skipping(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["routing_gate.py", "--session", "test-session", "--builtin-skill",
+                                     "code-review", "--reason", "Invoked native review skill for this change"])
+    assert gate.main() == 0
+    assert "agent reports prior invocation" in capsys.readouterr().out
+    data = json.loads(gate.state_path("test-session").read_text(encoding="utf-8"))
+    assert data["builtin_skills"] == ["code-review"]
+    assert data["no_skill"] is False and data["skills"] == []
+    assert gate.evaluate(event("Write")) is None
+    gate.reset("test-session")
+    assert gate.evaluate(event("Write"))

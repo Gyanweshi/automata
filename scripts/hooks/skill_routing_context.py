@@ -76,6 +76,7 @@ def main() -> None:
         context = ("Routing gate: before writes, generation, or non-discovery shell commands, run "
                    f"the repo Python with scripts/hooks/routing_gate.py --session {json.dumps(session)} "
                    "--skill <SKILL.md-path> --reason <task-match>. Read the returned skill and its required references. "
+                   "For a fileless built-in skill, invoke it, then record --builtin-skill <name> with a reason. "
                    "Use --no-skill with a reason only when no available skill fits. "
                    "Each user prompt requires a new receipt. Reuse the same skill for an unchanged task.\n\n" + context)
     print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": context}}))

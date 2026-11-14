@@ -160,8 +160,21 @@ Codex launchers use Node to find the git root and invoke Python. They contain no
 shell expansions or Bash loops. Node is already a required bootstrap dependency.
 Claude retains its Git Bash launcher. Both clients configure `repo_guard.py` for
 all supported tool events. The guard rejects known obsolete commands and checks
-the routing receipt before writes, named generation/mutation tools, and shell
-commands outside a small discovery allowlist.
+the routing receipt before writes and shell commands outside a discovery allowlist.
+Unknown tools require routing by default. External MCP tools pass only when their
+operation starts with a read-only name such as `get`, `list`, `search`, or `describe`.
+Mixed names such as `get_or_create` still require routing. Publishing, sharing,
+GPU rental, presets, upscaling, and other generation tools therefore require routing
+even when their names contain neither `generate` nor `create`.
+
+Read-only shell chains can use pipes, `&&`, `||`, semicolons, and newlines.
+Each command must independently pass the discovery check. Discovery includes
+`grep`, non-mutating `find`, simple `sed -n` print selections, and read-only
+`git -C <path>` commands. Quoted punctuation is argument data. Simple variable
+references in arguments are allowed. Command substitution, redirection, background
+execution, and unknown commands still require routing. A denial identifies the
+operator or command segment that failed. This parser supports a conservative
+shell subset; it is not a complete shell interpreter.
 
 Each user prompt clears the session's receipt. Before execution, the agent runs
 `python scripts/hooks/routing_gate.py --session <hook-session-id> --skill <SKILL.md-path> --reason <task-match>`.
@@ -170,6 +183,10 @@ This command returns the instructions and records the file hashes and routing re
 Changed skill files invalidate the receipt. For an unchanged follow-up, route the
 same skill again. If no available skill fits, use `--no-skill --reason <explanation>`.
 That exception is explicit and recorded, but its correctness still requires judgment.
+For a fileless built-in skill, invoke the client's skill tool first, then use
+`--builtin-skill <name> --reason <task-match>`. The receipt records `builtin_skills`
+separately from file-backed `skills` and `no_skill`. Built-in invocation is an agent
+attestation; the hook does not independently verify it or invent a local file hash.
 
 The gate proves delivery of skill text or a stated exception, not comprehension,
 reference reading, skill relevance, or output quality. It does not grant permission
