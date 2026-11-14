@@ -126,6 +126,27 @@ def test_external_discovery_and_builtin_skill_invocation_allowed(tool):
     assert gate.evaluate(event(tool)) is None
 
 
+@pytest.mark.parametrize("tool", ["AskUserQuestion", "ToolSearch", "EnterPlanMode", "ListAgents"])
+def test_clarification_and_planning_available_without_routing(tool):
+    assert gate.evaluate(event(tool)) is None
+    # Local exceptions must not allow similarly named external tools.
+    assert gate.evaluate(event("mcp__unknown__" + tool))
+
+
+@pytest.mark.parametrize("command", ["cd", "cd packages", "cd -- 'path with spaces'",
+                                      "cd packages && ls", "cd packages; grep hook file | head",
+                                      "cd packages || git status --short"])
+def test_cd_and_read_chains_allowed(command):
+    assert gate.evaluate(event("Bash", command)) is None
+
+
+@pytest.mark.parametrize("command", ["cd packages && rm file", "cd packages && higgsfield generate create",
+    "cd packages && python3 scripts/hooks/routing_gate.py --help", "cd packages | make list-workflows",
+    "cd packages || python3 scripts/brand_context.py example-brand", "cd packages other"])
+def test_cd_does_not_bypass_mutation_or_path_checks(command):
+    assert gate.evaluate(event("Bash", command))
+
+
 @pytest.mark.parametrize("command", [
     "grep -n hook AGENTS.md | head -20", "find scripts -name '*.py' && git -C packages show HEAD",
     "sed -n '1,20p' AGENTS.md", "sed -n '/hooks/p' docs/SETUP.md",

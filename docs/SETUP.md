@@ -175,6 +175,11 @@ references in arguments are allowed. Command substitution, redirection, backgrou
 execution, and unknown commands still require routing. A denial identifies the
 operator or command segment that failed. This parser supports a conservative
 shell subset; it is not a complete shell interpreter.
+Clarification and tool discovery remain available before routing: `AskUserQuestion`,
+`ToolSearch`, `EnterPlanMode`, and `ListAgents` are local discovery exceptions.
+Plain `cd` and subsequent read commands are also allowed. For Python or Make after
+`cd`, use a separate tool call with an explicit working directory. The gate must
+not validate a relative script path against the directory from before `cd`.
 
 Each user prompt clears the session's receipt. Before execution, the agent runs
 `python scripts/hooks/routing_gate.py --session <hook-session-id> --skill <SKILL.md-path> --reason <task-match>`.

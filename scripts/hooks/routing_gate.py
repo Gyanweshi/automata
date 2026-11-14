@@ -138,6 +138,11 @@ def read_segment(parts: list[str], cwd: str) -> bool:
     if not parts:
         return True
     executable = parts[0].replace("\\", "/").rsplit("/", 1)[-1].lower()
+    if parts[0] == "cd":
+        args = parts[1:]
+        if args and args[0] == "--":
+            args = args[1:]
+        return len(args) <= 1
     if executable in {"cat", "ls", "pwd", "head", "tail", "wc", "grep", "egrep", "fgrep"}:
         return True
     if executable == "find":
@@ -180,9 +185,17 @@ def command_block_reason(command: str, cwd: str) -> str | None:
     segments, error = shell_segments(command)
     if error:
         return error
+    changed_directory = False
     for index, parts in enumerate(segments, 1):
+        executable = parts[0].replace("\\", "/").rsplit("/", 1)[-1].lower()
+        if changed_directory and executable in {"make", "python", "python3", "python.exe", "python3.exe", "py", "py.exe"}:
+            # cd can fail or run in a pipeline subshell. Do not resolve an executable
+            # or approved script against the original directory after a possible cd.
+            return (f"command segment {index} ({parts[0]!r}) depends on the directory after 'cd'; "
+                    "use a separate tool call with an explicit working directory")
         if not read_segment(parts, cwd):
             return f"command segment {index} ({parts[0]!r}) is outside the discovery allowlist"
+        changed_directory = changed_directory or parts[0] == "cd"
     return None
 
 
@@ -193,6 +206,7 @@ def discovery_command(command: str, cwd: str) -> bool:
 LOCAL_DISCOVERY_TOOLS = {
     "Read", "Glob", "Grep", "LS", "WebSearch", "WebFetch", "read_file", "list_dir", "view_image", "update_plan",
     "request_user_input", "request_user_input_async", "Skill", "skill",
+    "AskUserQuestion", "ToolSearch", "EnterPlanMode", "ListAgents",
     "list_mcp_resources", "list_mcp_resource_templates", "read_mcp_resource",
 }
 # Match the operation at the START of the tool name, never a word anywhere in it.
