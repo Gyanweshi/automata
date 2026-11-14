@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python 3.12 scripts/hooks/skill_routing_context.py session",
+            "command": "node -e \"const c=require('node:child_process'),p=require('node:path'),r=c.execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim();const candidates=[p.join(r,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python'),'python3','python','py'];for(const x of candidates){const t=c.spawnSync(x,['-c','import sys; sys.exit(len(sys.argv)!=2)','probe'],{stdio:'ignore'});if(t.status===0){const z=c.spawnSync(x,[p.join(r,'scripts/hooks/skill_routing_context.py'), 'session'],{stdio:'inherit'});process.exit(z.status===null?1:z.status);}}process.stderr.write('Hook failed: no working Python interpreter. Run the repo bootstrap.');process.exit(1);\"",
             "timeout": 15
           }
         ]
@@ -16,7 +16,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --no-project --python 3.12 scripts/hooks/skill_routing_context.py prompt",
+            "command": "node -e \"const c=require('node:child_process'),p=require('node:path'),r=c.execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim();const candidates=[p.join(r,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python'),'python3','python','py'];for(const x of candidates){const t=c.spawnSync(x,['-c','import sys; sys.exit(len(sys.argv)!=2)','probe'],{stdio:'ignore'});if(t.status===0){const z=c.spawnSync(x,[p.join(r,'scripts/hooks/skill_routing_context.py'), 'prompt'],{stdio:'inherit'});process.exit(z.status===null?1:z.status);}}process.stderr.write('Hook failed: no working Python interpreter. Run the repo bootstrap.');process.exit(1);\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const c=require('node:child_process'),p=require('node:path'),r=c.execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim();const candidates=[p.join(r,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python'),'python3','python','py'];for(const x of candidates){const t=c.spawnSync(x,['-c','import sys; sys.exit(len(sys.argv)!=2)','probe'],{stdio:'ignore'});if(t.status===0){const z=c.spawnSync(x,[p.join(r,'scripts/hooks/repo_guard.py')],{stdio:'inherit'});process.exit(z.status===null?1:z.status);}}process.stderr.write('Hook failed: no working Python interpreter. Run the repo bootstrap.');process.exit(1);\"",
             "timeout": 10
           }
         ]

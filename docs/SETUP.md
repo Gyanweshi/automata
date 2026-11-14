@@ -150,6 +150,39 @@ PATH until you **restart the whole IDE**.
 
 ### After setup
 
+Agent hooks have separate checks. `python scripts/check-hooks.py` checks launchers
+and real context/deny responses. On Windows it also executes Codex launchers through
+both cmd and PowerShell, from the root and a subdirectory of a path containing spaces.
+Linux reports that native Windows execution was not tested. These checks do not
+prove that a client loaded or trusted its hooks.
+
+Codex launchers use Node to find the git root and invoke Python. They contain no
+shell expansions or Bash loops. Node is already a required bootstrap dependency.
+Claude retains its Git Bash launcher. Both clients configure `repo_guard.py` for
+all supported tool events. The guard rejects known obsolete commands and checks
+the routing receipt before writes, named generation/mutation tools, and shell
+commands outside a small discovery allowlist.
+
+Each user prompt clears the session's receipt. Before execution, the agent runs
+`python scripts/hooks/routing_gate.py --session <hook-session-id> --skill <SKILL.md-path> --reason <task-match>`.
+Use the repo interpreter when available. Repeat `--skill` for multiple skills.
+This command returns the instructions and records the file hashes and routing reason.
+Changed skill files invalidate the receipt. For an unchanged follow-up, route the
+same skill again. If no available skill fits, use `--no-skill --reason <explanation>`.
+That exception is explicit and recorded, but its correctness still requires judgment.
+
+The gate proves delivery of skill text or a stated exception, not comprehension,
+reference reading, skill relevance, or output quality. It does not grant permission
+to spend, publish, or send. Hosted tools that bypass local hooks remain outside its
+coverage. Local receipts are workflow state, not a tamper-proof security boundary.
+In Codex, inspect hook trust and execution in `/hooks` after changing hook configuration.
+See the [Codex hook documentation](https://learn.chatgpt.com/docs/hooks).
+
+If agents ignore skills despite passing checks, inspect live hook delivery in the
+client. A successful launch does not establish compliance with the instructions.
+If Codex hooks fail on Windows, check Node and Python availability, then inspect
+the actual `/hooks` executions. Native shell checks supplement this live check.
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | `deps.py check` shows `FAIL uv` / `node` / `python-packages` "not on PATH" although the setup worked | Old checkout: older versions checked against this terminal's stale PATH | `git pull`. The checks now use the PATH a new terminal would see. |

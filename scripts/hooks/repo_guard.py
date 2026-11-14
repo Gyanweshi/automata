@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Claude Code PreToolUse guard: stop known old-way moves before they run, and say what to use instead.
+"""Claude Code and Codex PreToolUse guard for known old-way commands.
 
 Only clear-cut cases are blocked (a removed script, an installer that bypasses the pins, a new one-OS script, a
 browser-act command before its required guide). Everything else passes through untouched. Reads the hook event
@@ -115,8 +115,11 @@ def main() -> int:
         return 0  # never break a tool call because the hook could not read its input
     try:
         decision = evaluate(event)
-    except Exception:  # a guard bug must not block work
-        return 0
+        if decision is None:
+            from routing_gate import evaluate as check_route
+            decision = check_route(event)
+    except Exception as exc:
+        decision = deny(f"Repository hook failed ({type(exc).__name__}). Repair the hook before retrying this action.")
     if decision:
         print(json.dumps(decision))
     return 0

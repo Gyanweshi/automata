@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove every hook (Claude Code, Codex, git) starts on a fresh clone of this repo, on any machine.
+"""Check hook launchers and responses, including native Windows Codex launchers.
 
 Hooks run on every session, prompt and commit, so a hook that only works on the machine that wrote it breaks
 everyone else at once. This checks:
@@ -28,6 +28,7 @@ import subprocess  # nosec B404 - runs git, bash and the repo's own hook command
 import sys
 import tempfile
 import tomllib
+import venv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,7 +44,7 @@ LOOKALIKE_PYTHON = ('#!/bin/sh\n[ "$1" = -c ] && [ $# -eq 2 ] && exit 0\n'
 
 
 def find_bash() -> str | None:
-    """The bash hooks really run under: Git Bash on Windows (never WSL's System32 bash), the system one elsewhere."""
+    """Find Bash for Claude/git and portable-launcher tests; this is not Codex's Windows runtime."""
     if os.name == "nt":
         exec_path = subprocess.run(["git", "--exec-path"], capture_output=True, text=True,  # nosec B603 B607
                                    encoding="utf-8").stdout.strip()
@@ -107,15 +108,19 @@ def check_launch(errors: list[str]) -> None:
             if cmd.lstrip().startswith("uv ") and not shutil.which("uv"):
                 print(f"check-hooks: skipped {label} (uv not installed here)")
                 continue
-            try:
-                result = subprocess.run([bash, "-c", cmd], cwd=tmp, env=env, input="{}", capture_output=True,  # nosec B603
-                                        text=True, encoding="utf-8", errors="replace", timeout=120)
-            except subprocess.TimeoutExpired:
-                errors.append(f"launch\t{label}\ttimed out")
-                continue
-            if result.returncode or STUB_MARK not in result.stdout:
-                detail = (result.stderr or result.stdout).strip().splitlines()[-1:] or ["no output"]
-                errors.append(f"launch\t{label}\texit {result.returncode}, never reached a working Python: {detail[0]}")
+            directories = [tmp] if label.startswith("git ") else [tmp, tmp / "scripts"]
+            for directory in directories:
+                location = directory.relative_to(tmp).as_posix()
+                try:
+                    result = subprocess.run([bash, "-c", cmd], cwd=directory, env=env, input="{}", capture_output=True,  # nosec B603
+                                            text=True, encoding="utf-8", errors="replace", timeout=120)
+                except subprocess.TimeoutExpired:
+                    errors.append(f"launch\t{label}\tcwd={location}: timed out")
+                    continue
+                if result.returncode or STUB_MARK not in result.stdout:
+                    detail = (result.stderr or result.stdout).strip().splitlines()[-1:] or ["no output"]
+                    errors.append(f"launch\t{label}\tcwd={location}: exit {result.returncode}, "
+                                  f"never reached a working Python: {detail[0]}")
 
 
 def check_machine_paths(errors: list[str]) -> None:
@@ -129,6 +134,32 @@ def check_machine_paths(errors: list[str]) -> None:
                     errors.append(f"machine-path\t{path.relative_to(ROOT).as_posix()}:{n}\t{match}")
 
 
+def check_native_windows(errors: list[str]) -> None:
+    """Run Codex launchers through cmd AND PowerShell, not Git Bash."""
+    if os.name != "nt":
+        print("check-hooks: native Windows cmd/PowerShell execution not tested on this OS")
+        return
+    shells = [[os.environ.get("COMSPEC", "cmd.exe"), "/d", "/s", "/c"],
+              ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command"]]
+    with tempfile.TemporaryDirectory(prefix="automata hooks ") as directory:
+        root = Path(directory)
+        fresh_clone(root)
+        venv.EnvBuilder(with_pip=False).create(root / ".venv")
+        for label, command in hook_commands():
+            if not label.startswith(".codex/"):
+                continue
+            for shell in shells:
+                for cwd in (root, root / "scripts"):
+                    try:
+                        result = subprocess.run([*shell, command], cwd=cwd, input="{}", capture_output=True,
+                                                text=True, encoding="utf-8", errors="replace", timeout=30)
+                        if result.returncode or STUB_MARK not in result.stdout:
+                            errors.append(f"native-windows\t{label}\t{shell[0]} cwd={cwd.name}: "
+                                          f"{result.stderr.strip() or result.stdout.strip()}")
+                    except (OSError, subprocess.TimeoutExpired) as exc:
+                        errors.append(f"native-windows\t{label}\t{exc}")
+
+
 def check_hidden_edits(errors: list[str]) -> None:
     out = subprocess.run(["git", "ls-files", "-v"], cwd=ROOT, capture_output=True, text=True,  # nosec B603 B607
                          encoding="utf-8", check=True).stdout
@@ -139,18 +170,52 @@ def check_hidden_edits(errors: list[str]) -> None:
             errors.append(f"hidden-edit\t{name}\tmarked {kind}: git hides this machine's edits to it")
 
 
+def check_behavior(errors: list[str]) -> None:
+    """Exercise real scripts, independently of launcher and runtime trust checks."""
+    cases = [
+        ("session context", ["skill_routing_context.py", "session"], {}, "SessionStart", "additionalContext"),
+        ("prompt context", ["skill_routing_context.py", "prompt"], {}, "UserPromptSubmit", "additionalContext"),
+        ("old installer denied", ["repo_guard.py"],
+         {"tool_name": "Bash", "tool_input": {"command": "uv tool install browser-act-cli"}},
+         "PreToolUse", "permissionDecision"),
+        ("unrouted write denied", ["repo_guard.py"],
+         {"tool_name": "Write", "tool_input": {"file_path": "example.txt"}},
+         "PreToolUse", "permissionDecision"),
+        ("unrouted generation denied", ["repo_guard.py"],
+         {"tool_name": "mcp__higgsfield__generate_image", "tool_input": {}},
+         "PreToolUse", "permissionDecision"),
+    ]
+    for label, args, event, expected_event, field in cases:
+        try:
+            result = subprocess.run([sys.executable, str(ROOT / "scripts/hooks" / args[0]), *args[1:]],
+                                    input=json.dumps(event), capture_output=True, text=True,
+                                    encoding="utf-8", timeout=15, cwd=ROOT)
+            output = json.loads(result.stdout)["hookSpecificOutput"]
+            valid = (result.returncode == 0 and output["hookEventName"] == expected_event
+                     and bool(output.get(field)))
+            if field == "permissionDecision":
+                valid = valid and output[field] == "deny"
+            if not valid:
+                errors.append(f"behavior\t{label}\tunexpected hook response")
+        except (subprocess.TimeoutExpired, ValueError, KeyError, TypeError) as exc:
+            errors.append(f"behavior\t{label}\t{exc}")
+
+
 def main() -> int:
     errors: list[str] = []
     check_machine_paths(errors)
     check_hidden_edits(errors)
     check_launch(errors)
+    check_native_windows(errors)
+    check_behavior(errors)
     for error in errors:
         print(error, file=sys.stderr)
     if errors:
         print(f"\ncheck-hooks: {len(errors)} problem(s). Hooks must start on any machine, from a fresh clone. "
               "See the docstring of scripts/check-hooks.py.", file=sys.stderr)
         return 1
-    print("check-hooks: every hook reaches Python on a fresh clone; no machine paths; no hidden edits")
+    print("check-hooks: launchers and real context/deny responses passed; no machine paths; no hidden edits")
+    print("This does not verify client hook trust, live delivery, or agent compliance with skills.")
     return 0
 
 
