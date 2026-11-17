@@ -38,7 +38,9 @@ def test_shell_bypass_paths_require_routing(command):
 
 @pytest.mark.parametrize("command", ["rg --files", "cat AGENTS.md", "git status --short",
                                        "make list-workflows", "make brand-context BRAND=example-brand",
-                                       "python3 scripts/hooks/routing_gate.py --help"])
+                                       "python3 scripts/hooks/routing_gate.py --help",
+                                       r".\.venv\Scripts\python.exe scripts/hooks/routing_gate.py --help",
+                                       r".\.venv\Scripts\python.exe scripts\hooks\routing_gate.py --help"])
 def test_discovery_is_available_before_routing(command):
     assert gate.evaluate(event("Bash", command)) is None
 

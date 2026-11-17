@@ -70,6 +70,13 @@ def shell_segments(command: str) -> tuple[list[list[str]], str | None]:
                 started = True
                 i += 1
                 continue
+            # When unquoted, backslashes before normal path characters are path separators,
+            # not shell metacharacter escapes (e.g. .\.venv\Scripts\python.exe).
+            if quote is None and command[i + 1] not in " \t\r\n'\"$`\\<>()|;&":
+                word.append(char)
+                started = True
+                i += 1
+                continue
             word.append(command[i + 1])
             started = True
             i += 2

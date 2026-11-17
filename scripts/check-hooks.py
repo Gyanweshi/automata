@@ -151,7 +151,12 @@ def check_native_windows(errors: list[str]) -> None:
             for shell in shells:
                 for cwd in (root, root / "scripts"):
                     try:
-                        result = subprocess.run([*shell, command], cwd=cwd, input="{}", capture_output=True,
+                        # cmd parses /c as shell source, not a CRT argv element.
+                        # list2cmdline would backslash-escape the JS quotes, which
+                        # cmd preserves and passes incorrectly to node -e.
+                        invocation = (subprocess.list2cmdline(shell) + ' "' + command + '"'
+                                      if shell[1] == "/d" else [*shell, command])
+                        result = subprocess.run(invocation, cwd=cwd, input="{}", capture_output=True,
                                                 text=True, encoding="utf-8", errors="replace", timeout=30)
                         if result.returncode or STUB_MARK not in result.stdout:
                             errors.append(f"native-windows\t{label}\t{shell[0]} cwd={cwd.name}: "

@@ -249,7 +249,13 @@ def run_check(dep: dict, os_name: str | None = None, release: dict | None = None
         return "ok", installed or "installed (version unknown)"
     if not command:
         return "n/a", "no automatic check"
-    exe = shutil.which(command[0])
+    if dep["id"] == "python":
+        # Bootstrap can use uv-managed Python without changing the shell's PATH.
+        # Check the runtime used by this checkout, including an outdated venv.
+        venv_python = ROOT / ".venv" / ("Scripts/python.exe" if os_name == "windows" else "bin/python")
+        exe = str(venv_python) if venv_python.is_file() else sys.executable
+    else:
+        exe = shutil.which(command[0])
     if not exe:
         return "missing", f"{command[0]} not on PATH"
     try:
