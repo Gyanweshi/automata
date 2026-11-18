@@ -484,6 +484,22 @@ update = "App update; after a minor version change re-install the gimp-mcp plugi
 on_break = "See gimp-mcp."
 
 [[dependency]]
+id = "inkscape"
+roles = ["images"]
+name = "Inkscape"
+kind = "app"
+category = "Apps"
+purpose = "Vector editor; its CLI renders hand-written SVG layers (cards, bubbles, props) to PNG for GIMP compositing."
+used_by = ["image-compositing-repair (vector layers)"]
+required = false
+check = ["inkscape", "--version"]
+version_regex = 'Inkscape (\d+\.\d+(?:\.\d+)?)'
+install = { linux = "sudo apt-get install -y inkscape", windows = "winget install -e --accept-source-agreements --accept-package-agreements --id Inkscape.Inkscape", macos = "brew install --cask inkscape" }
+path_dirs = { windows = ["%ProgramFiles%\\Inkscape\\bin"] }  # the MSI leaves inkscape off PATH
+update = "Package manager upgrade."
+on_break = "Windows: python scripts/deps.py install inkscape adds the Inkscape bin folder to PATH; open a new terminal. Use inkscape.com (console) rather than inkscape.exe for CLI exports."
+
+[[dependency]]
 id = "blender"
 roles = ["3d"]
 name = "Blender"

@@ -150,7 +150,15 @@ def read_segment(parts: list[str], cwd: str) -> bool:
         if args and args[0] == "--":
             args = args[1:]
         return len(args) <= 1
-    if executable in {"cat", "ls", "pwd", "head", "tail", "wc", "grep", "egrep", "fgrep"}:
+    if executable in {
+        "cat", "ls", "pwd", "head", "tail", "wc", "grep", "egrep", "fgrep",
+        "get-childitem", "gci", "dir", "get-content", "gc", "type", "get-location", "gl",
+        "get-item", "gi", "get-itemproperty", "gp",
+        "select-object", "select", "sort-object", "sort", "measure-object", "measure",
+        "where-object", "where", "select-string", "sls",
+        "format-table", "ft", "format-list", "fl", "format-wide", "fw",
+        "out-string", "out-host", "out-null", "write-output", "echo",
+    }:
         return True
     if executable == "find":
         return not any(p in {"-exec", "-execdir", "-ok", "-okdir", "-delete", "-fprint", "-fprint0",
@@ -256,7 +264,7 @@ def evaluate(event: dict) -> dict | None:
     if blocked is None or routed(str(event.get("session_id", ""))):
         return None
     session = str(event.get("session_id", ""))
-    reason = (f"Routing gate: {blocked}. Skill routing is required before this action. Run the repo Python with "
+    reason = (f"Routing gate: {blocked}. Skill routing is required before this action. Run the repo Python (python, not py) with "
               f"scripts/hooks/routing_gate.py --session {json.dumps(session)} "
               "--skill <path/to/SKILL.md> --reason <why-this-skill>. Read the returned instructions and required references. "
               "For fileless built-in skills, invoke the skill, then use --builtin-skill <name> --reason <task-match>. "
@@ -290,8 +298,16 @@ def main() -> int:
             items.append({"path": str(path), "sha256": hashlib.sha256(content).hexdigest()})
         for name in args.builtin_skill or []:
             texts.append(f"Built-in skill: {name} (agent reports prior invocation; no local file hash available).")
-        # Deliver instructions before recording the receipt. A broken output pipe must not unlock work.
-        print("\n\n".join(texts) if texts else f"No matching skill: {args.reason}", flush=True)
+        # Deliver instructions. Handle downstream pipes (e.g. Select-Object -First 1, head -n 1) gracefully.
+        try:
+            print("\n\n".join(texts) if texts else f"No matching skill: {args.reason}", flush=True)
+        except (BrokenPipeError, OSError):
+            import os
+            try:
+                devnull = os.open(os.devnull, os.O_WRONLY)
+                os.dup2(devnull, sys.stdout.fileno())
+            except Exception:
+                pass
         save(args.session, {"routed": True, "reason": args.reason, "skills": items, "builtin_skills": args.builtin_skill or [], "no_skill": args.no_skill})
     except (OSError, ValueError) as exc:
         print(f"Routing failed: {exc}", file=sys.stderr)

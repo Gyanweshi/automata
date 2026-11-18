@@ -40,7 +40,9 @@ def test_shell_bypass_paths_require_routing(command):
                                        "make list-workflows", "make brand-context BRAND=example-brand",
                                        "python3 scripts/hooks/routing_gate.py --help",
                                        r".\.venv\Scripts\python.exe scripts/hooks/routing_gate.py --help",
-                                       r".\.venv\Scripts\python.exe scripts\hooks\routing_gate.py --help"])
+                                       r".\.venv\Scripts\python.exe scripts\hooks\routing_gate.py --help",
+                                       "Get-ChildItem workspace | Sort-Object Name | Select-Object -First 5",
+                                       "Get-Content AGENTS.md | Select-String routing"])
 def test_discovery_is_available_before_routing(command):
     assert gate.evaluate(event("Bash", command)) is None
 
@@ -103,8 +105,11 @@ def test_real_prompt_route_and_guard_cycle(tmp_path):
     assert run("repo_guard.py", payload=write) == ""
     assert run("repo_guard.py", payload=event("Bash", "uv tool install browser-act-cli"))["hookSpecificOutput"]["permissionDecision"] == "deny"
     context = run("skill_routing_context.py", ["prompt"], {"session_id": "test-session"})
-    assert "test-session" in context["hookSpecificOutput"]["additionalContext"]
-    assert run("repo_guard.py", payload=write)["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert "Skill routing is active for this session" in context["hookSpecificOutput"]["additionalContext"]
+    # Follow-up prompts inside a routed session remain unlocked
+    assert run("repo_guard.py", payload=write) == ""
+    # Unrouted sessions remain guarded
+    assert run("repo_guard.py", payload=event("Write", session="unrouted-session"))["hookSpecificOutput"]["permissionDecision"] == "deny"
 
 
 @pytest.mark.parametrize("operation", ["upscale_image", "upscale_video", "outpaint_image", "reframe",

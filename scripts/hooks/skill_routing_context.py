@@ -60,8 +60,9 @@ def main() -> None:
     if mode == "prompt":
         event, context = "UserPromptSubmit", PROMPT_REMINDER
         if session:
-            from routing_gate import reset
-            reset(session)
+            from routing_gate import routed, reset
+            if not routed(session):
+                reset(session)
     else:
         event, context = "SessionStart", f"{FIRST_ACTION}\n\n{catalog_text()}"
         try:
@@ -73,12 +74,16 @@ def main() -> None:
         except Exception:  # never block a session over the freshness check
             pass
     if session:
-        context = ("Routing gate: before writes, generation, or non-discovery shell commands, run "
-                   f"the repo Python with scripts/hooks/routing_gate.py --session {json.dumps(session)} "
-                   "--skill <SKILL.md-path> --reason <task-match>. Read the returned skill and its required references. "
-                   "For a fileless built-in skill, invoke it, then record --builtin-skill <name> with a reason. "
-                   "Use --no-skill with a reason only when no available skill fits. "
-                   "Each user prompt requires a new receipt. Reuse the same skill for an unchanged task.\n\n" + context)
+        from routing_gate import routed
+        if routed(session):
+            context = ("Skill routing is active for this session. Reuse the current skill for follow-ups; "
+                       "only re-route if scope changes to another skill.\n\n" + context)
+        else:
+            context = ("Routing gate: before writes, generation, or non-discovery shell commands, run "
+                       f"the repo Python (python, not py) with scripts/hooks/routing_gate.py --session {json.dumps(session)} "
+                       "--skill <SKILL.md-path> --reason <task-match>. Read the returned skill and its required references. "
+                       "For a fileless built-in skill, invoke it, then record --builtin-skill <name> with a reason. "
+                       "Use --no-skill with a reason only when no available skill fits.\n\n" + context)
     print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": context}}))
 
 

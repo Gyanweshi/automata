@@ -222,6 +222,7 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 |---|---|---|---|---|---|
 | **Google Chrome or Microsoft Edge** (`chrome`) | Persistent logged-in Instagram profile for CDP research. | no | research | OS package manager | - |
 | **GIMP 3.2** (`gimp`) | Host app for the GIMP MCP. | no | images | OS package manager | - |
+| **Inkscape** (`inkscape`) | Vector editor; its CLI renders hand-written SVG layers (cards, bubbles, props) to PNG for GIMP compositing. | no | images | OS package manager | - |
 | **Blender** (`blender`) | Host app for the Blender MCP. | no | 3d | OS package manager | - |
 | **Obsidian vault (optional)** (`obsidian-vault`) | Brand notes, drafts and research; source for the vault search index. Optional: without it, notes stay in workspace/vault. | no | - | OS package manager | - |
 
@@ -381,6 +382,11 @@ Review each one whenever the package is upgraded, and remove the ignore once a f
 - **Install:** linux: `flatpak install flathub org.gimp.GIMP`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id GIMP.GIMP.3`; macos: `brew install --cask gimp`
 - **Update:** App update; after a minor version change re-install the gimp-mcp plugin.
 - **If it breaks:** See gimp-mcp.
+
+#### Inkscape (`inkscape`)
+- **Install:** linux: `sudo apt-get install -y inkscape`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id Inkscape.Inkscape`; macos: `brew install --cask inkscape`
+- **Update:** Package manager upgrade.
+- **If it breaks:** Windows: python scripts/deps.py install inkscape adds the Inkscape bin folder to PATH; open a new terminal. Use inkscape.com (console) rather than inkscape.exe for CLI exports.
 
 #### Blender (`blender`)
 - **Install:** linux: `snap install blender --classic`; windows: `winget install -e --accept-source-agreements --accept-package-agreements --id BlenderFoundation.Blender`; macos: `brew install --cask blender`
