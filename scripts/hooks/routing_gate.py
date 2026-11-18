@@ -191,7 +191,7 @@ def read_segment(parts: list[str], cwd: str) -> bool:
         return len(parts) > 1 and parts[1] in {"list-workflows", "brand-context"} and all(
             re.fullmatch(r"BRAND=[\w-]+", p) for p in parts[2:])
     if executable in {"python", "python3", "python.exe", "python3.exe", "py", "py.exe"} and len(parts) > 1:
-        script = (Path(cwd) / parts[1]).resolve()
+        script = (Path(cwd) / parts[1].replace("\\", "/")).resolve()
         return script in {ROOT / "scripts/hooks/routing_gate.py", ROOT / "scripts/brand_context.py"}
     return False
 
