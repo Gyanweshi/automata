@@ -140,6 +140,7 @@ class ContentAgent:
         research: ResearchOutput | None = None,
         **kwargs,
     ) -> ContentPiece:
+        script_framework = kwargs.pop("script_framework", None)
         if platform == "instagram":
             writer = InstagramWriter(brand)
             if content_type in ("caption",):
@@ -147,7 +148,9 @@ class ContentAgent:
             elif content_type in ("carousel",):
                 piece = writer.carousel_brief(topic, research=research, **kwargs)
             elif content_type in ("reel", "reel_script"):
-                piece = writer.reel_script_brief(topic, research=research, **kwargs)
+                piece = writer.reel_script_brief(
+                    topic, research=research, framework=script_framework or "timeline", **kwargs
+                )
             else:
                 piece = writer.caption_brief(topic, research=research)
         elif platform == "linkedin":

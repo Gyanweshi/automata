@@ -26,6 +26,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="caption",
     )
     p.add_argument("--topic", default="", help="Content topic or title")
+    p.add_argument(
+        "--script-framework", choices=["timeline", "retention"], default="timeline",
+        help="Reel script structure: 'timeline' (timestamped table) or 'retention' "
+             "(hook, lock-in, body blocks, rehooks, CTA; 45-90s spoken)",
+    )
     p.add_argument("--variations", type=int, default=2, help="Number of variations to generate (default: 2)")
     p.add_argument("--week", action="store_true", help="Generate a full week of content briefs")
     p.add_argument("--voice-brief", action="store_true", help="Print the brand voice brief and exit")
@@ -121,6 +126,7 @@ def main():
             topic=args.topic,
             research=research,
             variations=args.variations,
+            script_framework=args.script_framework,
         )
 
     note_status = "final" if args.commit_vault else "draft"

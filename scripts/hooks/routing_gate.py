@@ -300,6 +300,9 @@ def main() -> int:
             texts.append(f"Built-in skill: {name} (agent reports prior invocation; no local file hash available).")
         # Deliver instructions. Handle downstream pipes (e.g. Select-Object -First 1, head -n 1) gracefully.
         try:
+            # Skill files are UTF-8; a Windows console (cp1252) must not crash on them.
+            if hasattr(sys.stdout, "reconfigure"):
+                sys.stdout.reconfigure(errors="replace")
             print("\n\n".join(texts) if texts else f"No matching skill: {args.reason}", flush=True)
         except (BrokenPipeError, OSError):
             import os

@@ -7,6 +7,7 @@ from ..voice import BrandVoiceEngine
 
 CAPTION_LIMIT = 2200
 REEL_CAPTION_LIMIT = 2200
+SCRIPT_FRAMEWORKS = ("timeline", "retention")
 
 
 class InstagramWriter:
@@ -76,9 +77,27 @@ class InstagramWriter:
         topic: str,
         duration_seconds: int = 30,
         research: ResearchOutput | None = None,
+        framework: str = "timeline",
     ) -> ContentPiece:
-        """Generate a reel script brief with timestamped scene/voiceover structure."""
-        body = self._reel_template(topic, duration_seconds)
+        """Generate a reel script brief.
+
+        framework="timeline"  -> timestamped scene/voiceover table (default).
+        framework="retention" -> hook / lock-in / body blocks / rehooks / CTA
+                                 structure for 45-90s spoken short-form scripts.
+        """
+        if framework not in SCRIPT_FRAMEWORKS:
+            raise ValueError(
+                f"Unknown script framework '{framework}'. Choose from: {', '.join(SCRIPT_FRAMEWORKS)}"
+            )
+        if framework == "retention":
+            body = self._retention_template(topic)
+            notes = (
+                "Retention framework. 45-90s spoken (~110-225 words). "
+                "Hook states the subject in sentence 1; at least two non-obvious body blocks."
+            )
+        else:
+            body = self._reel_template(topic, duration_seconds)
+            notes = f"~{duration_seconds}s duration. Hook in first 2 seconds."
         return ContentPiece(
             platform="instagram",
             content_type="reel_script",
@@ -86,7 +105,7 @@ class InstagramWriter:
             body=body,
             hashtags=self._select_hashtags(research),
             cta="Follow for more + link in bio",
-            notes=f"~{duration_seconds}s duration. Hook in first 2 seconds.",
+            notes=notes,
         )
 
     # --- Internal helpers ---
@@ -198,6 +217,73 @@ class InstagramWriter:
             "",
             "Write ONE opening line specific to this brand, this topic, and this audience.",
             "Do not use fill-in-the-blank patterns. The hook must feel like it could only come from this brand.",
+        ]
+        return "\n".join(lines)
+
+    def _retention_template(self, topic: str) -> str:
+        """Short-form retention structure: hook, lock-in, body blocks, rehooks, CTA.
+
+        Full method: skills/agency-content/references/retention-script-framework.md
+        """
+        vc = self.voice.template_context()
+        lines = [
+            f"# Reel Script Brief (retention framework): {topic}",
+            "",
+            f"**Brand voice**: {vc['tone']}",
+            f"**Audience**: {vc['primary_audience']}",
+            "**Length**: 45-90s spoken (~110-225 words). Shorter wins. Do not pad to reach length.",
+            "",
+            "## Principles",
+            "- Cut fluff. Every sentence follows from the last or clearly starts a new thread.",
+            "- Tease the value early: the viewer must know why to keep watching.",
+            "- Simple words whose meaning is obvious on first hearing.",
+            "",
+            "## Script",
+            "",
+            "### 1. Hook (1-2 sentences)",
+            "Four S's: **Subject** named in sentence 1; **Stakes** for this audience; "
+            "**Simple** words; **Superclear**, punchy sentence structure.",
+            self.voice.archetype_hooks(),
+            "**Script**: [write here]",
+            "",
+            "### 2. Lock-in zone (2-4 sentences)",
+            "Convince them the rest is worth it. Use one: tease proof; tease the transformation "
+            "or emotional payoff; contrast with the common belief; name an unknown method or term "
+            "(magic box); dismiss their main objection; double down on the hook's claim.",
+            "Exit feeling: \"I have to keep listening.\"",
+            "**Lock-in move used**: [name it]",
+            "**Script**: [write here]",
+            "",
+            "### 3. Body block 1 (3-5 sentences)",
+            "One non-obvious or contrarian frame, then 2-4 sentences of facts, example or reasoning that defend it.",
+            "**Script**: [write here]",
+            "",
+            "### 4. Rehook 1 (1 sentence)",
+            "Reset attention (~20-25s in) with contrast or a new open question leading into block 2. "
+            "Make it specific to this topic; a stock \"but that's nothing compared to...\" reads as forced.",
+            "**Script**: [write here]",
+            "",
+            "### 5. Body block 2 (3-5 sentences)",
+            "A second non-obvious frame plus support. Two hits of non-obvious value is the goal.",
+            "**Script**: [write here]",
+            "",
+            "### 6. Rehook 2 (1 sentence) — only if block 3 is used",
+            "**Script**: [write here or cut]",
+            "",
+            "### 7. Body block 3 (optional, 3-5 sentences)",
+            "**Script**: [write here or cut]",
+            "",
+            "### 8. Closing (optional, 1-2 sentences)",
+            "Only when there is no CTA: crystallise the takeaway and remind them why they watched.",
+            "**Script**: [write here or cut]",
+            "",
+            "### 9. CTA (1 sentence)",
+            "A ramp to more value on this exact topic (a lead magnet works best). One action only.",
+            "**Script**: [write here]",
+            "",
+            "## Visual / on-screen notes",
+            "For each section, note the shot or on-screen text. The post caption must complement "
+            "the script, never restate its stat, story or CTA the same way.",
         ]
         return "\n".join(lines)
 

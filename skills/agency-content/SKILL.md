@@ -70,6 +70,11 @@ renewed ideation for a selected concept, supplied copy, or execution-only edit.
 - Middle slides: one idea each, headline + 1-2 supporting lines
 - Last slide: CTA + follow prompt
 
+**Instagram reel scripts** (`--type reel`) have two frameworks, chosen with `--script-framework`:
+- `timeline` (default): timestamped visual/voiceover table. Use for short visual reels, mood pieces and character-led story films.
+- `retention`: hook (Four S's), lock-in zone, body block, rehook, body block, CTA, 45-90s spoken. Use for talking-head or voiceover reels that teach, argue or reveal. Read `skills/agency-content/references/retention-script-framework.md` before writing one.
+- Pick the framework that fits the brief; if the user names one, use it. Brand constraints in the brand note override either structure.
+
 **LinkedIn posts:**
 - Max 3000 characters
 - First line = hook (no context - must trigger "see more" click)
