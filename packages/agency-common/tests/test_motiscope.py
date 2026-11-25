@@ -35,3 +35,8 @@ def test_checkout_verification_rejects_wrong_revision_and_modified_code(tmp_path
     launcher.write_text("# changed\n", encoding="utf-8")
     with pytest.raises(ValueError, match="modified tracked"):
         runner.verify(tmp_path, pin)
+
+
+def test_install_lives_outside_disposable_workspace(tmp_path):
+    path = runner.install_path(tmp_path, "a" * 40)
+    assert path.relative_to(tmp_path).parts[0] == ".tools"

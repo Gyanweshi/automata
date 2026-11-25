@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess  # nosec B404 - runs the repo's own scripts and tool probes
 import sys
+import tempfile
 import tomllib
 from pathlib import Path
 
@@ -118,14 +119,16 @@ def check_agents():
         return SKIP, "no .venv", ""
     # A throwaway brand built from the committed template, so this works without the vault or .env
     # (real brand notes, including example-brand, live in the Obsidian vault).
-    work = ROOT / "workspace" / "doctor"
-    (work / "brands").mkdir(parents=True, exist_ok=True)
-    template = (ROOT / "brands" / "_template.yaml").read_text(encoding="utf-8")
-    template = re.sub(r'(?m)^slug: .*$', 'slug: "doctor-check"', template)
-    template = re.sub(r'(?m)^name: .*$', 'name: "Doctor Check"', template)
-    (work / "brands" / "doctor-check.yaml").write_text(template, encoding="utf-8")
-    code, out = run([str(VENV_PYTHON), "scripts/run-agent.py", "dry-run", "--brand", "doctor-check",
-                     "--brands-dir", str(work / "brands"), "--workspace", str(work)])
+    # It lives in a temporary folder that is removed afterwards, so doctor leaves nothing in workspace/.
+    with tempfile.TemporaryDirectory(prefix="agency-doctor-") as tmp:
+        work = Path(tmp)
+        (work / "brands").mkdir()
+        template = (ROOT / "brands" / "_template.yaml").read_text(encoding="utf-8")
+        template = re.sub(r'(?m)^slug: .*$', 'slug: "doctor-check"', template)
+        template = re.sub(r'(?m)^name: .*$', 'name: "Doctor Check"', template)
+        (work / "brands" / "doctor-check.yaml").write_text(template, encoding="utf-8")
+        code, out = run([str(VENV_PYTHON), "scripts/run-agent.py", "dry-run", "--brand", "doctor-check",
+                         "--brands-dir", str(work / "brands"), "--workspace", str(work)])
     return (PASS, "research + content dry-run OK on a template brand, no API calls", "") if code == 0 \
         else (FAIL, "agent dry-run failed", out)
 

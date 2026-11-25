@@ -16,7 +16,7 @@ python scripts/motiscope.py analyze <recording> --preset balanced --out workspac
 ```
 
 The installer uses the full commit pin in `dependencies.toml`, verifies Git object
-integrity, and keeps each version in `workspace/tools/motiscope/<commit>/`.
+integrity, and keeps each version in `.tools/motiscope/<commit>/` (git-ignored, outside the disposable `workspace/`).
 It preserves the upstream MIT license. No global plugin, account, API key or paid
 generation is needed. Missing FFmpeg: `python scripts/deps.py install ffmpeg`.
 Update through `python scripts/deps.py set-pin motiscope <full-commit-sha>`, then

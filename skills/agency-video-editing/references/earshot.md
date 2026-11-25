@@ -5,7 +5,7 @@ sound-effect selection, soundtrack review or procedural sound design.
 
 Install through `python scripts/deps.py install earshot`. This reads the source
 commit from `dependencies.toml`, creates an isolated Python 3.12 environment under
-`workspace/tools/earshot/`, installs CPU torch, and fetches/loads the local models.
+`.tools/earshot/` (git-ignored, outside the disposable `workspace/`), installs CPU torch, and fetches/loads the local models.
 The `video` bootstrap role installs it on another machine; no copied virtualenv
 or machine-specific paths are needed. FFmpeg/ffprobe must be on PATH (use
 `python scripts/deps.py install ffmpeg` if missing).

@@ -15,7 +15,7 @@ UPSTREAM = "https://github.com/KumarSashank/motiscope.git"
 def install_path(root: Path, pin: str) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", pin):
         raise ValueError("Motiscope requires a full commit SHA in dependencies.toml")
-    return root / "workspace" / "tools" / "motiscope" / pin
+    return root / ".tools" / "motiscope" / pin
 
 
 def verify(path: Path, pin: str) -> None:

@@ -39,3 +39,8 @@ def test_missing_install_does_not_download(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "ROOT", tmp_path)
     with pytest.raises(ValueError, match="deps.py install earshot"):
         runner.main(["mcp"])
+
+
+def test_install_lives_outside_disposable_workspace(tmp_path):
+    venv = runner.environment_path(tmp_path, "a" * 40)
+    assert venv.relative_to(tmp_path).parts[0] == ".tools"

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def environment_path(root: Path, pin: str) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", pin):
         raise ValueError("Earshot requires a full commit SHA")
-    return root / "workspace" / "tools" / "earshot" / pin / ".venv"
+    return root / ".tools" / "earshot" / pin / ".venv"
 
 
 def python_path(venv: Path, platform: str = sys.platform) -> Path:
@@ -34,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
     marker = venv.parent / "installed.txt"
     env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     env.setdefault("EARSHOT_THREADS", "3")
-    env.setdefault("EARSHOT_HOME", str(ROOT / "workspace" / "tools" / "earshot" / "cache"))
+    env.setdefault("EARSHOT_HOME", str(ROOT / ".tools" / "earshot" / "cache"))
     if args == ["install"]:
         venv.parent.mkdir(parents=True, exist_ok=True)
         if not python.is_file():
